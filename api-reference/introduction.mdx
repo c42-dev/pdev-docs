@@ -1,33 +1,47 @@
 ---
 title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+description: 'pague.dev External API documentation'
 ---
-
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
 
 ## Welcome
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+The pague.dev External API allows you to integrate payment processing into your applications. This documentation covers all available endpoints for managing customers, projects, charges, transactions, and PIX payments.
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+## Base URL
+
+All API requests should be made to:
+
+```
+https://api.pague.dev/api/external/v1
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All API endpoints require authentication using API keys. Include your credentials in the request headers:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "X-Account-Id": "your-account-id",
+  "X-API-Key": "your-api-key"
+}
 ```
+
+## Available Resources
+
+<CardGroup cols={2}>
+  <Card title="PIX" icon="qrcode" href="/api-reference/pix/post-api-external-v1-pix">
+    Create PIX payment requests
+  </Card>
+  <Card title="Customers" icon="users" href="/api-reference/customers/get-api-external-v1-customers">
+    Manage your customers
+  </Card>
+  <Card title="Projects" icon="folder" href="/api-reference/projects/get-api-external-v1-projects">
+    Organize payments by project
+  </Card>
+  <Card title="Charges" icon="credit-card" href="/api-reference/charges/get-api-external-v1-charges">
+    Create and manage charges
+  </Card>
+  <Card title="Transactions" icon="receipt" href="/api-reference/transactions/get-api-external-v1-transactions-id">
+    View transaction details
+  </Card>
+</CardGroup>

@@ -1,0 +1,2020 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "pague.dev API",
+    "description": "pague.dev Payment API documentation",
+    "version": "1.0",
+    "contact": {}
+  },
+  "servers": [
+    {
+      "url": "https://api.pague.dev"
+    }
+  ],
+  "paths": {
+    "/api/external/v1/pix": {
+      "post": {
+        "operationId": "ExternalPixController_createCharge",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePixChargeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "PIX charge created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePixChargeOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a PIX charge",
+        "tags": [
+          "External API - PIX"
+        ]
+      }
+    },
+    "/api/external/v1/customers": {
+      "post": {
+        "operationId": "ExternalCustomersController_createCustomer",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCustomerOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a customer",
+        "tags": [
+          "External API - Customers"
+        ]
+      },
+      "get": {
+        "operationId": "ExternalCustomersController_getAllCustomers",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by name, email, or document",
+            "schema": {
+              "example": "joao",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of customers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllCustomersOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List customers",
+        "tags": [
+          "External API - Customers"
+        ]
+      }
+    },
+    "/api/external/v1/customers/{id}": {
+      "get": {
+        "operationId": "ExternalCustomersController_getCustomer",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Customer ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetCustomerOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a customer by ID",
+        "tags": [
+          "External API - Customers"
+        ]
+      }
+    },
+    "/api/external/v1/projects": {
+      "post": {
+        "operationId": "ExternalProjectsController_createProject",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateProjectOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Resource already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a project",
+        "tags": [
+          "External API - Projects"
+        ]
+      },
+      "get": {
+        "operationId": "ExternalProjectsController_getAllProjects",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort by field",
+            "schema": {
+              "default": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "name"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllProjectsOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List projects",
+        "tags": [
+          "External API - Projects"
+        ]
+      }
+    },
+    "/api/external/v1/projects/{id}": {
+      "get": {
+        "operationId": "ExternalProjectsController_getProject",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Project ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetProjectOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a project by ID",
+        "tags": [
+          "External API - Projects"
+        ]
+      }
+    },
+    "/api/external/v1/transactions/{id}": {
+      "get": {
+        "operationId": "ExternalTransactionsController_getTransaction",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Transaction ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTransactionOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a transaction by ID",
+        "tags": [
+          "External API - Transactions"
+        ]
+      }
+    },
+    "/api/external/v1/charges": {
+      "post": {
+        "description": "Create a new one-time payment link that supports PIX, credit card, and boleto.",
+        "operationId": "ExternalChargesController_createCharge",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChargeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Charge created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetChargeOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Resource already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a charge (payment link)",
+        "tags": [
+          "External API - Charges (Cobrancas)"
+        ]
+      },
+      "get": {
+        "description": "Retrieve a paginated list of all charges (payment links) for the account.",
+        "operationId": "ExternalChargesController_getAllCharges",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by name or slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "expired",
+                "disabled",
+                "paid"
+              ]
+            }
+          },
+          {
+            "name": "projectId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by project ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of charges",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllChargesOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List charges",
+        "tags": [
+          "External API - Charges (Cobrancas)"
+        ]
+      }
+    },
+    "/api/external/v1/charges/{id}": {
+      "get": {
+        "description": "Retrieve details of a specific charge (payment link) by its ID.",
+        "operationId": "ExternalChargesController_getCharge",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Charge ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Charge details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetChargeOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a charge by ID",
+        "tags": [
+          "External API - Charges (Cobrancas)"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BadRequestErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 400
+          },
+          "error": {
+            "type": "string",
+            "example": "BadRequest"
+          },
+          "message": {
+            "type": "string",
+            "example": "name must be longer than or equal to 2 characters"
+          },
+          "details": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2025-12-15T22:00:00.000Z"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
+      },
+      "InternalServerErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 500
+          },
+          "error": {
+            "type": "string",
+            "example": "InternalError"
+          },
+          "message": {
+            "type": "string",
+            "example": "An unexpected error occurred"
+          },
+          "details": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2025-12-15T22:00:00.000Z"
+          },
+          "traceId": {
+            "type": "string",
+            "example": "2771463d58840c8e116dc6dda1e1e5d0"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
+      },
+      "NotFoundErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 404
+          },
+          "error": {
+            "type": "string",
+            "example": "NotFound"
+          },
+          "message": {
+            "type": "string",
+            "example": "Resource with id 550e8400-e29b-41d4-a716-446655440000 not found"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "resource": "Example",
+              "id": "550e8400-e29b-41d4-a716-446655440000"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2025-12-15T22:00:00.000Z"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
+      },
+      "GetTransactionOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Transaction ID",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "description": "Transaction status",
+            "enum": [
+              "pending",
+              "completed",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "description": "Transaction type",
+            "enum": [
+              "payment",
+              "fee",
+              "refund",
+              "chargeback",
+              "withdrawal"
+            ]
+          },
+          "paymentMethod": {
+            "type": "string",
+            "description": "Payment method used",
+            "enum": [
+              "pix",
+              "credit_card",
+              "boleto"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL",
+            "example": 150.75
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code",
+            "example": "BRL"
+          },
+          "description": {
+            "type": "string",
+            "description": "Transaction description"
+          },
+          "externalReference": {
+            "type": "string",
+            "description": "Your external reference ID",
+            "example": "pedido-12345"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "Customer ID",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Project ID",
+            "format": "uuid"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Custom metadata (key-value pairs)",
+            "additionalProperties": true,
+            "example": {
+              "orderId": "12345",
+              "source": "website"
+            }
+          },
+          "pixCopyPaste": {
+            "type": "string",
+            "description": "PIX copy-and-paste code (only for pending PIX transactions)",
+            "example": "00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date (only for pending transactions)",
+            "format": "date-time"
+          },
+          "paidAt": {
+            "type": "string",
+            "description": "Date when the transaction was paid",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Created timestamp",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Updated timestamp",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "type",
+          "paymentMethod",
+          "amount",
+          "currency",
+          "createdAt"
+        ]
+      },
+      "UnauthorizedErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 401
+          },
+          "error": {
+            "type": "string",
+            "example": "Unauthorized"
+          },
+          "message": {
+            "type": "string",
+            "example": "Authentication token is required"
+          },
+          "details": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2025-12-15T22:00:00.000Z"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
+      },
+      "ConflictErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 409
+          },
+          "error": {
+            "type": "string",
+            "example": "Conflict"
+          },
+          "message": {
+            "type": "string",
+            "example": "Resource with name 'Example' already exists"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "resource": "Example",
+              "field": "name",
+              "value": "Example"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2025-12-15T22:00:00.000Z"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
+      },
+      "CreateProjectInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Project name",
+            "maxLength": 255,
+            "example": "My Store"
+          },
+          "description": {
+            "type": "string",
+            "description": "Project description",
+            "example": "E-commerce store for electronics"
+          },
+          "color": {
+            "type": "string",
+            "description": "Project color in hex format",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "example": "#3B82F6"
+          },
+          "logoUrl": {
+            "type": "string",
+            "description": "Project logo URL",
+            "format": "uri",
+            "example": "https://example.com/logo.png"
+          },
+          "defaultCurrency": {
+            "type": "string",
+            "description": "Default currency (ISO 4217)",
+            "default": "BRL",
+            "example": "BRL"
+          }
+        },
+        "required": [
+          "name",
+          "color"
+        ]
+      },
+      "CreateProjectOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Project ID",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Project name",
+            "example": "My Store"
+          },
+          "description": {
+            "type": "string",
+            "description": "Project description",
+            "example": "E-commerce store for electronics"
+          },
+          "color": {
+            "type": "string",
+            "description": "Project color in hex format",
+            "example": "#3B82F6"
+          },
+          "logoUrl": {
+            "type": "string",
+            "description": "Project logo URL",
+            "format": "uri",
+            "example": "https://example.com/logo.png"
+          },
+          "defaultCurrency": {
+            "type": "string",
+            "description": "Default currency (ISO 4217)",
+            "example": "BRL"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Created timestamp",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "color",
+          "defaultCurrency",
+          "createdAt"
+        ]
+      },
+      "GetAllProjectsOutput": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of projects",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateProjectOutput"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of projects",
+            "example": 100
+          },
+          "page": {
+            "type": "integer",
+            "description": "Current page number",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Items per page",
+            "example": 20
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages",
+            "example": 5
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
+      },
+      "GetProjectOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Project ID",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Project name",
+            "example": "My Store"
+          },
+          "description": {
+            "type": "string",
+            "description": "Project description",
+            "example": "E-commerce store for electronics"
+          },
+          "color": {
+            "type": "string",
+            "description": "Project color in hex format",
+            "example": "#3B82F6"
+          },
+          "logoUrl": {
+            "type": "string",
+            "description": "Project logo URL",
+            "format": "uri",
+            "example": "https://example.com/logo.png"
+          },
+          "defaultCurrency": {
+            "type": "string",
+            "description": "Default currency (ISO 4217)",
+            "example": "BRL"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Created timestamp",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Updated timestamp",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "color",
+          "defaultCurrency",
+          "createdAt"
+        ]
+      },
+      "CustomerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Customer name",
+            "maxLength": 255,
+            "example": "João da Silva"
+          },
+          "document": {
+            "type": "string",
+            "description": "CPF (11 digits) or CNPJ (14 digits), numbers only",
+            "pattern": "^(\\d{11}|\\d{14})$",
+            "example": "12345678909"
+          },
+          "email": {
+            "type": "string",
+            "description": "Customer email",
+            "format": "email",
+            "maxLength": 255
+          },
+          "phone": {
+            "type": "string",
+            "description": "Customer phone",
+            "maxLength": 20,
+            "example": "11999998888"
+          }
+        },
+        "required": [
+          "name",
+          "document",
+          "email"
+        ]
+      },
+      "CreatePixChargeInput": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL (e.g., 100.50 for R$ 100,50)",
+            "minimum": 1,
+            "example": 150.75
+          },
+          "description": {
+            "type": "string",
+            "description": "Charge description",
+            "maxLength": 255,
+            "example": "Pagamento do pedido #12345"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "Existing customer ID. Provide either customerId or customer, not both.",
+            "format": "uuid"
+          },
+          "customer": {
+            "description": "Customer information. Provide either customerId or customer, not both.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerDto"
+              }
+            ]
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Project ID to associate the transaction with",
+            "format": "uuid"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Seconds until expiration (default: 86400 = 24h)",
+            "minimum": 300,
+            "maximum": 604800,
+            "example": 3600
+          },
+          "externalReference": {
+            "type": "string",
+            "description": "Your external reference ID",
+            "maxLength": 255,
+            "example": "pedido-12345"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Custom metadata (key-value pairs)",
+            "additionalProperties": true,
+            "example": {
+              "orderId": "12345",
+              "source": "website"
+            }
+          }
+        },
+        "required": [
+          "amount",
+          "description"
+        ]
+      },
+      "CreatePixChargeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Charge ID (transaction ID)",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "description": "Charge status",
+            "enum": [
+              "pending",
+              "completed",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL",
+            "example": 150.75
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code",
+            "example": "BRL"
+          },
+          "pixCopyPaste": {
+            "type": "string",
+            "description": "PIX copy-and-paste code (copia e cola)",
+            "example": "00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date",
+            "format": "date-time"
+          },
+          "externalReference": {
+            "type": "string",
+            "description": "Your external reference ID",
+            "example": "pedido-12345"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "Customer ID",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Created timestamp",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "amount",
+          "currency",
+          "pixCopyPaste",
+          "expiresAt",
+          "customerId",
+          "createdAt"
+        ]
+      },
+      "CreateCustomerInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Customer name",
+            "maxLength": 255,
+            "example": "João da Silva"
+          },
+          "email": {
+            "type": "string",
+            "description": "Customer email",
+            "format": "email",
+            "maxLength": 255
+          },
+          "phone": {
+            "type": "string",
+            "description": "Customer phone",
+            "maxLength": 20,
+            "example": "11999998888"
+          },
+          "document": {
+            "type": "string",
+            "description": "CPF (11 digits) or CNPJ (14 digits), numbers only",
+            "pattern": "^(\\d{11}|\\d{14})$",
+            "example": "12345678909"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "document"
+        ]
+      },
+      "CreateCustomerOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Customer ID",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Customer name",
+            "example": "João da Silva"
+          },
+          "email": {
+            "type": "string",
+            "description": "Customer email",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Customer phone",
+            "example": "11999998888"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "Document type",
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
+          },
+          "document": {
+            "type": "string",
+            "description": "Masked document number",
+            "example": "***456789**"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Created timestamp",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "documentType",
+          "document",
+          "createdAt"
+        ]
+      },
+      "GetAllCustomersOutput": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of customers",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateCustomerOutput"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of customers",
+            "example": 100
+          },
+          "page": {
+            "type": "integer",
+            "description": "Current page",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Items per page",
+            "example": 20
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages",
+            "example": 5
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
+      },
+      "GetCustomerOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Customer ID",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Customer name",
+            "example": "João da Silva"
+          },
+          "email": {
+            "type": "string",
+            "description": "Customer email",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Customer phone",
+            "example": "11999998888"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "Document type",
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
+          },
+          "document": {
+            "type": "string",
+            "description": "Masked document number",
+            "example": "***456789**"
+          },
+          "totalTransactions": {
+            "type": "integer",
+            "description": "Total number of transactions",
+            "example": 5
+          },
+          "totalSpent": {
+            "type": "number",
+            "description": "Total amount spent in BRL",
+            "example": 1500.5
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Created timestamp",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Updated timestamp",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "documentType",
+          "document",
+          "totalTransactions",
+          "totalSpent",
+          "createdAt"
+        ]
+      },
+      "CreateChargeInput": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Project ID to associate the charge with",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Charge name/title",
+            "example": "Produto Premium",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Charge description",
+            "example": "Pagamento referente ao produto premium"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL (null for open/custom amount). Example: 99.90 for R$ 99,90",
+            "minimum": 1,
+            "example": 99.9
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code",
+            "default": "BRL",
+            "example": "BRL"
+          },
+          "paymentMethods": {
+            "type": "array",
+            "description": "Accepted payment methods",
+            "example": [
+              "pix",
+              "credit_card"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "pix",
+                "credit_card",
+                "boleto"
+              ]
+            }
+          },
+          "maxInstallments": {
+            "type": "integer",
+            "description": "Maximum installments for credit card (1-12)",
+            "minimum": 1,
+            "maximum": 12,
+            "default": 1,
+            "example": 6
+          },
+          "notifications": {
+            "type": "array",
+            "description": "Notification channels for payment updates",
+            "example": [
+              "email"
+            ],
+            "default": [],
+            "items": {
+              "type": "string",
+              "enum": [
+                "email",
+                "whatsapp"
+              ]
+            }
+          },
+          "allowCoupons": {
+            "type": "boolean",
+            "description": "Allow discount coupons",
+            "default": false
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date (ISO 8601 format)",
+            "format": "date-time",
+            "example": "2024-12-31T23:59:59Z"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "Customer ID to pre-assign this charge",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "projectId",
+          "name",
+          "paymentMethods"
+        ]
+      },
+      "GetChargeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Charge ID",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Project ID",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "Customer ID (if pre-assigned)",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Charge name",
+            "example": "Produto Premium"
+          },
+          "description": {
+            "type": "object",
+            "description": "Charge description"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL (null for open amount). Example: 99.90 for R$ 99,90",
+            "example": 99.9
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code",
+            "example": "BRL"
+          },
+          "status": {
+            "type": "string",
+            "description": "Charge status",
+            "enum": [
+              "active",
+              "expired",
+              "disabled",
+              "paid"
+            ]
+          },
+          "slug": {
+            "type": "string",
+            "description": "URL slug",
+            "example": "produto-premium-2024"
+          },
+          "url": {
+            "type": "string",
+            "description": "Full payment link URL",
+            "example": "https://pay.pague.dev/produto-premium-2024"
+          },
+          "paymentMethods": {
+            "description": "Accepted payment methods",
+            "example": [
+              "pix",
+              "credit_card"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxInstallments": {
+            "type": "integer",
+            "description": "Maximum installments for credit card",
+            "example": 6
+          },
+          "notifications": {
+            "description": "Notification channels",
+            "example": [
+              "email"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowCoupons": {
+            "type": "boolean",
+            "description": "Allow discount coupons"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date",
+            "format": "date-time"
+          },
+          "paymentsCount": {
+            "type": "integer",
+            "description": "Number of payments received",
+            "example": 5
+          },
+          "totalCollected": {
+            "type": "number",
+            "description": "Total amount collected in BRL",
+            "example": 495
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Creation timestamp",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Last update timestamp",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "currency",
+          "status",
+          "slug",
+          "url",
+          "paymentMethods",
+          "maxInstallments",
+          "notifications",
+          "allowCoupons",
+          "paymentsCount",
+          "totalCollected",
+          "createdAt"
+        ]
+      },
+      "GetAllChargesOutput": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of charges",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetChargeOutput"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of charges",
+            "example": 100
+          },
+          "page": {
+            "type": "integer",
+            "description": "Current page",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Items per page",
+            "example": 20
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages",
+            "example": 5
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "X-API-Key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API Key for authentication"
+      },
+      "X-Account-Id": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Account-Id",
+        "description": "Account ID (UUID)"
+      },
+      "JWT": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Keycloak JWT token"
+      }
+    }
+  }
+}

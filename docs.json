@@ -1,7 +1,15 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "pague.dev",
+  "api": {
+    "playground": {
+      "mode": "simple"
+    }
+  },
+  "openapi": [
+    "openapi.json"
+  ],
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -51,18 +59,45 @@
         "tab": "API reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Overview",
             "pages": [
               "api-reference/introduction"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "PIX",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/pix/create"
+            ]
+          },
+          {
+            "group": "Customers",
+            "pages": [
+              "api-reference/customers/list",
+              "api-reference/customers/create",
+              "api-reference/customers/get"
+            ]
+          },
+          {
+            "group": "Projects",
+            "pages": [
+              "api-reference/projects/list",
+              "api-reference/projects/create",
+              "api-reference/projects/get"
+            ]
+          },
+          {
+            "group": "Transactions",
+            "pages": [
+              "api-reference/transactions/get"
+            ]
+          },
+          {
+            "group": "Charges",
+            "pages": [
+              "api-reference/charges/list",
+              "api-reference/charges/create",
+              "api-reference/charges/get"
             ]
           }
         ]
