@@ -8,11 +8,11 @@
   },
   "servers": [
     {
-      "url": "https://55c25864aad9.ngrok-free.app"
+      "url": "https://55c25864aad9.ngrok-free.app/api/external/v1"
     }
   ],
   "paths": {
-    "/api/external/v1/pix": {
+    "/pix": {
       "post": {
         "operationId": "ExternalPixController_createCharge",
         "parameters": [
@@ -94,7 +94,7 @@
         ]
       }
     },
-    "/api/external/v1/customers": {
+    "/customers": {
       "post": {
         "operationId": "ExternalCustomersController_createCustomer",
         "parameters": [
@@ -249,7 +249,7 @@
         ]
       }
     },
-    "/api/external/v1/customers/{id}": {
+    "/customers/{id}": {
       "get": {
         "operationId": "ExternalCustomersController_getCustomer",
         "parameters": [
@@ -321,7 +321,7 @@
         ]
       }
     },
-    "/api/external/v1/projects": {
+    "/projects": {
       "post": {
         "operationId": "ExternalProjectsController_createProject",
         "parameters": [
@@ -505,7 +505,7 @@
         ]
       }
     },
-    "/api/external/v1/projects/{id}": {
+    "/projects/{id}": {
       "get": {
         "operationId": "ExternalProjectsController_getProject",
         "parameters": [
@@ -577,7 +577,7 @@
         ]
       }
     },
-    "/api/external/v1/transactions/{id}": {
+    "/transactions/{id}": {
       "get": {
         "operationId": "ExternalTransactionsController_getTransaction",
         "parameters": [
@@ -649,7 +649,7 @@
         ]
       }
     },
-    "/api/external/v1/charges": {
+    "/charges": {
       "post": {
         "description": "Cria um novo link de pagamento único que suporta PIX, cartão de crédito e boleto.",
         "operationId": "ExternalChargesController_createCharge",
@@ -840,7 +840,7 @@
         ]
       }
     },
-    "/api/external/v1/charges/{id}": {
+    "/charges/{id}": {
       "get": {
         "description": "Retorna os detalhes de uma cobrança (link de pagamento) específica pelo seu ID.",
         "operationId": "ExternalChargesController_getCharge",
@@ -3850,12 +3850,6 @@
             "description": "URL do logo do projeto",
             "format": "uri",
             "example": "https://example.com/logo.png"
-          },
-          "defaultCurrency": {
-            "type": "string",
-            "description": "Moeda padrão (ISO 4217)",
-            "default": "BRL",
-            "example": "BRL"
           }
         },
         "required": [
@@ -3892,11 +3886,6 @@
             "format": "uri",
             "example": "https://example.com/logo.png"
           },
-          "defaultCurrency": {
-            "type": "string",
-            "description": "Moeda padrão (ISO 4217)",
-            "example": "BRL"
-          },
           "createdAt": {
             "type": "string",
             "description": "Data de criação",
@@ -3907,7 +3896,6 @@
           "id",
           "name",
           "color",
-          "defaultCurrency",
           "createdAt"
         ]
       },
@@ -4023,11 +4011,6 @@
             "format": "uri",
             "example": "https://example.com/logo.png"
           },
-          "defaultCurrency": {
-            "type": "string",
-            "description": "Moeda padrão (ISO 4217)",
-            "example": "BRL"
-          },
           "createdAt": {
             "type": "string",
             "description": "Data de criação",
@@ -4043,7 +4026,6 @@
           "id",
           "name",
           "color",
-          "defaultCurrency",
           "createdAt"
         ]
       },
