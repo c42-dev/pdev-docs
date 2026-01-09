@@ -36,16 +36,14 @@
         "group": "Clientes",
         "pages": [
           "api-reference/customers/create",
-          "api-reference/customers/list",
-          "api-reference/customers/get"
+          "api-reference/customers/list"
         ]
       },
       {
         "group": "Projetos",
         "pages": [
           "api-reference/projects/create",
-          "api-reference/projects/list",
-          "api-reference/projects/get"
+          "api-reference/projects/list"
         ]
       },
       {
