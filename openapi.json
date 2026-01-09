@@ -9843,8 +9843,7 @@
         },
         "required": [
           "name",
-          "document",
-          "email"
+          "document"
         ]
       },
       "CreatePixChargeInput": {
@@ -10003,7 +10002,6 @@
         },
         "required": [
           "name",
-          "email",
           "document"
         ]
       },
