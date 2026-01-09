@@ -8,7 +8,7 @@
   },
   "servers": [
     {
-      "url": "https://api.pague.dev"
+      "url": "http://localhost:4000"
     }
   ],
   "paths": {

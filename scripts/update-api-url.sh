@@ -12,15 +12,17 @@ DOCS_DIR="$(dirname "$SCRIPT_DIR")"
 CURRENT_SERVER=$(jq -r '.servers[0].url // "não definido"' "$DOCS_DIR/openapi.json")
 CURRENT_PATH_PREFIX=$(jq -r '.paths | keys[0] | split("/")[1:4] | "/" + join("/")' "$DOCS_DIR/openapi.json")
 
+# Pegar URL atual do index.mdx (entre ``` ```)
+CURRENT_INDEX_URL=$(grep -A1 "requisições devem ser feitas para:" "$DOCS_DIR/index.mdx" | grep "https://" | tr -d '`' | xargs)
+
 echo "=========================================="
 echo "  Atualizar URL da API - pague.dev Docs"
 echo "=========================================="
 echo ""
 echo "Configuração atual:"
-echo "  Servidor: $CURRENT_SERVER"
+echo "  Servidor (openapi.json): $CURRENT_SERVER"
 echo "  Prefixo dos paths: $CURRENT_PATH_PREFIX"
-echo ""
-echo "Exemplo de URL completa: ${CURRENT_SERVER}${CURRENT_PATH_PREFIX}/customers"
+echo "  URL no index.mdx: $CURRENT_INDEX_URL"
 echo ""
 echo "-------------------------------------------"
 echo ""
@@ -38,11 +40,13 @@ if [ -z "$NEW_PATH_PREFIX" ]; then
   exit 1
 fi
 
+NEW_FULL_URL="${NEW_SERVER}${NEW_PATH_PREFIX}"
+
 echo ""
 echo "Nova configuração:"
 echo "  Servidor: $NEW_SERVER"
 echo "  Prefixo dos paths: $NEW_PATH_PREFIX"
-echo "  URL completa: ${NEW_SERVER}${NEW_PATH_PREFIX}/customers"
+echo "  URL completa: $NEW_FULL_URL"
 echo ""
 read -p "Confirmar? (s/n): " CONFIRM
 
@@ -70,11 +74,15 @@ mv "$DOCS_DIR/openapi.tmp.json" "$DOCS_DIR/openapi.json"
 echo "  → Atualizando arquivos MDX..."
 find "$DOCS_DIR/api-reference" -name "*.mdx" -exec sed -i '' "s|$CURRENT_PATH_PREFIX|$NEW_PATH_PREFIX|g" {} \;
 
-# 4. Atualizar index.mdx
+# 4. Atualizar index.mdx (URL base)
 echo "  → Atualizando index.mdx..."
-sed -i '' "s|${CURRENT_SERVER}${CURRENT_PATH_PREFIX}|${NEW_SERVER}${NEW_PATH_PREFIX}|g" "$DOCS_DIR/index.mdx"
+if [ -n "$CURRENT_INDEX_URL" ]; then
+  sed -i '' "s|$CURRENT_INDEX_URL|$NEW_FULL_URL|g" "$DOCS_DIR/index.mdx"
+fi
 
 echo ""
 echo "✓ Concluído!"
+echo ""
+echo "Nova URL base: $NEW_FULL_URL"
 echo ""
 echo "Verifique as alterações com: git diff"
