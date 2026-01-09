@@ -89,9 +89,7 @@
           }
         },
         "summary": "Criar uma cobrança PIX",
-        "tags": [
-          "External API - PIX"
-        ]
+        "tags": ["External API - PIX"]
       }
     },
     "/customers": {
@@ -161,9 +159,7 @@
           }
         },
         "summary": "Criar um cliente",
-        "tags": [
-          "External API - Customers"
-        ]
+        "tags": ["External API - Customers"]
       },
       "get": {
         "operationId": "ExternalCustomersController_getAllCustomers",
@@ -244,9 +240,7 @@
           }
         },
         "summary": "Listar clientes",
-        "tags": [
-          "External API - Customers"
-        ]
+        "tags": ["External API - Customers"]
       }
     },
     "/customers/{id}": {
@@ -316,9 +310,7 @@
           }
         },
         "summary": "Buscar cliente por ID",
-        "tags": [
-          "External API - Customers"
-        ]
+        "tags": ["External API - Customers"]
       }
     },
     "/projects": {
@@ -398,9 +390,7 @@
           }
         },
         "summary": "Criar um projeto",
-        "tags": [
-          "External API - Projects"
-        ]
+        "tags": ["External API - Projects"]
       },
       "get": {
         "operationId": "ExternalProjectsController_getAllProjects",
@@ -445,11 +435,7 @@
             "schema": {
               "default": "createdAt",
               "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt",
-                "name"
-              ]
+              "enum": ["createdAt", "updatedAt", "name"]
             }
           },
           {
@@ -460,10 +446,7 @@
             "schema": {
               "default": "desc",
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             }
           }
         ],
@@ -500,9 +483,7 @@
           }
         },
         "summary": "Listar projetos",
-        "tags": [
-          "External API - Projects"
-        ]
+        "tags": ["External API - Projects"]
       }
     },
     "/projects/{id}": {
@@ -572,9 +553,7 @@
           }
         },
         "summary": "Buscar projeto por ID",
-        "tags": [
-          "External API - Projects"
-        ]
+        "tags": ["External API - Projects"]
       }
     },
     "/transactions/{id}": {
@@ -644,9 +623,7 @@
           }
         },
         "summary": "Buscar transação por ID",
-        "tags": [
-          "External API - Transactions"
-        ]
+        "tags": ["External API - Transactions"]
       }
     },
     "/charges": {
@@ -727,9 +704,7 @@
           }
         },
         "summary": "Criar uma cobrança (link de pagamento)",
-        "tags": [
-          "External API - Charges (Cobrancas)"
-        ]
+        "tags": ["External API - Charges (Cobrancas)"]
       },
       "get": {
         "description": "Retorna uma lista paginada de todas as cobranças (links de pagamento) da conta.",
@@ -783,12 +758,7 @@
             "description": "Filtrar por status",
             "schema": {
               "type": "string",
-              "enum": [
-                "active",
-                "expired",
-                "disabled",
-                "paid"
-              ]
+              "enum": ["active", "expired", "disabled", "paid"]
             }
           },
           {
@@ -835,9 +805,7 @@
           }
         },
         "summary": "Listar cobranças",
-        "tags": [
-          "External API - Charges (Cobrancas)"
-        ]
+        "tags": ["External API - Charges (Cobrancas)"]
       }
     },
     "/charges/{id}": {
@@ -908,9 +876,7 @@
           }
         },
         "summary": "Buscar cobrança por ID",
-        "tags": [
-          "External API - Charges (Cobrancas)"
-        ]
+        "tags": ["External API - Charges (Cobrancas)"]
       }
     }
   },
@@ -962,12 +928,7 @@
           "status": {
             "type": "string",
             "description": "Delivery status",
-            "enum": [
-              "success",
-              "failed",
-              "pending",
-              "retrying"
-            ]
+            "enum": ["success", "failed", "pending", "retrying"]
           },
           "url": {
             "type": "string",
@@ -1095,10 +1056,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "BadRequestErrorResponse": {
         "type": "object",
@@ -1126,12 +1084,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "statusCode",
-          "error",
-          "message",
-          "timestamp"
-        ]
+        "required": ["statusCode", "error", "message", "timestamp"]
       },
       "InternalServerErrorResponse": {
         "type": "object",
@@ -1160,12 +1113,7 @@
             "example": "2771463d58840c8e116dc6dda1e1e5d0"
           }
         },
-        "required": [
-          "statusCode",
-          "error",
-          "message",
-          "timestamp"
-        ]
+        "required": ["statusCode", "error", "message", "timestamp"]
       },
       "NotFoundErrorResponse": {
         "type": "object",
@@ -1197,12 +1145,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "statusCode",
-          "error",
-          "message",
-          "timestamp"
-        ]
+        "required": ["statusCode", "error", "message", "timestamp"]
       },
       "CreateTransactionInput": {
         "type": "object",
@@ -1256,33 +1199,17 @@
           "type": {
             "type": "string",
             "description": "Transaction type",
-            "enum": [
-              "payment",
-              "fee",
-              "refund",
-              "chargeback",
-              "withdrawal"
-            ]
+            "enum": ["payment", "fee", "refund", "chargeback", "withdrawal"]
           },
           "status": {
             "type": "string",
             "description": "Transaction status",
-            "enum": [
-              "completed",
-              "pending",
-              "failed",
-              "cancelled"
-            ]
+            "enum": ["completed", "pending", "failed", "cancelled"]
           },
           "paymentMethod": {
             "type": "string",
             "description": "Payment method",
-            "enum": [
-              "ask_customer",
-              "pix",
-              "credit_card",
-              "boleto"
-            ]
+            "enum": ["ask_customer", "pix", "credit_card", "boleto"]
           },
           "installmentNumber": {
             "type": "number",
@@ -1315,11 +1242,7 @@
           "ledgerSyncStatus": {
             "type": "string",
             "description": "Ledger sync status",
-            "enum": [
-              "pending",
-              "synced",
-              "failed"
-            ]
+            "enum": ["pending", "synced", "failed"]
           },
           "ledgerSyncedAt": {
             "type": "string",
@@ -1346,32 +1269,17 @@
           "status": {
             "type": "string",
             "description": "Status da transação",
-            "enum": [
-              "pending",
-              "completed",
-              "failed",
-              "cancelled"
-            ]
+            "enum": ["pending", "completed", "failed", "cancelled"]
           },
           "type": {
             "type": "string",
             "description": "Tipo da transação",
-            "enum": [
-              "payment",
-              "fee",
-              "refund",
-              "chargeback",
-              "withdrawal"
-            ]
+            "enum": ["payment", "fee", "refund", "chargeback", "withdrawal"]
           },
           "paymentMethod": {
             "type": "string",
             "description": "Método de pagamento utilizado",
-            "enum": [
-              "pix",
-              "credit_card",
-              "boleto"
-            ]
+            "enum": ["pix", "credit_card", "boleto"]
           },
           "amount": {
             "type": "number",
@@ -1466,10 +1374,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "LedgerAccountOutput": {
         "type": "object",
@@ -1560,13 +1465,7 @@
             "description": "Whether accounts were newly created or already existed"
           }
         },
-        "required": [
-          "accountId",
-          "available",
-          "held",
-          "credits",
-          "created"
-        ]
+        "required": ["accountId", "available", "held", "credits", "created"]
       },
       "UnauthorizedErrorResponse": {
         "type": "object",
@@ -1594,12 +1493,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "statusCode",
-          "error",
-          "message",
-          "timestamp"
-        ]
+        "required": ["statusCode", "error", "message", "timestamp"]
       },
       "AccountBalanceOutput": {
         "type": "object",
@@ -1765,10 +1659,7 @@
             "description": "Additional metadata"
           }
         },
-        "required": [
-          "amount",
-          "methodKey"
-        ]
+        "required": ["amount", "methodKey"]
       },
       "TransferOutput": {
         "type": "object",
@@ -1788,20 +1679,12 @@
           "type": {
             "type": "string",
             "description": "Transfer type",
-            "enum": [
-              "payment",
-              "fee",
-              "settlement"
-            ]
+            "enum": ["payment", "fee", "settlement"]
           },
           "status": {
             "type": "string",
             "description": "Transfer status",
-            "enum": [
-              "pending",
-              "posted",
-              "voided"
-            ]
+            "enum": ["pending", "posted", "voided"]
           },
           "debitAccountId": {
             "type": "string",
@@ -1904,10 +1787,7 @@
             "maximum": 2592000
           }
         },
-        "required": [
-          "amount",
-          "methodKey"
-        ]
+        "required": ["amount", "methodKey"]
       },
       "CreateFeeInput": {
         "type": "object",
@@ -1919,13 +1799,7 @@
           "methodKey": {
             "type": "string",
             "description": "Fee method key",
-            "enum": [
-              "pix",
-              "credit_card",
-              "boleto",
-              "withdrawal",
-              "refund"
-            ],
+            "enum": ["pix", "credit_card", "boleto", "withdrawal", "refund"],
             "example": "pix"
           },
           "methodDisplayName": {
@@ -1967,10 +1841,7 @@
             "default": true
           }
         },
-        "required": [
-          "methodKey",
-          "methodDisplayName"
-        ]
+        "required": ["methodKey", "methodDisplayName"]
       },
       "GetFeeOutput": {
         "type": "object",
@@ -2071,12 +1942,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "statusCode",
-          "error",
-          "message",
-          "timestamp"
-        ]
+        "required": ["statusCode", "error", "message", "timestamp"]
       },
       "GetAllFeesOutput": {
         "type": "object",
@@ -2097,10 +1963,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "UpdateFeeInput": {
         "type": "object",
@@ -2112,13 +1975,7 @@
           "methodKey": {
             "type": "string",
             "description": "Fee method key",
-            "enum": [
-              "pix",
-              "credit_card",
-              "boleto",
-              "withdrawal",
-              "refund"
-            ],
+            "enum": ["pix", "credit_card", "boleto", "withdrawal", "refund"],
             "example": "pix"
           },
           "methodDisplayName": {
@@ -2163,12 +2020,7 @@
           "status": {
             "type": "string",
             "description": "Account status",
-            "enum": [
-              "approved",
-              "pending",
-              "rejected",
-              "suspended"
-            ],
+            "enum": ["approved", "pending", "rejected", "suspended"],
             "default": "pending",
             "example": "pending"
           }
@@ -2184,23 +2036,14 @@
           "status": {
             "type": "string",
             "example": "pending",
-            "enum": [
-              "approved",
-              "pending",
-              "rejected",
-              "suspended"
-            ]
+            "enum": ["approved", "pending", "rejected", "suspended"]
           },
           "createdAt": {
             "type": "string",
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": [
-          "id",
-          "status",
-          "createdAt"
-        ]
+        "required": ["id", "status", "createdAt"]
       },
       "AccountItem": {
         "type": "object",
@@ -2212,23 +2055,14 @@
           "status": {
             "type": "string",
             "example": "pending",
-            "enum": [
-              "approved",
-              "pending",
-              "rejected",
-              "suspended"
-            ]
+            "enum": ["approved", "pending", "rejected", "suspended"]
           },
           "createdAt": {
             "type": "string",
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": [
-          "id",
-          "status",
-          "createdAt"
-        ]
+        "required": ["id", "status", "createdAt"]
       },
       "GetAllAccountsOutput": {
         "type": "object",
@@ -2243,10 +2077,7 @@
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "GetAccountOutput": {
         "type": "object",
@@ -2258,12 +2089,7 @@
           "status": {
             "type": "string",
             "example": "pending",
-            "enum": [
-              "approved",
-              "pending",
-              "rejected",
-              "suspended"
-            ]
+            "enum": ["approved", "pending", "rejected", "suspended"]
           },
           "createdAt": {
             "type": "string",
@@ -2274,11 +2100,7 @@
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": [
-          "id",
-          "status",
-          "createdAt"
-        ]
+        "required": ["id", "status", "createdAt"]
       },
       "UpdateAccountInput": {
         "type": "object",
@@ -2286,12 +2108,7 @@
           "status": {
             "type": "string",
             "description": "Account status",
-            "enum": [
-              "approved",
-              "pending",
-              "rejected",
-              "suspended"
-            ],
+            "enum": ["approved", "pending", "rejected", "suspended"],
             "example": "approved"
           }
         }
@@ -2311,10 +2128,7 @@
           },
           "provider": {
             "type": "string",
-            "enum": [
-              "avista",
-              "asaas"
-            ],
+            "enum": ["avista", "asaas"],
             "description": "PSP provider"
           },
           "name": {
@@ -2356,9 +2170,7 @@
             }
           }
         },
-        "required": [
-          "items"
-        ]
+        "required": ["items"]
       },
       "AsaasCredentialsInput": {
         "type": "object",
@@ -2374,9 +2186,7 @@
             "default": false
           }
         },
-        "required": [
-          "apiKey"
-        ]
+        "required": ["apiKey"]
       },
       "AvistaCredentialsInput": {
         "type": "object",
@@ -2390,21 +2200,14 @@
             "description": "Avista client secret"
           }
         },
-        "required": [
-          "clientId",
-          "clientSecret"
-        ]
+        "required": ["clientId", "clientSecret"]
       },
       "CreatePspCredentialInput": {
         "type": "object",
         "properties": {
           "provider": {
             "type": "string",
-            "enum": [
-              "avista",
-              "asaas",
-              "mock"
-            ],
+            "enum": ["avista", "asaas", "mock"],
             "description": "PSP provider"
           },
           "name": {
@@ -2424,11 +2227,7 @@
             ]
           }
         },
-        "required": [
-          "provider",
-          "name",
-          "credentials"
-        ]
+        "required": ["provider", "name", "credentials"]
       },
       "UpdatePspCredentialInput": {
         "type": "object",
@@ -2461,11 +2260,7 @@
           },
           "paymentMethod": {
             "type": "string",
-            "enum": [
-              "pix",
-              "credit_card",
-              "boleto"
-            ],
+            "enum": ["pix", "credit_card", "boleto"],
             "description": "Payment method"
           },
           "pspCredentialId": {
@@ -2521,10 +2316,7 @@
             }
           }
         },
-        "required": [
-          "accountId",
-          "methods"
-        ]
+        "required": ["accountId", "methods"]
       },
       "PaymentMethodSettingsInput": {
         "type": "object",
@@ -2564,11 +2356,7 @@
         "properties": {
           "paymentMethod": {
             "type": "string",
-            "enum": [
-              "pix",
-              "credit_card",
-              "boleto"
-            ],
+            "enum": ["pix", "credit_card", "boleto"],
             "description": "Payment method to configure"
           },
           "pspCredentialId": {
@@ -2590,10 +2378,7 @@
             ]
           }
         },
-        "required": [
-          "paymentMethod",
-          "pspCredentialId"
-        ]
+        "required": ["paymentMethod", "pspCredentialId"]
       },
       "UpdatePaymentMethodInput": {
         "type": "object",
@@ -2622,9 +2407,7 @@
             "format": "uuid"
           }
         },
-        "required": [
-          "pspCredentialId"
-        ]
+        "required": ["pspCredentialId"]
       },
       "CreateNotificationInput": {
         "type": "object",
@@ -2666,11 +2449,7 @@
             "description": "Related entity ID"
           }
         },
-        "required": [
-          "type",
-          "title",
-          "description"
-        ]
+        "required": ["type", "title", "description"]
       },
       "GetNotificationOutput": {
         "type": "object",
@@ -2761,10 +2540,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "UpdateNotificationInput": {
         "type": "object",
@@ -2785,10 +2561,7 @@
           "environment": {
             "type": "string",
             "description": "Environment for this webhook",
-            "enum": [
-              "production",
-              "sandbox"
-            ],
+            "enum": ["production", "sandbox"],
             "default": "production"
           },
           "url": {
@@ -2801,10 +2574,7 @@
           },
           "events": {
             "description": "Events to subscribe to",
-            "example": [
-              "payment_completed",
-              "subscription_created"
-            ],
+            "example": ["payment_completed", "subscription_created"],
             "type": "array",
             "items": {
               "type": "string"
@@ -2820,13 +2590,7 @@
             "default": true
           }
         },
-        "required": [
-          "name",
-          "environment",
-          "url",
-          "secret",
-          "events"
-        ]
+        "required": ["name", "environment", "url", "secret", "events"]
       },
       "GetWebhookEndpointOutput": {
         "type": "object",
@@ -2846,10 +2610,7 @@
           "environment": {
             "type": "string",
             "description": "Environment",
-            "enum": [
-              "production",
-              "sandbox"
-            ]
+            "enum": ["production", "sandbox"]
           },
           "url": {
             "type": "string",
@@ -2931,10 +2692,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "UpdateWebhookEndpointInput": {
         "type": "object",
@@ -2996,12 +2754,7 @@
           "status": {
             "type": "string",
             "description": "Payment link status",
-            "enum": [
-              "active",
-              "expired",
-              "disabled",
-              "paid"
-            ],
+            "enum": ["active", "expired", "disabled", "paid"],
             "default": "active"
           },
           "slug": {
@@ -3012,17 +2765,11 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": [
-              "one_time",
-              "subscription"
-            ]
+            "enum": ["one_time", "subscription"]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
-            "example": [
-              "pix",
-              "credit_card"
-            ],
+            "example": ["pix", "credit_card"],
             "type": "array",
             "items": {
               "type": "string"
@@ -3052,10 +2799,7 @@
           },
           "notifications": {
             "description": "Notification channels",
-            "example": [
-              "email",
-              "whatsapp"
-            ],
+            "example": ["email", "whatsapp"],
             "type": "array",
             "items": {
               "type": "string"
@@ -3118,12 +2862,7 @@
           "status": {
             "type": "string",
             "description": "Status",
-            "enum": [
-              "active",
-              "expired",
-              "disabled",
-              "paid"
-            ]
+            "enum": ["active", "expired", "disabled", "paid"]
           },
           "slug": {
             "type": "string",
@@ -3140,10 +2879,7 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": [
-              "one_time",
-              "subscription"
-            ]
+            "enum": ["one_time", "subscription"]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
@@ -3225,10 +2961,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "UpdatePaymentLinkInput": {
         "type": "object",
@@ -3261,12 +2994,7 @@
           "status": {
             "type": "string",
             "description": "Payment link status",
-            "enum": [
-              "active",
-              "expired",
-              "disabled",
-              "paid"
-            ]
+            "enum": ["active", "expired", "disabled", "paid"]
           },
           "slug": {
             "type": "string",
@@ -3276,17 +3004,11 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": [
-              "one_time",
-              "subscription"
-            ]
+            "enum": ["one_time", "subscription"]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
-            "example": [
-              "pix",
-              "credit_card"
-            ],
+            "example": ["pix", "credit_card"],
             "type": "array",
             "items": {
               "type": "string"
@@ -3315,10 +3037,7 @@
           },
           "notifications": {
             "description": "Notification channels",
-            "example": [
-              "email",
-              "whatsapp"
-            ],
+            "example": ["email", "whatsapp"],
             "type": "array",
             "items": {
               "type": "string"
@@ -3358,12 +3077,7 @@
             "description": "Company phone"
           }
         },
-        "required": [
-          "razaoSocial",
-          "cnpj",
-          "email",
-          "phone"
-        ]
+        "required": ["razaoSocial", "cnpj", "email", "phone"]
       },
       "PublicProjectOutput": {
         "type": "object",
@@ -3385,10 +3099,7 @@
             "description": "Project logo URL"
           }
         },
-        "required": [
-          "name",
-          "color"
-        ]
+        "required": ["name", "color"]
       },
       "GetPublicPaymentLinkOutput": {
         "type": "object",
@@ -3404,12 +3115,7 @@
           "status": {
             "type": "string",
             "description": "Payment link status",
-            "enum": [
-              "active",
-              "expired",
-              "disabled",
-              "paid"
-            ]
+            "enum": ["active", "expired", "disabled", "paid"]
           },
           "description": {
             "type": "object",
@@ -3426,10 +3132,7 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": [
-              "one_time",
-              "subscription"
-            ]
+            "enum": ["one_time", "subscription"]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
@@ -3570,10 +3273,7 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ],
+            "enum": ["cpf", "cnpj"],
             "example": "cpf"
           },
           "document": {
@@ -3614,10 +3314,7 @@
             "format": "uuid"
           }
         },
-        "required": [
-          "clientId",
-          "paymentLinkId"
-        ]
+        "required": ["clientId", "paymentLinkId"]
       },
       "CreatePaymentLinkPixInput": {
         "type": "object",
@@ -3634,9 +3331,7 @@
             "minimum": 100
           }
         },
-        "required": [
-          "clientId"
-        ]
+        "required": ["clientId"]
       },
       "CreatePaymentLinkPixOutput": {
         "type": "object",
@@ -3658,11 +3353,7 @@
             "example": "2024-01-15T23:59:59.000Z"
           }
         },
-        "required": [
-          "transactionId",
-          "pixCopyPaste",
-          "expiresAt"
-        ]
+        "required": ["transactionId", "pixCopyPaste", "expiresAt"]
       },
       "GetTransactionStatusOutput": {
         "type": "object",
@@ -3670,12 +3361,7 @@
           "status": {
             "type": "string",
             "description": "Transaction status",
-            "enum": [
-              "pending",
-              "completed",
-              "failed",
-              "cancelled"
-            ],
+            "enum": ["pending", "completed", "failed", "cancelled"],
             "example": "pending"
           },
           "completedAt": {
@@ -3684,9 +3370,7 @@
             "example": "2024-01-15T14:30:00.000Z"
           }
         },
-        "required": [
-          "status"
-        ]
+        "required": ["status"]
       },
       "GetCompanyInfoOutput": {
         "type": "object",
@@ -3729,12 +3413,7 @@
           "status": {
             "type": "string",
             "description": "Company status",
-            "enum": [
-              "pending",
-              "active",
-              "suspended",
-              "blocked"
-            ]
+            "enum": ["pending", "active", "suspended", "blocked"]
           },
           "statusUpdatedAt": {
             "type": "string",
@@ -3805,25 +3484,14 @@
           "status": {
             "type": "string",
             "description": "Company status",
-            "enum": [
-              "pending",
-              "approved",
-              "rejected",
-              "suspended"
-            ]
+            "enum": ["pending", "approved", "rejected", "suspended"]
           },
           "statusMessage": {
             "type": "string",
             "description": "Status change message"
           }
         },
-        "required": [
-          "addressId",
-          "razaoSocial",
-          "cnpj",
-          "email",
-          "phone"
-        ]
+        "required": ["addressId", "razaoSocial", "cnpj", "email", "phone"]
       },
       "CreateProjectInput": {
         "type": "object",
@@ -3852,10 +3520,7 @@
             "example": "https://example.com/logo.png"
           }
         },
-        "required": [
-          "name",
-          "color"
-        ]
+        "required": ["name", "color"]
       },
       "CreateProjectOutput": {
         "type": "object",
@@ -3892,12 +3557,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "color",
-          "createdAt"
-        ]
+        "required": ["id", "name", "color", "createdAt"]
       },
       "ProjectListItem": {
         "type": "object",
@@ -3974,13 +3634,7 @@
             "example": 5
           }
         },
-        "required": [
-          "items",
-          "total",
-          "page",
-          "limit",
-          "totalPages"
-        ]
+        "required": ["items", "total", "page", "limit", "totalPages"]
       },
       "GetProjectOutput": {
         "type": "object",
@@ -4022,12 +3676,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "color",
-          "createdAt"
-        ]
+        "required": ["id", "name", "color", "createdAt"]
       },
       "UpdateProjectInput": {
         "type": "object",
@@ -4083,10 +3732,7 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "document": {
             "type": "string",
@@ -4094,13 +3740,7 @@
             "maxLength": 14
           }
         },
-        "required": [
-          "name",
-          "email",
-          "phone",
-          "documentType",
-          "document"
-        ]
+        "required": ["name", "email", "phone", "documentType", "document"]
       },
       "CreateClientOutput": {
         "type": "object",
@@ -4135,10 +3775,7 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "document": {
             "type": "string",
@@ -4178,11 +3815,7 @@
             "description": "Project color (hex)"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "color"
-        ]
+        "required": ["id", "name", "color"]
       },
       "ClientListItem": {
         "type": "object",
@@ -4208,10 +3841,7 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "totalTransactions": {
             "type": "number",
@@ -4265,10 +3895,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "GetClientOutput": {
         "type": "object",
@@ -4303,10 +3930,7 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "document": {
             "type": "string",
@@ -4378,9 +4002,7 @@
             "format": "uuid"
           }
         },
-        "required": [
-          "projectId"
-        ]
+        "required": ["projectId"]
       },
       "ClientProjectOutput": {
         "type": "object",
@@ -4401,11 +4023,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "clientId",
-          "projectId",
-          "createdAt"
-        ]
+        "required": ["clientId", "projectId", "createdAt"]
       },
       "ClientProjectsListOutput": {
         "type": "object",
@@ -4418,9 +4036,7 @@
             }
           }
         },
-        "required": [
-          "items"
-        ]
+        "required": ["items"]
       },
       "CreateAddressInput": {
         "type": "object",
@@ -4612,10 +4228,7 @@
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "GetAddressOutput": {
         "type": "object",
@@ -4753,12 +4366,7 @@
             "description": "Total in cents"
           }
         },
-        "required": [
-          "description",
-          "quantity",
-          "unitPrice",
-          "total"
-        ]
+        "required": ["description", "quantity", "unitPrice", "total"]
       },
       "CreateInvoiceInput": {
         "type": "object",
@@ -4869,12 +4477,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "description",
-          "quantity",
-          "unitPrice",
-          "total"
-        ]
+        "required": ["description", "quantity", "unitPrice", "total"]
       },
       "GetInvoiceOutput": {
         "type": "object",
@@ -5006,10 +4609,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "UpdateInvoiceInput": {
         "type": "object",
@@ -5054,9 +4654,7 @@
             "maxLength": 100
           }
         },
-        "required": [
-          "name"
-        ]
+        "required": ["name"]
       },
       "CreateExampleOutput": {
         "type": "object",
@@ -5074,11 +4672,7 @@
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "createdAt"
-        ]
+        "required": ["id", "name", "createdAt"]
       },
       "ExampleItem": {
         "type": "object",
@@ -5096,11 +4690,7 @@
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "createdAt"
-        ]
+        "required": ["id", "name", "createdAt"]
       },
       "GetAllExamplesOutput": {
         "type": "object",
@@ -5116,10 +4706,7 @@
             "example": 1
           }
         },
-        "required": [
-          "items",
-          "total"
-        ]
+        "required": ["items", "total"]
       },
       "GetExampleOutput": {
         "type": "object",
@@ -5141,12 +4728,7 @@
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "name", "createdAt", "updatedAt"]
       },
       "CreateAccountUserInput": {
         "type": "object",
@@ -5169,21 +4751,13 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ],
+            "enum": ["owner", "admin", "member"],
             "default": "member"
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": [
-              "pending",
-              "active",
-              "suspended"
-            ],
+            "enum": ["pending", "active", "suspended"],
             "default": "pending"
           },
           "avatarUrl": {
@@ -5196,11 +4770,7 @@
             "default": false
           }
         },
-        "required": [
-          "name",
-          "password",
-          "email"
-        ]
+        "required": ["name", "password", "email"]
       },
       "CreateAccountUserOutput": {
         "type": "object",
@@ -5230,20 +4800,12 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ]
+            "enum": ["owner", "admin", "member"]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": [
-              "pending",
-              "active",
-              "suspended"
-            ]
+            "enum": ["pending", "active", "suspended"]
           },
           "avatarUrl": {
             "type": "string",
@@ -5294,20 +4856,12 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ]
+            "enum": ["owner", "admin", "member"]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": [
-              "pending",
-              "active",
-              "suspended"
-            ]
+            "enum": ["pending", "active", "suspended"]
           },
           "twoFactorEnabled": {
             "type": "boolean",
@@ -5349,10 +4903,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "GetAccountUserOutput": {
         "type": "object",
@@ -5382,20 +4933,12 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ]
+            "enum": ["owner", "admin", "member"]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": [
-              "pending",
-              "active",
-              "suspended"
-            ]
+            "enum": ["pending", "active", "suspended"]
           },
           "avatarUrl": {
             "type": "string",
@@ -5452,20 +4995,12 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ]
+            "enum": ["owner", "admin", "member"]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": [
-              "pending",
-              "active",
-              "suspended"
-            ]
+            "enum": ["pending", "active", "suspended"]
           },
           "avatarUrl": {
             "type": "string",
@@ -5538,11 +5073,7 @@
           "keyType": {
             "type": "string",
             "description": "Which key to regenerate (production, sandbox, or both)",
-            "enum": [
-              "production",
-              "sandbox",
-              "both"
-            ],
+            "enum": ["production", "sandbox", "both"],
             "default": "both"
           }
         }
@@ -5659,12 +5190,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "accountId",
-          "primaryColor",
-          "createdAt"
-        ]
+        "required": ["id", "accountId", "primaryColor", "createdAt"]
       },
       "UpsertCustomizationInput": {
         "type": "object",
@@ -5753,11 +5279,7 @@
             "maxLength": 64
           }
         },
-        "required": [
-          "name",
-          "type",
-          "fileUrl"
-        ]
+        "required": ["name", "type", "fileUrl"]
       },
       "CreateCompanyDocumentOutput": {
         "type": "object",
@@ -5797,11 +5319,7 @@
           "status": {
             "type": "string",
             "description": "Document status",
-            "enum": [
-              "pending",
-              "approved",
-              "rejected"
-            ]
+            "enum": ["pending", "approved", "rejected"]
           },
           "uploadedAt": {
             "type": "string",
@@ -5849,11 +5367,7 @@
           "status": {
             "type": "string",
             "description": "Document status",
-            "enum": [
-              "pending",
-              "approved",
-              "rejected"
-            ]
+            "enum": ["pending", "approved", "rejected"]
           },
           "uploadedAt": {
             "type": "string",
@@ -5861,14 +5375,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "accountId",
-          "name",
-          "type",
-          "status",
-          "uploadedAt"
-        ]
+        "required": ["id", "accountId", "name", "type", "status", "uploadedAt"]
       },
       "GetAllCompanyDocumentsOutput": {
         "type": "object",
@@ -5889,10 +5396,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "GetCompanyDocumentOutput": {
         "type": "object",
@@ -5932,11 +5436,7 @@
           "status": {
             "type": "string",
             "description": "Document status",
-            "enum": [
-              "pending",
-              "approved",
-              "rejected"
-            ]
+            "enum": ["pending", "approved", "rejected"]
           },
           "uploadedAt": {
             "type": "string",
@@ -6011,10 +5511,7 @@
           "type": {
             "type": "string",
             "description": "Discount type",
-            "enum": [
-              "percentage",
-              "fixed_amount"
-            ]
+            "enum": ["percentage", "fixed_amount"]
           },
           "value": {
             "type": "number",
@@ -6041,12 +5538,7 @@
           "status": {
             "type": "string",
             "description": "Coupon status",
-            "enum": [
-              "active",
-              "expired",
-              "depleted",
-              "disabled"
-            ],
+            "enum": ["active", "expired", "depleted", "disabled"],
             "default": "active"
           },
           "validFrom": {
@@ -6058,12 +5550,7 @@
             "description": "End date for coupon validity"
           }
         },
-        "required": [
-          "code",
-          "type",
-          "value",
-          "validFrom"
-        ]
+        "required": ["code", "type", "value", "validFrom"]
       },
       "GetCouponOutput": {
         "type": "object",
@@ -6091,10 +5578,7 @@
           "type": {
             "type": "string",
             "description": "Discount type",
-            "enum": [
-              "percentage",
-              "fixed_amount"
-            ]
+            "enum": ["percentage", "fixed_amount"]
           },
           "value": {
             "type": "number",
@@ -6123,12 +5607,7 @@
           "status": {
             "type": "string",
             "description": "Coupon status",
-            "enum": [
-              "active",
-              "expired",
-              "depleted",
-              "disabled"
-            ]
+            "enum": ["active", "expired", "depleted", "disabled"]
           },
           "validFrom": {
             "type": "string",
@@ -6178,10 +5657,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "UpdateCouponInput": {
         "type": "object",
@@ -6202,10 +5678,7 @@
           "type": {
             "type": "string",
             "description": "Discount type",
-            "enum": [
-              "percentage",
-              "fixed_amount"
-            ]
+            "enum": ["percentage", "fixed_amount"]
           },
           "value": {
             "type": "number",
@@ -6232,12 +5705,7 @@
           "status": {
             "type": "string",
             "description": "Coupon status",
-            "enum": [
-              "active",
-              "expired",
-              "depleted",
-              "disabled"
-            ]
+            "enum": ["active", "expired", "depleted", "disabled"]
           },
           "validFrom": {
             "type": "string",
@@ -6255,10 +5723,7 @@
           "accountMode": {
             "type": "string",
             "description": "Account mode: PIX or traditional bank account",
-            "enum": [
-              "pix",
-              "traditional"
-            ]
+            "enum": ["pix", "traditional"]
           },
           "bankName": {
             "type": "string",
@@ -6293,10 +5758,7 @@
           "type": {
             "type": "string",
             "description": "Account type (required for traditional)",
-            "enum": [
-              "checking",
-              "savings"
-            ]
+            "enum": ["checking", "savings"]
           },
           "pixKey": {
             "type": "string",
@@ -6306,13 +5768,7 @@
           "pixKeyType": {
             "type": "string",
             "description": "PIX key type (required for pix mode)",
-            "enum": [
-              "cpf",
-              "cnpj",
-              "email",
-              "phone",
-              "random"
-            ]
+            "enum": ["cpf", "cnpj", "email", "phone", "random"]
           },
           "isDefault": {
             "type": "boolean",
@@ -6332,10 +5788,7 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Holder document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           }
         },
         "required": [
@@ -6359,10 +5812,7 @@
           "accountMode": {
             "type": "string",
             "description": "Account mode",
-            "enum": [
-              "pix",
-              "traditional"
-            ]
+            "enum": ["pix", "traditional"]
           },
           "bankName": {
             "type": "object",
@@ -6391,10 +5841,7 @@
           "type": {
             "type": "string",
             "description": "Account type",
-            "enum": [
-              "checking",
-              "savings"
-            ]
+            "enum": ["checking", "savings"]
           },
           "pixKey": {
             "type": "object",
@@ -6403,13 +5850,7 @@
           "pixKeyType": {
             "type": "string",
             "description": "PIX key type",
-            "enum": [
-              "cpf",
-              "cnpj",
-              "email",
-              "phone",
-              "random"
-            ]
+            "enum": ["cpf", "cnpj", "email", "phone", "random"]
           },
           "isDefault": {
             "type": "boolean",
@@ -6426,10 +5867,7 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Holder document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "verifiedAt": {
             "type": "object",
@@ -6474,10 +5912,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "UpdateBankAccountInput": {
         "type": "object",
@@ -6515,10 +5950,7 @@
           "type": {
             "type": "string",
             "description": "Account type",
-            "enum": [
-              "checking",
-              "savings"
-            ]
+            "enum": ["checking", "savings"]
           },
           "isDefault": {
             "type": "boolean",
@@ -6537,10 +5969,7 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Holder document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "pixKey": {
             "type": "object",
@@ -6602,12 +6031,7 @@
           "status": {
             "type": "string",
             "description": "Subscription status",
-            "enum": [
-              "active",
-              "cancelled",
-              "paused",
-              "past_due"
-            ],
+            "enum": ["active", "cancelled", "paused", "past_due"],
             "default": "active"
           },
           "currentPeriodStart": {
@@ -6632,10 +6056,7 @@
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
-            "example": [
-              "pix",
-              "credit_card"
-            ],
+            "example": ["pix", "credit_card"],
             "type": "array",
             "items": {
               "type": "string"
@@ -6647,10 +6068,7 @@
           },
           "notifications": {
             "description": "Notification channels",
-            "example": [
-              "email",
-              "whatsapp"
-            ],
+            "example": ["email", "whatsapp"],
             "type": "array",
             "items": {
               "type": "string"
@@ -6835,10 +6253,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "UpdateSubscriptionInput": {
         "type": "object",
@@ -6876,12 +6291,7 @@
           "status": {
             "type": "string",
             "description": "Subscription status",
-            "enum": [
-              "active",
-              "cancelled",
-              "paused",
-              "past_due"
-            ]
+            "enum": ["active", "cancelled", "paused", "past_due"]
           },
           "currentPeriodStart": {
             "type": "string",
@@ -6901,10 +6311,7 @@
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
-            "example": [
-              "pix",
-              "credit_card"
-            ],
+            "example": ["pix", "credit_card"],
             "type": "array",
             "items": {
               "type": "string"
@@ -6916,10 +6323,7 @@
           },
           "notifications": {
             "description": "Notification channels",
-            "example": [
-              "email",
-              "whatsapp"
-            ],
+            "example": ["email", "whatsapp"],
             "type": "array",
             "items": {
               "type": "string"
@@ -6952,10 +6356,7 @@
             "default": "BRL"
           }
         },
-        "required": [
-          "bankAccountId",
-          "amount"
-        ]
+        "required": ["bankAccountId", "amount"]
       },
       "GetWithdrawalOutput": {
         "type": "object",
@@ -6971,11 +6372,7 @@
           "ledgerSyncStatus": {
             "type": "string",
             "description": "Ledger sync status",
-            "enum": [
-              "pending",
-              "synced",
-              "failed"
-            ]
+            "enum": ["pending", "synced", "failed"]
           },
           "ledgerSyncedAt": {
             "type": "object",
@@ -7008,12 +6405,7 @@
           "status": {
             "type": "string",
             "description": "Withdrawal status",
-            "enum": [
-              "pending",
-              "processing",
-              "completed",
-              "failed"
-            ]
+            "enum": ["pending", "processing", "completed", "failed"]
           },
           "requestedAt": {
             "type": "string",
@@ -7034,10 +6426,7 @@
           "snapshotAccountMode": {
             "type": "string",
             "description": "Snapshot: Account mode",
-            "enum": [
-              "pix",
-              "traditional"
-            ]
+            "enum": ["pix", "traditional"]
           },
           "snapshotBankName": {
             "type": "object",
@@ -7058,10 +6447,7 @@
           "snapshotAccountType": {
             "type": "string",
             "description": "Snapshot: Account type (traditional accounts only)",
-            "enum": [
-              "checking",
-              "savings"
-            ]
+            "enum": ["checking", "savings"]
           },
           "snapshotPixKey": {
             "type": "object",
@@ -7070,13 +6456,7 @@
           "snapshotPixKeyType": {
             "type": "string",
             "description": "Snapshot: PIX key type (PIX accounts only)",
-            "enum": [
-              "cpf",
-              "cnpj",
-              "email",
-              "phone",
-              "random"
-            ]
+            "enum": ["cpf", "cnpj", "email", "phone", "random"]
           },
           "snapshotHolderName": {
             "type": "string",
@@ -7131,10 +6511,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "CreateReferralInput": {
         "type": "object",
@@ -7160,11 +6537,7 @@
             "description": "Expiration date (ISO 8601)"
           }
         },
-        "required": [
-          "referredName",
-          "referredEmail",
-          "bonusAmount"
-        ]
+        "required": ["referredName", "referredEmail", "bonusAmount"]
       },
       "GetReferralOutput": {
         "type": "object",
@@ -7192,12 +6565,7 @@
           "status": {
             "type": "string",
             "description": "Referral status",
-            "enum": [
-              "pending",
-              "qualified",
-              "paid",
-              "expired"
-            ]
+            "enum": ["pending", "qualified", "paid", "expired"]
           },
           "bonusAmount": {
             "type": "number",
@@ -7257,10 +6625,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "GetAuditLogOutput": {
         "type": "object",
@@ -7353,10 +6718,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "BffCreateWithdrawalInput": {
         "type": "object",
@@ -7375,10 +6737,7 @@
             "default": "BRL"
           }
         },
-        "required": [
-          "bankAccountId",
-          "amount"
-        ]
+        "required": ["bankAccountId", "amount"]
       },
       "BffWithdrawalBankAccountOutput": {
         "type": "object",
@@ -7407,10 +6766,7 @@
           "type": {
             "type": "string",
             "description": "Account type",
-            "enum": [
-              "checking",
-              "savings"
-            ]
+            "enum": ["checking", "savings"]
           },
           "holderName": {
             "type": "string",
@@ -7441,11 +6797,7 @@
           "ledgerSyncStatus": {
             "type": "string",
             "description": "Ledger sync status",
-            "enum": [
-              "pending",
-              "synced",
-              "failed"
-            ]
+            "enum": ["pending", "synced", "failed"]
           },
           "ledgerSyncedAt": {
             "type": "object",
@@ -7486,12 +6838,7 @@
           "status": {
             "type": "string",
             "description": "Withdrawal status",
-            "enum": [
-              "pending",
-              "processing",
-              "completed",
-              "failed"
-            ]
+            "enum": ["pending", "processing", "completed", "failed"]
           },
           "requestedAt": {
             "type": "string",
@@ -7512,10 +6859,7 @@
           "snapshotAccountMode": {
             "type": "string",
             "description": "Snapshot: Account mode",
-            "enum": [
-              "pix",
-              "traditional"
-            ]
+            "enum": ["pix", "traditional"]
           },
           "snapshotBankName": {
             "type": "object",
@@ -7536,10 +6880,7 @@
           "snapshotAccountType": {
             "type": "string",
             "description": "Snapshot: Account type (traditional accounts only)",
-            "enum": [
-              "checking",
-              "savings"
-            ]
+            "enum": ["checking", "savings"]
           },
           "snapshotPixKey": {
             "type": "object",
@@ -7548,13 +6889,7 @@
           "snapshotPixKeyType": {
             "type": "string",
             "description": "Snapshot: PIX key type (PIX accounts only)",
-            "enum": [
-              "cpf",
-              "cnpj",
-              "email",
-              "phone",
-              "random"
-            ]
+            "enum": ["cpf", "cnpj", "email", "phone", "random"]
           },
           "snapshotHolderName": {
             "type": "string",
@@ -7609,10 +6944,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "WithdrawalTotalItem": {
         "type": "object",
@@ -7630,11 +6962,7 @@
             "description": "Number of withdrawals"
           }
         },
-        "required": [
-          "amount",
-          "amountFormatted",
-          "count"
-        ]
+        "required": ["amount", "amountFormatted", "count"]
       },
       "GetWithdrawalTotalsOutput": {
         "type": "object",
@@ -7664,11 +6992,7 @@
             ]
           }
         },
-        "required": [
-          "processing",
-          "completed",
-          "failed"
-        ]
+        "required": ["processing", "completed", "failed"]
       },
       "BffAddressInput": {
         "type": "object",
@@ -7756,10 +7080,7 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "document": {
             "type": "string",
@@ -7870,11 +7191,7 @@
             "example": "#FF5733"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "color"
-        ]
+        "required": ["id", "name", "color"]
       },
       "BffGetClientOutput": {
         "type": "object",
@@ -7919,10 +7236,7 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "document": {
             "type": "string",
@@ -8045,10 +7359,7 @@
           },
           "projectIds": {
             "description": "Project IDs to associate with the client",
-            "example": [
-              "uuid-1",
-              "uuid-2"
-            ],
+            "example": ["uuid-1", "uuid-2"],
             "type": "array",
             "items": {
               "type": "string"
@@ -8073,11 +7384,7 @@
             "description": "Client email"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "email"
-        ]
+        "required": ["id", "name", "email"]
       },
       "BffSubscriptionProjectOutput": {
         "type": "object",
@@ -8097,11 +7404,7 @@
             "example": "#FF5733"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "color"
-        ]
+        "required": ["id", "name", "color"]
       },
       "BffGetSubscriptionOutput": {
         "type": "object",
@@ -8268,10 +7571,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "BffSubscriptionCountOutput": {
         "type": "object",
@@ -8281,9 +7581,7 @@
             "description": "Number of subscriptions matching the criteria"
           }
         },
-        "required": [
-          "count"
-        ]
+        "required": ["count"]
       },
       "BffCancelSubscriptionInput": {
         "type": "object",
@@ -8311,11 +7609,7 @@
             "description": "Project color"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "color"
-        ]
+        "required": ["id", "name", "color"]
       },
       "BffPaymentLinkClientOutput": {
         "type": "object",
@@ -8334,11 +7628,7 @@
             "description": "Client email"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "email"
-        ]
+        "required": ["id", "name", "email"]
       },
       "BffGetPaymentLinkOutput": {
         "type": "object",
@@ -8386,12 +7676,7 @@
           "status": {
             "type": "string",
             "description": "Status",
-            "enum": [
-              "active",
-              "expired",
-              "disabled",
-              "paid"
-            ]
+            "enum": ["active", "expired", "disabled", "paid"]
           },
           "slug": {
             "type": "string",
@@ -8408,10 +7693,7 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": [
-              "one_time",
-              "subscription"
-            ]
+            "enum": ["one_time", "subscription"]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
@@ -8492,10 +7774,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "meta"
-        ]
+        "required": ["items", "meta"]
       },
       "BffCreateBankAccountInput": {
         "type": "object",
@@ -8503,10 +7782,7 @@
           "accountMode": {
             "type": "string",
             "description": "Account mode: PIX or traditional bank account",
-            "enum": [
-              "pix",
-              "traditional"
-            ]
+            "enum": ["pix", "traditional"]
           },
           "bankName": {
             "type": "string",
@@ -8541,10 +7817,7 @@
           "type": {
             "type": "string",
             "description": "Account type (required for traditional)",
-            "enum": [
-              "checking",
-              "savings"
-            ]
+            "enum": ["checking", "savings"]
           },
           "pixKey": {
             "type": "string",
@@ -8554,13 +7827,7 @@
           "pixKeyType": {
             "type": "string",
             "description": "PIX key type (required for pix mode)",
-            "enum": [
-              "cpf",
-              "cnpj",
-              "email",
-              "phone",
-              "random"
-            ]
+            "enum": ["cpf", "cnpj", "email", "phone", "random"]
           },
           "isDefault": {
             "type": "boolean",
@@ -8580,10 +7847,7 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Holder document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           }
         },
         "required": [
@@ -8621,10 +7885,7 @@
             "maxLength": 3
           }
         },
-        "required": [
-          "name",
-          "color"
-        ]
+        "required": ["name", "color"]
       },
       "BffUpdateProjectInput": {
         "type": "object",
@@ -8662,9 +7923,7 @@
             "description": "Number of notifications marked as read"
           }
         },
-        "required": [
-          "count"
-        ]
+        "required": ["count"]
       },
       "BalanceDetail": {
         "type": "object",
@@ -8678,10 +7937,7 @@
             "description": "Balance formatted in currency (amount / 100)"
           }
         },
-        "required": [
-          "amount",
-          "amountFormatted"
-        ]
+        "required": ["amount", "amountFormatted"]
       },
       "GetBalanceOutput": {
         "type": "object",
@@ -8784,13 +8040,7 @@
             "description": "Total withdrawals in cents"
           }
         },
-        "required": [
-          "date",
-          "payments",
-          "fees",
-          "refunds",
-          "withdrawals"
-        ]
+        "required": ["date", "payments", "fees", "refunds", "withdrawals"]
       },
       "BffTransactionsGraphOutput": {
         "type": "object",
@@ -8802,9 +8052,7 @@
             }
           }
         },
-        "required": [
-          "items"
-        ]
+        "required": ["items"]
       },
       "GetProfileOutput": {
         "type": "object",
@@ -8828,24 +8076,14 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ]
+            "enum": ["owner", "admin", "member"]
           },
           "createdAt": {
             "type": "string",
             "description": "Date when user was created"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "email",
-          "role",
-          "createdAt"
-        ]
+        "required": ["id", "name", "email", "role", "createdAt"]
       },
       "UpdateProfileInput": {
         "type": "object",
@@ -8870,10 +8108,7 @@
             "minLength": 8
           }
         },
-        "required": [
-          "currentPassword",
-          "newPassword"
-        ]
+        "required": ["currentPassword", "newPassword"]
       },
       "AccountStatusOutput": {
         "type": "object",
@@ -8907,22 +8142,14 @@
           "enabledMethods": {
             "type": "array",
             "description": "Payment methods to enable (Avista supports: pix)",
-            "example": [
-              "pix"
-            ],
+            "example": ["pix"],
             "items": {
               "type": "string",
-              "enum": [
-                "pix"
-              ]
+              "enum": ["pix"]
             }
           }
         },
-        "required": [
-          "name",
-          "credentials",
-          "enabledMethods"
-        ]
+        "required": ["name", "credentials", "enabledMethods"]
       },
       "AsaasPspCredentialInput": {
         "type": "object",
@@ -8943,26 +8170,14 @@
           "enabledMethods": {
             "type": "array",
             "description": "Payment methods to enable (Asaas supports: pix, credit_card, boleto)",
-            "example": [
-              "pix",
-              "credit_card",
-              "boleto"
-            ],
+            "example": ["pix", "credit_card", "boleto"],
             "items": {
               "type": "string",
-              "enum": [
-                "pix",
-                "credit_card",
-                "boleto"
-              ]
+              "enum": ["pix", "credit_card", "boleto"]
             }
           }
         },
-        "required": [
-          "name",
-          "credentials",
-          "enabledMethods"
-        ]
+        "required": ["name", "credentials", "enabledMethods"]
       },
       "PspCredentialsInput": {
         "type": "object",
@@ -9084,28 +8299,17 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ],
+            "enum": ["owner", "admin", "member"],
             "default": "member"
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": [
-              "pending",
-              "active"
-            ],
+            "enum": ["pending", "active"],
             "default": "active"
           }
         },
-        "required": [
-          "name",
-          "email",
-          "password"
-        ]
+        "required": ["name", "email", "password"]
       },
       "AdminBankAccountInput": {
         "type": "object",
@@ -9143,10 +8347,7 @@
           "type": {
             "type": "string",
             "description": "Account type",
-            "enum": [
-              "checking",
-              "savings"
-            ]
+            "enum": ["checking", "savings"]
           },
           "holderName": {
             "type": "string",
@@ -9161,10 +8362,7 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Document type",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "isDefault": {
             "type": "boolean",
@@ -9212,10 +8410,7 @@
           },
           "events": {
             "description": "Events to subscribe to",
-            "example": [
-              "payment.created",
-              "payment.completed"
-            ],
+            "example": ["payment.created", "payment.completed"],
             "type": "array",
             "items": {
               "type": "string"
@@ -9224,10 +8419,7 @@
           "environment": {
             "type": "string",
             "description": "Environment",
-            "enum": [
-              "production",
-              "sandbox"
-            ],
+            "enum": ["production", "sandbox"],
             "default": "production"
           },
           "headers": {
@@ -9241,12 +8433,7 @@
             "default": true
           }
         },
-        "required": [
-          "name",
-          "url",
-          "secret",
-          "events"
-        ]
+        "required": ["name", "url", "secret", "events"]
       },
       "AdminCreateAccountInput": {
         "type": "object",
@@ -9401,13 +8588,7 @@
             "description": "Company phone"
           }
         },
-        "required": [
-          "id",
-          "razaoSocial",
-          "cnpj",
-          "email",
-          "phone"
-        ]
+        "required": ["id", "razaoSocial", "cnpj", "email", "phone"]
       },
       "AdminCreateAccountIntegrationKeysOutput": {
         "type": "object",
@@ -9421,10 +8602,7 @@
             "description": "Sandbox API key (only shown once)"
           }
         },
-        "required": [
-          "productionKey",
-          "sandboxKey"
-        ]
+        "required": ["productionKey", "sandboxKey"]
       },
       "AdminCreateAccountLedgerAccountsOutput": {
         "type": "object",
@@ -9442,11 +8620,7 @@
             "description": "Credits ledger account ID"
           }
         },
-        "required": [
-          "available",
-          "held",
-          "credits"
-        ]
+        "required": ["available", "held", "credits"]
       },
       "AdminCreateAccountSandboxOutput": {
         "type": "object",
@@ -9470,11 +8644,7 @@
             ]
           }
         },
-        "required": [
-          "id",
-          "mockPspCredentialId",
-          "ledgerAccounts"
-        ]
+        "required": ["id", "mockPspCredentialId", "ledgerAccounts"]
       },
       "AdminPspCredentialOutput": {
         "type": "object",
@@ -9489,10 +8659,7 @@
             "description": "Friendly name"
           }
         },
-        "required": [
-          "id",
-          "name"
-        ]
+        "required": ["id", "name"]
       },
       "AdminPspCredentialsOutput": {
         "type": "object",
@@ -9531,11 +8698,7 @@
             "description": "Settlement days"
           }
         },
-        "required": [
-          "fixedFee",
-          "percentFee",
-          "settlementDays"
-        ]
+        "required": ["fixedFee", "percentFee", "settlementDays"]
       },
       "AdminPaymentMethodOutput": {
         "type": "object",
@@ -9558,10 +8721,7 @@
             ]
           }
         },
-        "required": [
-          "pspCredentialId",
-          "isDefault"
-        ]
+        "required": ["pspCredentialId", "isDefault"]
       },
       "AdminPaymentMethodsOutput": {
         "type": "object",
@@ -9611,28 +8771,15 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ]
+            "enum": ["owner", "admin", "member"]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": [
-              "pending",
-              "active"
-            ]
+            "enum": ["pending", "active"]
           }
         },
-        "required": [
-          "id",
-          "name",
-          "email",
-          "role",
-          "status"
-        ]
+        "required": ["id", "name", "email", "role", "status"]
       },
       "AdminBankAccountOutput": {
         "type": "object",
@@ -9663,10 +8810,7 @@
             "description": "Whether this is the default bank account"
           }
         },
-        "required": [
-          "id",
-          "isDefault"
-        ]
+        "required": ["id", "isDefault"]
       },
       "AdminWebhookOutput": {
         "type": "object",
@@ -9687,10 +8831,7 @@
           "environment": {
             "type": "string",
             "description": "Environment",
-            "enum": [
-              "production",
-              "sandbox"
-            ]
+            "enum": ["production", "sandbox"]
           },
           "events": {
             "description": "Subscribed events",
@@ -9704,14 +8845,7 @@
             "description": "Whether the webhook is active"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "url",
-          "environment",
-          "events",
-          "isActive"
-        ]
+        "required": ["id", "name", "url", "environment", "events", "isActive"]
       },
       "AdminCreateAccountOutput": {
         "type": "object",
@@ -9724,9 +8858,7 @@
           "status": {
             "type": "string",
             "description": "Account status",
-            "enum": [
-              "approved"
-            ]
+            "enum": ["approved"]
           },
           "companyInfo": {
             "description": "Company information",
@@ -9841,10 +8973,7 @@
             "example": "+5511999998888"
           }
         },
-        "required": [
-          "name",
-          "document"
-        ]
+        "required": ["name", "document"]
       },
       "CreatePixChargeInput": {
         "type": "object",
@@ -9902,10 +9031,7 @@
             }
           }
         },
-        "required": [
-          "amount",
-          "description"
-        ]
+        "required": ["amount", "description"]
       },
       "CreatePixChargeOutput": {
         "type": "object",
@@ -9918,12 +9044,7 @@
           "status": {
             "type": "string",
             "description": "Status da cobrança",
-            "enum": [
-              "pending",
-              "completed",
-              "failed",
-              "cancelled"
-            ]
+            "enum": ["pending", "completed", "failed", "cancelled"]
           },
           "amount": {
             "type": "number",
@@ -10000,10 +9121,7 @@
             "example": "12345678909"
           }
         },
-        "required": [
-          "name",
-          "document"
-        ]
+        "required": ["name", "document"]
       },
       "CreateCustomerOutput": {
         "type": "object",
@@ -10031,10 +9149,7 @@
           "documentType": {
             "type": "string",
             "description": "Tipo do documento",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "document": {
             "type": "string",
@@ -10087,13 +9202,7 @@
             "example": 5
           }
         },
-        "required": [
-          "items",
-          "total",
-          "page",
-          "limit",
-          "totalPages"
-        ]
+        "required": ["items", "total", "page", "limit", "totalPages"]
       },
       "GetCustomerOutput": {
         "type": "object",
@@ -10121,10 +9230,7 @@
           "documentType": {
             "type": "string",
             "description": "Tipo do documento",
-            "enum": [
-              "cpf",
-              "cnpj"
-            ]
+            "enum": ["cpf", "cnpj"]
           },
           "document": {
             "type": "string",
@@ -10188,55 +9294,14 @@
             "minimum": 1,
             "example": 99.9
           },
-          "currency": {
-            "type": "string",
-            "description": "Código da moeda",
-            "default": "BRL",
-            "example": "BRL"
-          },
           "paymentMethods": {
             "type": "array",
             "description": "Métodos de pagamento aceitos",
-            "example": [
-              "pix",
-              "credit_card"
-            ],
+            "example": ["pix"],
             "items": {
               "type": "string",
-              "enum": [
-                "pix",
-                "credit_card",
-                "boleto"
-              ]
+              "enum": ["pix"]
             }
-          },
-          "maxInstallments": {
-            "type": "integer",
-            "description": "Máximo de parcelas para cartão de crédito (1-12)",
-            "minimum": 1,
-            "maximum": 12,
-            "default": 1,
-            "example": 6
-          },
-          "notifications": {
-            "type": "array",
-            "description": "Canais de notificação para atualizações de pagamento",
-            "example": [
-              "email"
-            ],
-            "default": [],
-            "items": {
-              "type": "string",
-              "enum": [
-                "email",
-                "whatsapp"
-              ]
-            }
-          },
-          "allowCoupons": {
-            "type": "boolean",
-            "description": "Permitir cupons de desconto",
-            "default": false
           },
           "expiresAt": {
             "type": "string",
@@ -10250,11 +9315,7 @@
             "format": "uuid"
           }
         },
-        "required": [
-          "projectId",
-          "name",
-          "paymentMethods"
-        ]
+        "required": ["projectId", "name", "paymentMethods"]
       },
       "GetChargeOutput": {
         "type": "object",
@@ -10296,12 +9357,7 @@
           "status": {
             "type": "string",
             "description": "Status da cobrança",
-            "enum": [
-              "active",
-              "expired",
-              "disabled",
-              "paid"
-            ]
+            "enum": ["active", "expired", "disabled", "paid"]
           },
           "slug": {
             "type": "string",
@@ -10315,10 +9371,7 @@
           },
           "paymentMethods": {
             "description": "Métodos de pagamento aceitos",
-            "example": [
-              "pix",
-              "credit_card"
-            ],
+            "example": ["pix", "credit_card"],
             "type": "array",
             "items": {
               "type": "string"
@@ -10331,9 +9384,7 @@
           },
           "notifications": {
             "description": "Canais de notificação",
-            "example": [
-              "email"
-            ],
+            "example": ["email"],
             "type": "array",
             "items": {
               "type": "string"
@@ -10417,13 +9468,7 @@
             "example": 5
           }
         },
-        "required": [
-          "items",
-          "total",
-          "page",
-          "limit",
-          "totalPages"
-        ]
+        "required": ["items", "total", "page", "limit", "totalPages"]
       }
     }
   }
