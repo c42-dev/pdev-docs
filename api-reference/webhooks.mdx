@@ -1,0 +1,140 @@
+---
+title: 'Webhooks'
+description: 'Receba notificações em tempo real sobre eventos de pagamento'
+---
+
+## Visão Geral
+
+Webhooks permitem que você receba notificações HTTP automáticas quando eventos importantes acontecem na sua conta, como pagamentos confirmados ou reembolsos processados.
+
+## Eventos Disponíveis
+
+| Evento | Descrição |
+|--------|-----------|
+| `payment_completed` | Pagamento foi confirmado com sucesso |
+| `payment_failed` | Pagamento falhou ou expirou |
+| `refund_completed` | Reembolso foi processado |
+
+## Estrutura do Payload
+
+Todos os webhooks seguem a mesma estrutura base:
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "txn_abc123def456",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "data": {
+    // Dados específicos do evento
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `event` | string | Tipo do evento |
+| `eventId` | string | ID único do evento (geralmente o ID da transação) |
+| `timestamp` | string | Data/hora do evento em formato ISO 8601 |
+| `data` | object | Dados específicos do evento |
+
+## Headers Enviados
+
+Cada requisição de webhook inclui os seguintes headers:
+
+| Header | Descrição |
+|--------|-----------|
+| `Content-Type` | `application/json` |
+| `X-Webhook-Signature` | Assinatura HMAC-SHA256 do payload |
+| `X-Webhook-Timestamp` | Timestamp em milliseconds |
+
+## Exemplos de Payload
+
+### payment_completed
+
+Enviado quando um pagamento PIX é confirmado.
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "txn_abc123def456",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "data": {
+    "transactionId": "txn_abc123def456",
+    "amount": 100.50,
+    "feeAmount": 0.99,
+    "netAmount": 99.51,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "completedAt": "2024-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### payment_failed
+
+Enviado quando um pagamento falha ou expira.
+
+```json
+{
+  "event": "payment_failed",
+  "eventId": "txn_xyz789ghi012",
+  "timestamp": "2024-01-15T10:35:00.000Z",
+  "data": {
+    "transactionId": "txn_xyz789ghi012",
+    "amount": 50.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "failed",
+    "failedAt": "2024-01-15T10:35:00.000Z",
+    "failureReason": "expired"
+  }
+}
+```
+
+### refund_completed
+
+Enviado quando um reembolso é processado.
+
+```json
+{
+  "event": "refund_completed",
+  "eventId": "txn_ref456jkl789",
+  "timestamp": "2024-01-15T11:00:00.000Z",
+  "data": {
+    "refundTransactionId": "txn_ref456jkl789",
+    "originalTransactionId": "txn_abc123def456",
+    "amount": 100.50,
+    "feeAmount": 0,
+    "currency": "BRL",
+    "status": "completed",
+    "refundedAt": "2024-01-15T11:00:00.000Z"
+  }
+}
+```
+
+## Boas Práticas
+
+<AccordionGroup>
+  <Accordion title="Responda rapidamente">
+    Retorne um status `200 OK` o mais rápido possível. Processe o webhook de forma assíncrona se necessário.
+  </Accordion>
+
+  <Accordion title="Implemente idempotência">
+    Use o `eventId` para evitar processar o mesmo evento duas vezes. Webhooks podem ser reenviados em caso de falha.
+  </Accordion>
+
+  <Accordion title="Use HTTPS">
+    Configure seu endpoint apenas com HTTPS para garantir a segurança dos dados.
+  </Accordion>
+</AccordionGroup>
+
+## Retentativas
+
+Se o seu endpoint não responder com status `2xx`, tentaremos reenviar o webhook:
+
+- **5 tentativas** com backoff exponencial
+- Intervalo inicial: 2 segundos
+- Intervalo máximo: ~30 segundos entre tentativas
+
+Após 5 tentativas sem sucesso, o webhook é marcado como falho.
