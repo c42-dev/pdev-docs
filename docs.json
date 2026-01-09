@@ -49,7 +49,7 @@
         ]
       },
       {
-        "group": "Cobranças",
+        "group": "Links de Pagamento",
         "pages": [
           "api-reference/charges/create",
           "api-reference/charges/list",
