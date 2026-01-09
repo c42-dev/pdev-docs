@@ -1,97 +1,46 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: 'Introdução'
+description: 'Documentação da API pague.dev'
 ---
 
-## Setting up
+## Bem-vindo
 
-Get your documentation site up and running in minutes.
+A API pague.dev permite integrar o processamento de pagamentos em suas aplicações. Esta documentação cobre todos os endpoints disponíveis para gerenciar clientes, projetos, cobranças, transações e pagamentos PIX.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+## URL Base
 
-## Make it yours
+Todas as requisições devem ser feitas para:
 
-Design a docs site that looks great and empowers your users.
+```
+https://55c25864aad9.ngrok-free.app/api/external/v1
+```
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+## Autenticação
+
+Todos os endpoints requerem autenticação usando chaves de API. Inclua suas credenciais nos headers da requisição:
+
+```json
+{
+  "X-API-Key": "sua-api-key"
+}
+```
+
+## Recursos Disponíveis
+
+<CardGroup cols={2}>
+  <Card title="PIX" icon="qrcode" href="/api-reference/pix/create">
+    Criar cobranças PIX
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Clientes" icon="users" href="/api-reference/customers/create">
+    Gerenciar seus clientes
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Projetos" icon="folder" href="/api-reference/projects/create">
+    Organizar pagamentos por projeto
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Cobranças" icon="credit-card" href="/api-reference/charges/create">
+    Criar e gerenciar cobranças
   </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+  <Card title="Transações" icon="receipt" href="/api-reference/transactions/get">
+    Visualizar detalhes de transações
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+</CardGroup>
