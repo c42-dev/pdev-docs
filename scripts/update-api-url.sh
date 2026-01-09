@@ -13,7 +13,7 @@ CURRENT_SERVER=$(jq -r '.servers[0].url // "não definido"' "$DOCS_DIR/openapi.j
 CURRENT_PATH_PREFIX=$(jq -r '.paths | keys[0] | split("/")[1:4] | "/" + join("/")' "$DOCS_DIR/openapi.json")
 
 # Pegar URL atual do index.mdx (entre ``` ```)
-CURRENT_INDEX_URL=$(grep -A1 "requisições devem ser feitas para:" "$DOCS_DIR/index.mdx" | grep "https://" | tr -d '`' | xargs)
+CURRENT_INDEX_URL=$(grep -E "^https?://" "$DOCS_DIR/index.mdx" | head -1 | xargs)
 
 echo "=========================================="
 echo "  Atualizar URL da API - pague.dev Docs"

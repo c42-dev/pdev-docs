@@ -12,7 +12,7 @@
     }
   ],
   "paths": {
-    "/api/external/v1/pix": {
+    "/v1/pix": {
       "post": {
         "operationId": "ExternalPixController_createCharge",
         "parameters": [
@@ -94,7 +94,7 @@
         ]
       }
     },
-    "/api/external/v1/customers": {
+    "/v1/customers": {
       "post": {
         "operationId": "ExternalCustomersController_createCustomer",
         "parameters": [
@@ -249,7 +249,7 @@
         ]
       }
     },
-    "/api/external/v1/customers/{id}": {
+    "/v1/customers/{id}": {
       "get": {
         "operationId": "ExternalCustomersController_getCustomer",
         "parameters": [
@@ -321,7 +321,7 @@
         ]
       }
     },
-    "/api/external/v1/projects": {
+    "/v1/projects": {
       "post": {
         "operationId": "ExternalProjectsController_createProject",
         "parameters": [
@@ -505,7 +505,7 @@
         ]
       }
     },
-    "/api/external/v1/projects/{id}": {
+    "/v1/projects/{id}": {
       "get": {
         "operationId": "ExternalProjectsController_getProject",
         "parameters": [
@@ -577,7 +577,7 @@
         ]
       }
     },
-    "/api/external/v1/transactions/{id}": {
+    "/v1/transactions/{id}": {
       "get": {
         "operationId": "ExternalTransactionsController_getTransaction",
         "parameters": [
@@ -649,7 +649,7 @@
         ]
       }
     },
-    "/api/external/v1/charges": {
+    "/api/external/v1": {
       "post": {
         "description": "Cria um novo link de pagamento único que suporta PIX, cartão de crédito e boleto.",
         "operationId": "ExternalChargesController_createCharge",
@@ -840,7 +840,7 @@
         ]
       }
     },
-    "/api/external/v1/charges/{id}": {
+    "/api/external/v1/{id}": {
       "get": {
         "description": "Retorna os detalhes de uma cobrança (link de pagamento) específica pelo seu ID.",
         "operationId": "ExternalChargesController_getCharge",
