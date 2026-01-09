@@ -8,7 +8,7 @@
   },
   "servers": [
     {
-      "url": "https://55c25864aad9.ngrok-free.app"
+      "url": "https://api.pague.dev"
     }
   ],
   "paths": {
@@ -19,7 +19,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -101,7 +101,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -171,7 +171,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -256,7 +256,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -328,7 +328,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -408,7 +408,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -512,7 +512,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -584,7 +584,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -657,7 +657,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -738,7 +738,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
@@ -848,7 +848,7 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "description": "Integration API key (pd_live_* for production, pd_test_* for sandbox)",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
             "required": true,
             "schema": {
               "type": "string"
