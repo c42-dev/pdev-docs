@@ -68,6 +68,11 @@
           "anchor": "Dashboard",
           "href": "https://pague.dev",
           "icon": "gauge"
+        },
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/pague-dev",
+          "icon": "github"
         }
       ],
       "languages": [
