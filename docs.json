@@ -23,6 +23,7 @@
         "group": "Visão Geral",
         "pages": [
           "index",
+          "sdk",
           "api-reference/webhooks"
         ]
       },

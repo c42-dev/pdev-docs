@@ -8,7 +8,7 @@
   },
   "servers": [
     {
-      "url": "https://55c25864aad9.ngrok-free.app/api/external/v1"
+      "url": "https://api.pague.dev/v1"
     }
   ],
   "paths": {

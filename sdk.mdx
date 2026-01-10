@@ -1,0 +1,84 @@
+---
+title: 'SDK'
+description: 'SDKs oficiais para integração com a API pague.dev'
+---
+
+## Node.js
+
+### Instalação
+
+```bash
+npm install @pague-dev/sdk-node
+```
+
+### Configuração
+
+```typescript
+import { Pdev } from '@pague-dev/sdk-node';
+
+// Opção 1: Passar a API key diretamente
+const pdev = new Pdev('pd_live_sua_api_key');
+
+// Opção 2: Usar variável de ambiente PDEV_API_KEY
+const pdev = new Pdev();
+```
+
+### Recursos
+
+<AccordionGroup>
+  <Accordion title="PIX">
+    Criar cobranças PIX instantâneas:
+    ```typescript
+    await pdev.pix.create({ amount, description, customer });
+    ```
+  </Accordion>
+
+  <Accordion title="Charges (Links de Pagamento)">
+    Criar links de pagamento compartilháveis:
+    ```typescript
+    await pdev.charges.create({ projectId, name, amount, paymentMethods });
+    ```
+  </Accordion>
+
+  <Accordion title="Customers (Clientes)">
+    Gerenciar clientes:
+    ```typescript
+    await pdev.customers.create({ name, document });
+    await pdev.customers.list({ page, limit, search });
+    ```
+  </Accordion>
+
+  <Accordion title="Projects (Projetos)">
+    Organizar pagamentos por projeto:
+    ```typescript
+    await pdev.projects.create({ name, color });
+    await pdev.projects.list({ page, limit });
+    ```
+  </Accordion>
+
+  <Accordion title="Transactions (Transações)">
+    Consultar transações:
+    ```typescript
+    await pdev.transactions.get(id);
+    ```
+  </Accordion>
+
+  <Accordion title="Webhooks">
+    Processar notificações de eventos:
+    ```typescript
+    import { parseWebhook } from '@pague-dev/sdk-node';
+    const event = parseWebhook(req.body);
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Repositórios
+
+<CardGroup cols={2}>
+  <Card title="SDK Node.js" icon="npm" href="https://github.com/pague-dev/sdk-node">
+    Código fonte e documentação do SDK
+  </Card>
+  <Card title="Exemplo Completo" icon="code" href="https://github.com/pague-dev/sdk-example">
+    Aplicação React demonstrando o uso do SDK
+  </Card>
+</CardGroup>
