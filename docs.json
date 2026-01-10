@@ -95,5 +95,9 @@
       "href": "https://pague.dev"
     }
   },
-  "footer": {}
+  "footer": {
+    "socials": {
+      "github": "https://github.com/pague-dev"
+    }
+  }
 }
