@@ -34,9 +34,11 @@ const pdev = new Pdev();
   </Accordion>
 
   <Accordion title="Charges (Links de Pagamento)">
-    Criar links de pagamento compartilháveis:
+    Gerenciar links de pagamento:
     ```typescript
     await pdev.charges.create({ projectId, name, amount, paymentMethods });
+    await pdev.charges.list({ page, limit });
+    await pdev.charges.get(id);
     ```
   </Accordion>
 
