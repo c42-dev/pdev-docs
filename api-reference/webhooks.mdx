@@ -5,15 +5,16 @@ description: 'Receba notificações em tempo real sobre eventos de pagamento'
 
 ## Visão Geral
 
-Webhooks permitem que você receba notificações HTTP automáticas quando eventos importantes acontecem na sua conta, como pagamentos confirmados ou reembolsos processados.
+Webhooks permitem que você receba notificações HTTP automáticas quando eventos importantes acontecem na sua conta, como pagamentos confirmados, reembolsos processados ou saques concluídos.
 
 ## Eventos Disponíveis
 
 | Evento | Descrição |
 |--------|-----------|
 | `payment_completed` | Pagamento foi confirmado com sucesso |
-| `payment_failed` | Pagamento falhou ou expirou |
 | `refund_completed` | Reembolso foi processado |
+| `withdrawal_completed` | Saque foi processado com sucesso |
+| `withdrawal_failed` | Saque foi rejeitado ou falhou |
 
 ## Estrutura do Payload
 
@@ -22,8 +23,8 @@ Todos os webhooks seguem a mesma estrutura base:
 ```json
 {
   "event": "payment_completed",
-  "eventId": "txn_abc123def456",
-  "timestamp": "2024-01-15T10:30:00.000Z",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
   "data": {
     // Dados específicos do evento
   }
@@ -56,41 +57,33 @@ Enviado quando um pagamento PIX é confirmado.
 ```json
 {
   "event": "payment_completed",
-  "eventId": "txn_abc123def456",
-  "timestamp": "2024-01-15T10:30:00.000Z",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
   "data": {
-    "transactionId": "txn_abc123def456",
-    "amount": 100.50,
-    "feeAmount": 0.99,
-    "netAmount": 99.51,
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "amount": 100.21,
+    "feeAmount": 0.5,
+    "netAmount": 99.71,
     "currency": "BRL",
     "paymentMethod": "pix",
     "status": "completed",
-    "completedAt": "2024-01-15T10:30:00.000Z"
+    "completedAt": "2026-01-11T19:03:28.277Z",
+    "externalReference": "pedido-12345"
   }
 }
 ```
 
-### payment_failed
-
-Enviado quando um pagamento falha ou expira.
-
-```json
-{
-  "event": "payment_failed",
-  "eventId": "txn_xyz789ghi012",
-  "timestamp": "2024-01-15T10:35:00.000Z",
-  "data": {
-    "transactionId": "txn_xyz789ghi012",
-    "amount": 50.00,
-    "currency": "BRL",
-    "paymentMethod": "pix",
-    "status": "failed",
-    "failedAt": "2024-01-15T10:35:00.000Z",
-    "failureReason": "expired"
-  }
-}
-```
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `transactionId` | string | ID único da transação |
+| `amount` | number | Valor total do pagamento |
+| `feeAmount` | number | Taxa cobrada |
+| `netAmount` | number | Valor líquido (amount - feeAmount) |
+| `currency` | string | Moeda (BRL) |
+| `paymentMethod` | string | Método de pagamento (pix) |
+| `status` | string | Status do pagamento (completed) |
+| `completedAt` | string | Data/hora da conclusão em ISO 8601 |
+| `externalReference` | string | Sua referência externa (opcional) |
 
 ### refund_completed
 
@@ -99,19 +92,95 @@ Enviado quando um reembolso é processado.
 ```json
 {
   "event": "refund_completed",
-  "eventId": "txn_ref456jkl789",
-  "timestamp": "2024-01-15T11:00:00.000Z",
+  "eventId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
+  "timestamp": "2026-01-11T19:22:15.456Z",
   "data": {
-    "refundTransactionId": "txn_ref456jkl789",
-    "originalTransactionId": "txn_abc123def456",
-    "amount": 100.50,
-    "feeAmount": 0,
+    "refundTransactionId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
+    "originalTransactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "amount": 50.00,
+    "feeAmount": 0.25,
+    "netAmount": 49.75,
     "currency": "BRL",
     "status": "completed",
-    "refundedAt": "2024-01-15T11:00:00.000Z"
+    "completedAt": "2026-01-11T19:22:15.400Z"
   }
 }
 ```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `refundTransactionId` | string | ID único da transação de reembolso |
+| `originalTransactionId` | string | ID da transação original que foi reembolsada |
+| `amount` | number | Valor do reembolso |
+| `feeAmount` | number | Taxa do reembolso |
+| `netAmount` | number | Valor líquido do reembolso |
+| `currency` | string | Moeda (BRL) |
+| `status` | string | Status do reembolso (completed) |
+| `completedAt` | string | Data/hora da conclusão em ISO 8601 |
+
+### withdrawal_completed
+
+Enviado quando um saque é processado com sucesso.
+
+```json
+{
+  "event": "withdrawal_completed",
+  "eventId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+  "timestamp": "2026-01-11T19:08:21.953Z",
+  "data": {
+    "withdrawalId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "amount": 500.00,
+    "feeAmount": 2.50,
+    "netAmount": 497.50,
+    "currency": "BRL",
+    "status": "completed",
+    "completedAt": "2026-01-11T19:08:21.939Z"
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `withdrawalId` | string | ID único do saque |
+| `amount` | number | Valor do saque |
+| `feeAmount` | number | Taxa do saque |
+| `netAmount` | number | Valor líquido transferido |
+| `currency` | string | Moeda (BRL) |
+| `status` | string | Status do saque (completed) |
+| `completedAt` | string | Data/hora da conclusão em ISO 8601 |
+
+### withdrawal_failed
+
+Enviado quando um saque é rejeitado ou falha.
+
+```json
+{
+  "event": "withdrawal_failed",
+  "eventId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+  "timestamp": "2026-01-11T19:15:42.123Z",
+  "data": {
+    "withdrawalId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+    "amount": 1000.00,
+    "feeAmount": 5.00,
+    "netAmount": 995.00,
+    "currency": "BRL",
+    "status": "failed",
+    "failedAt": "2026-01-11T19:15:42.100Z",
+    "failureReason": "insufficient_funds"
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `withdrawalId` | string | ID único do saque |
+| `amount` | number | Valor do saque |
+| `feeAmount` | number | Taxa do saque |
+| `netAmount` | number | Valor líquido que seria transferido |
+| `currency` | string | Moeda (BRL) |
+| `status` | string | Status do saque (failed) |
+| `failedAt` | string | Data/hora da falha em ISO 8601 |
+| `failureReason` | string | Motivo da falha (insufficient_funds, invalid_account, etc.) |
 
 ## Boas Práticas
 
