@@ -61,6 +61,7 @@ Enviado quando um pagamento PIX é confirmado.
   "timestamp": "2026-01-11T19:03:28.280Z",
   "data": {
     "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "sandbox",
     "amount": 100.21,
     "feeAmount": 0.5,
     "netAmount": 99.71,
@@ -76,6 +77,7 @@ Enviado quando um pagamento PIX é confirmado.
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `transactionId` | string | ID único da transação |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
 | `amount` | number | Valor total do pagamento |
 | `feeAmount` | number | Taxa cobrada |
 | `netAmount` | number | Valor líquido (amount - feeAmount) |
@@ -97,6 +99,7 @@ Enviado quando um reembolso é processado.
   "data": {
     "refundTransactionId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
     "originalTransactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "sandbox",
     "amount": 50.00,
     "feeAmount": 0.25,
     "netAmount": 49.75,
@@ -111,6 +114,7 @@ Enviado quando um reembolso é processado.
 |-------|------|-----------|
 | `refundTransactionId` | string | ID único da transação de reembolso |
 | `originalTransactionId` | string | ID da transação original que foi reembolsada |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
 | `amount` | number | Valor do reembolso |
 | `feeAmount` | number | Taxa do reembolso |
 | `netAmount` | number | Valor líquido do reembolso |
@@ -129,6 +133,7 @@ Enviado quando um saque é processado com sucesso.
   "timestamp": "2026-01-11T19:08:21.953Z",
   "data": {
     "withdrawalId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "environment": "sandbox",
     "amount": 500.00,
     "feeAmount": 2.50,
     "netAmount": 497.50,
@@ -142,6 +147,7 @@ Enviado quando um saque é processado com sucesso.
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `withdrawalId` | string | ID único do saque |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
 | `amount` | number | Valor do saque |
 | `feeAmount` | number | Taxa do saque |
 | `netAmount` | number | Valor líquido transferido |
@@ -160,6 +166,7 @@ Enviado quando um saque é rejeitado ou falha.
   "timestamp": "2026-01-11T19:15:42.123Z",
   "data": {
     "withdrawalId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+    "environment": "sandbox",
     "amount": 1000.00,
     "feeAmount": 5.00,
     "netAmount": 995.00,
@@ -174,6 +181,7 @@ Enviado quando um saque é rejeitado ou falha.
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `withdrawalId` | string | ID único do saque |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
 | `amount` | number | Valor do saque |
 | `feeAmount` | number | Taxa do saque |
 | `netAmount` | number | Valor líquido que seria transferido |
