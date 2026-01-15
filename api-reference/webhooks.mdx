@@ -69,7 +69,11 @@ Enviado quando um pagamento PIX é confirmado.
     "paymentMethod": "pix",
     "status": "completed",
     "completedAt": "2026-01-11T19:03:28.277Z",
-    "externalReference": "pedido-12345"
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
   }
 }
 ```
@@ -86,6 +90,7 @@ Enviado quando um pagamento PIX é confirmado.
 | `status` | string | Status do pagamento (completed) |
 | `completedAt` | string | Data/hora da conclusão em ISO 8601 |
 | `externalReference` | string | Sua referência externa (opcional) |
+| `metadata` | object | Metadados customizados enviados na criação do pagamento (opcional) |
 
 ### refund_completed
 
@@ -105,7 +110,11 @@ Enviado quando um reembolso é processado.
     "netAmount": 49.75,
     "currency": "BRL",
     "status": "completed",
-    "completedAt": "2026-01-11T19:22:15.400Z"
+    "completedAt": "2026-01-11T19:22:15.400Z",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
   }
 }
 ```
@@ -121,6 +130,7 @@ Enviado quando um reembolso é processado.
 | `currency` | string | Moeda (BRL) |
 | `status` | string | Status do reembolso (completed) |
 | `completedAt` | string | Data/hora da conclusão em ISO 8601 |
+| `metadata` | object | Metadados customizados do pagamento original (opcional) |
 
 ### withdrawal_completed
 
@@ -139,7 +149,10 @@ Enviado quando um saque é processado com sucesso.
     "netAmount": 497.50,
     "currency": "BRL",
     "status": "completed",
-    "completedAt": "2026-01-11T19:08:21.939Z"
+    "completedAt": "2026-01-11T19:08:21.939Z",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
   }
 }
 ```
@@ -154,6 +167,7 @@ Enviado quando um saque é processado com sucesso.
 | `currency` | string | Moeda (BRL) |
 | `status` | string | Status do saque (completed) |
 | `completedAt` | string | Data/hora da conclusão em ISO 8601 |
+| `metadata` | object | Metadados customizados do saque (opcional) |
 
 ### withdrawal_failed
 
@@ -173,7 +187,10 @@ Enviado quando um saque é rejeitado ou falha.
     "currency": "BRL",
     "status": "failed",
     "failedAt": "2026-01-11T19:15:42.100Z",
-    "failureReason": "insufficient_funds"
+    "failureReason": "insufficient_funds",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
   }
 }
 ```
@@ -189,6 +206,7 @@ Enviado quando um saque é rejeitado ou falha.
 | `status` | string | Status do saque (failed) |
 | `failedAt` | string | Data/hora da falha em ISO 8601 |
 | `failureReason` | string | Motivo da falha (insufficient_funds, invalid_account, etc.) |
+| `metadata` | object | Metadados customizados do saque (opcional) |
 
 ## Boas Práticas
 
