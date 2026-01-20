@@ -3328,7 +3328,7 @@
             "type": "number",
             "description": "Amount in cents (optional, uses payment link amount if not provided)",
             "example": 10000,
-            "minimum": 100
+            "minimum": 500
           }
         },
         "required": ["clientId"]
@@ -8981,7 +8981,7 @@
           "amount": {
             "type": "number",
             "description": "Valor em BRL (ex: 100.50 para R$ 100,50)",
-            "minimum": 1,
+            "minimum": 5,
             "example": 150.75
           },
           "description": {
@@ -9291,7 +9291,7 @@
           "amount": {
             "type": "number",
             "description": "Valor em BRL (null para valor aberto/customizado). Exemplo: 99.90 para R$ 99,90",
-            "minimum": 1,
+            "minimum": 5,
             "example": 99.9
           },
           "paymentMethods": {
