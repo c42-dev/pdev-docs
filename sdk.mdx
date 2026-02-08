@@ -36,7 +36,7 @@ const pdev = new Pdev();
   <Accordion title="Charges (Links de Pagamento)">
     Gerenciar links de pagamento:
     ```typescript
-    await pdev.charges.create({ projectId, name, amount, paymentMethods });
+    await pdev.charges.create({ name, amount, paymentMethods });
     await pdev.charges.list({ page, limit });
     await pdev.charges.get(id);
     ```

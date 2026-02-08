@@ -60,6 +60,12 @@
         "pages": [
           "api-reference/transactions/get"
         ]
+      },
+      {
+        "group": "Métricas",
+        "pages": [
+          "api-reference/metrics/get"
+        ]
       }
     ],
     "global": {

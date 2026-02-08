@@ -626,6 +626,66 @@
         "tags": ["External API - Transactions"]
       }
     },
+    "/metrics": {
+      "get": {
+        "operationId": "ExternalMetricsController_getMetrics",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Métricas de receita da conta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMetricsOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Permission denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obter métricas de receita",
+        "tags": ["External API - Metrics"]
+      }
+    },
     "/charges": {
       "post": {
         "description": "Cria um novo link de pagamento único que suporta PIX, cartão de crédito e boleto.",
@@ -6082,7 +6142,6 @@
         },
         "required": [
           "clientId",
-          "projectId",
           "planName",
           "amount",
           "cycle",
@@ -9274,7 +9333,7 @@
         "properties": {
           "projectId": {
             "type": "string",
-            "description": "ID do projeto para associar a cobrança",
+            "description": "ID do projeto para associar a cobrança. Se não informado, será usado o projeto principal da conta",
             "format": "uuid"
           },
           "name": {
@@ -9315,7 +9374,7 @@
             "format": "uuid"
           }
         },
-        "required": ["projectId", "name", "paymentMethods"]
+        "required": ["name", "paymentMethods"]
       },
       "GetChargeOutput": {
         "type": "object",
@@ -9469,6 +9528,57 @@
           }
         },
         "required": ["items", "total", "page", "limit", "totalPages"]
+      },
+      "DayMetrics": {
+        "type": "object",
+        "properties": {
+          "revenue": {
+            "type": "number",
+            "description": "Receita do dia em BRL",
+            "example": 1500.50
+          },
+          "mrr": {
+            "type": "number",
+            "description": "MRR do dia em BRL",
+            "example": 500.00
+          },
+          "subscribers": {
+            "type": "integer",
+            "description": "Número de assinantes ativos no dia",
+            "example": 10
+          }
+        },
+        "required": ["revenue", "mrr", "subscribers"]
+      },
+      "GetMetricsOutput": {
+        "type": "object",
+        "properties": {
+          "totalRevenue": {
+            "type": "number",
+            "description": "Receita total em BRL",
+            "example": 15000.00
+          },
+          "currentMrr": {
+            "type": "number",
+            "description": "MRR (Monthly Recurring Revenue) atual em BRL",
+            "example": 5000.00
+          },
+          "groupedByDay": {
+            "type": "object",
+            "description": "Métricas agrupadas por dia (YYYY-MM-DD)",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DayMetrics"
+            },
+            "example": {
+              "2024-01-15": {
+                "revenue": 1500.50,
+                "mrr": 500.00,
+                "subscribers": 10
+              }
+            }
+          }
+        },
+        "required": ["totalRevenue", "currentMrr", "groupedByDay"]
       }
     }
   }
