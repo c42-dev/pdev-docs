@@ -938,6 +938,97 @@
         "summary": "Buscar cobrança por ID",
         "tags": ["External API - Charges (Cobrancas)"]
       }
+    },
+    "/withdrawals": {
+      "post": {
+        "description": "Cria um novo saque via PIX. Você pode usar uma conta bancária PIX salva (bankAccountId) ou enviar os dados PIX diretamente (pixKey, pixKeyType, holderName, holderDocument).",
+        "operationId": "ExternalWithdrawalsController_create",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExternalWithdrawalInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Saque criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetExternalWithdrawalOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Permission denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Criar um saque via PIX",
+        "tags": ["External API - Withdrawals (Saques)"]
+      }
     }
   },
   "components": {
@@ -9579,6 +9670,141 @@
           }
         },
         "required": ["totalRevenue", "currentMrr", "groupedByDay"]
+      },
+      "CreateExternalWithdrawalInput": {
+        "type": "object",
+        "description": "Dados para criar um saque via PIX. Informe bankAccountId para usar uma conta salva, ou os campos PIX inline (pixKey, pixKeyType, holderName, holderDocument).",
+        "properties": {
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID de uma conta bancária PIX salva. Se não informado, os campos PIX inline são obrigatórios.",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "pixKey": {
+            "type": "string",
+            "description": "Chave PIX do destinatário. Obrigatório quando bankAccountId não é informado.",
+            "example": "12345678901"
+          },
+          "pixKeyType": {
+            "type": "string",
+            "enum": ["cpf", "cnpj", "email", "phone", "random"],
+            "description": "Tipo da chave PIX. Obrigatório quando bankAccountId não é informado.",
+            "example": "cpf"
+          },
+          "holderName": {
+            "type": "string",
+            "description": "Nome do titular da conta PIX. Obrigatório quando bankAccountId não é informado.",
+            "example": "João da Silva"
+          },
+          "holderDocument": {
+            "type": "string",
+            "description": "CPF ou CNPJ do titular. Obrigatório quando bankAccountId não é informado.",
+            "example": "12345678901"
+          },
+          "holderDocumentType": {
+            "type": "string",
+            "enum": ["cpf", "cnpj"],
+            "description": "Tipo do documento do titular. Padrão: cpf.",
+            "default": "cpf"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Valor do saque em BRL (ex: 100.50 para R$ 100,50). Mínimo R$ 1,00.",
+            "example": 150.75
+          }
+        },
+        "required": ["amount"]
+      },
+      "GetExternalWithdrawalOutput": {
+        "type": "object",
+        "description": "Dados do saque criado.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do saque",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "bankAccountId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "ID da conta bancária usada (null para PIX avulso)",
+            "example": null
+          },
+          "amount": {
+            "type": "number",
+            "description": "Valor do saque em BRL",
+            "example": 150.75
+          },
+          "feeAmount": {
+            "type": "number",
+            "description": "Valor da taxa em BRL",
+            "example": 2.50
+          },
+          "netAmount": {
+            "type": "number",
+            "description": "Valor líquido em BRL",
+            "example": 148.25
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "failed"],
+            "description": "Status do saque",
+            "example": "completed"
+          },
+          "snapshotPixKey": {
+            "type": "string",
+            "nullable": true,
+            "description": "Chave PIX usada no momento do saque",
+            "example": "12345678901"
+          },
+          "snapshotPixKeyType": {
+            "type": "string",
+            "enum": ["cpf", "cnpj", "email", "phone", "random"],
+            "nullable": true,
+            "description": "Tipo da chave PIX usada no momento do saque",
+            "example": "cpf"
+          },
+          "snapshotHolderName": {
+            "type": "string",
+            "description": "Nome do titular no momento do saque",
+            "example": "João da Silva"
+          },
+          "snapshotHolderDocument": {
+            "type": "string",
+            "description": "Documento do titular no momento do saque",
+            "example": "12345678901"
+          },
+          "failureReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Motivo da falha (quando status = failed)",
+            "example": null
+          },
+          "pspReference": {
+            "type": "string",
+            "nullable": true,
+            "description": "Referência do PSP (provedor de pagamento)",
+            "example": null
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data de criação",
+            "example": "2026-02-10T14:30:00.000Z"
+          },
+          "processedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Data de processamento",
+            "example": "2026-02-10T14:30:01.000Z"
+          }
+        },
+        "required": ["id", "bankAccountId", "amount", "feeAmount", "netAmount", "status", "snapshotHolderName", "snapshotHolderDocument", "createdAt"]
       }
     }
   }

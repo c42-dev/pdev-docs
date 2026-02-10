@@ -58,6 +58,23 @@ const pdev = new Pdev();
     ```
   </Accordion>
 
+  <Accordion title="Withdrawals (Saques)">
+    Criar saques via PIX:
+    ```typescript
+    // Com conta bancária salva
+    await pdev.withdrawals.create({ amount: 150.75, bankAccountId: 'uuid' });
+
+    // Com PIX avulso (inline)
+    await pdev.withdrawals.create({
+      amount: 150.75,
+      pixKey: '12345678901',
+      pixKeyType: 'cpf',
+      holderName: 'João da Silva',
+      holderDocument: '12345678901',
+    });
+    ```
+  </Accordion>
+
   <Accordion title="Transactions (Transações)">
     Consultar transações:
     ```typescript

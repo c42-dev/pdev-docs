@@ -56,6 +56,12 @@
         ]
       },
       {
+        "group": "Saques",
+        "pages": [
+          "api-reference/withdrawals/create"
+        ]
+      },
+      {
         "group": "Transações",
         "pages": [
           "api-reference/transactions/get"
