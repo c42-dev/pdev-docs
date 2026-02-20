@@ -9211,6 +9211,10 @@
             "description": "Código PIX copia e cola",
             "example": "00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6-7890-abcd-ef1234567890"
           },
+          "qrCodeBase64": {
+            "type": "string",
+            "description": "QR Code do PIX em formato data URI (data:image/png;base64,...)"
+          },
           "expiresAt": {
             "type": "string",
             "description": "Data de expiração",
