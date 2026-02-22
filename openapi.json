@@ -14,6 +14,7 @@
   "paths": {
     "/pix": {
       "post": {
+        "description": "Cria uma cobrança PIX instantânea.\n\n**Permissão requerida:** `PIX:WRITE` ou `FULL_ACCESS`",
         "operationId": "ExternalPixController_createCharge",
         "parameters": [
           {
@@ -94,6 +95,7 @@
     },
     "/customers": {
       "post": {
+        "description": "Cria um novo cliente.\n\n**Permissão requerida:** `CUSTOMER:WRITE` ou `FULL_ACCESS`",
         "operationId": "ExternalCustomersController_createCustomer",
         "parameters": [
           {
@@ -162,6 +164,7 @@
         "tags": ["External API - Customers"]
       },
       "get": {
+        "description": "Retorna uma lista paginada de clientes.\n\n**Permissão requerida:** `CUSTOMER:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalCustomersController_getAllCustomers",
         "parameters": [
           {
@@ -245,6 +248,7 @@
     },
     "/customers/{id}": {
       "get": {
+        "description": "Retorna os detalhes de um cliente específico pelo seu ID.\n\n**Permissão requerida:** `CUSTOMER:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalCustomersController_getCustomer",
         "parameters": [
           {
@@ -315,6 +319,7 @@
     },
     "/projects": {
       "post": {
+        "description": "Cria um novo projeto.\n\n**Permissão requerida:** `PROJECT:WRITE` ou `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_createProject",
         "parameters": [
           {
@@ -393,6 +398,7 @@
         "tags": ["External API - Projects"]
       },
       "get": {
+        "description": "Retorna uma lista paginada de projetos.\n\n**Permissão requerida:** `PROJECT:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_getAllProjects",
         "parameters": [
           {
@@ -488,6 +494,7 @@
     },
     "/projects/{id}": {
       "get": {
+        "description": "Retorna os detalhes de um projeto específico pelo seu ID.\n\n**Permissão requerida:** `PROJECT:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_getProject",
         "parameters": [
           {
@@ -558,6 +565,7 @@
     },
     "/transactions/{id}": {
       "get": {
+        "description": "Retorna os detalhes de uma transação específica pelo seu ID.\n\n**Permissão requerida:** `TRANSACTION:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalTransactionsController_getTransaction",
         "parameters": [
           {
@@ -628,6 +636,7 @@
     },
     "/metrics": {
       "get": {
+        "description": "Retorna métricas de receita da conta.\n\n**Permissão requerida:** `METRICS:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalMetricsController_getMetrics",
         "parameters": [
           {
@@ -688,7 +697,7 @@
     },
     "/charges": {
       "post": {
-        "description": "Cria um novo link de pagamento único que suporta PIX, cartão de crédito e boleto.",
+        "description": "Cria um novo link de pagamento único que suporta PIX, cartão de crédito e boleto.\n\n**Permissão requerida:** `CHARGE:WRITE` ou `FULL_ACCESS`",
         "operationId": "ExternalChargesController_createCharge",
         "parameters": [
           {
@@ -767,7 +776,7 @@
         "tags": ["External API - Charges (Cobrancas)"]
       },
       "get": {
-        "description": "Retorna uma lista paginada de todas as cobranças (links de pagamento) da conta.",
+        "description": "Retorna uma lista paginada de todas as cobranças (links de pagamento) da conta.\n\n**Permissão requerida:** `CHARGE:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalChargesController_getAllCharges",
         "parameters": [
           {
@@ -870,7 +879,7 @@
     },
     "/charges/{id}": {
       "get": {
-        "description": "Retorna os detalhes de uma cobrança (link de pagamento) específica pelo seu ID.",
+        "description": "Retorna os detalhes de uma cobrança (link de pagamento) específica pelo seu ID.\n\n**Permissão requerida:** `CHARGE:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalChargesController_getCharge",
         "parameters": [
           {
@@ -941,7 +950,7 @@
     },
     "/withdrawals": {
       "post": {
-        "description": "Cria um novo saque via PIX. Você pode usar uma conta bancária PIX salva (bankAccountId) ou enviar os dados PIX diretamente (pixKey, pixKeyType, holderName, holderDocument).",
+        "description": "Cria um novo saque via PIX. Você pode usar uma conta bancária PIX salva (bankAccountId) ou enviar os dados PIX diretamente (pixKey, pixKeyType, holderName, holderDocument).\n\n**Permissão requerida:** `WITHDRAWAL:WRITE` ou `FULL_ACCESS`\n\n**Restrição de IP:** Este endpoint exige que a chave de API tenha IPs permitidos configurados.",
         "operationId": "ExternalWithdrawalsController_create",
         "parameters": [
           {

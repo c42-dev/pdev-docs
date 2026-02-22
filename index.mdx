@@ -25,6 +25,36 @@ Todos os endpoints requerem autenticação usando chaves de API. Inclua suas cre
 }
 ```
 
+## Permissões
+
+Cada chave de API possui permissões granulares que determinam quais endpoints ela pode acessar. As permissões são atribuídas no momento da criação da chave.
+
+### Permissões disponíveis
+
+| Permissão | Descrição |
+|---|---|
+| `FULL_ACCESS` | Acesso completo a todos os endpoints da API |
+| `PIX:WRITE` | Criar cobranças PIX |
+| `CUSTOMER:WRITE` | Criar clientes |
+| `CUSTOMER:READ` | Listar e buscar clientes |
+| `PROJECT:WRITE` | Criar projetos |
+| `PROJECT:READ` | Listar e buscar projetos |
+| `CHARGE:WRITE` | Criar cobranças (links de pagamento) |
+| `CHARGE:READ` | Listar e buscar cobranças |
+| `TRANSACTION:READ` | Buscar transações |
+| `WITHDRAWAL:WRITE` | Criar saques via PIX |
+| `METRICS:READ` | Obter métricas de receita |
+
+<Note>
+  A permissão `FULL_ACCESS` concede acesso a todos os endpoints, equivalente a possuir todas as permissões listadas acima.
+</Note>
+
+### Restrição por IP
+
+Chaves com permissão `FULL_ACCESS` ou `WITHDRAWAL:WRITE` **exigem** a configuração de IPs permitidos. Requisições originadas de IPs não autorizados serão rejeitadas com erro `403 Forbidden`.
+
+Essa restrição existe para proteger operações sensíveis como saques e acesso irrestrito à API.
+
 ## Recursos Disponíveis
 
 <CardGroup cols={2}>
