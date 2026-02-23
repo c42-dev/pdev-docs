@@ -95,7 +95,7 @@
     },
     "/pix/qrcode-static": {
       "post": {
-        "description": "Cria um QR code PIX estático. Diferente de uma cobrança PIX convencional, o QR code estático não expira e não requer dados do pagador.\n\n**Permissão requerida:** `PIX:WRITE` ou `FULL_ACCESS`",
+        "description": "Cria um QR code PIX estático. Diferente de uma cobrança PIX convencional, o QR não requer dados do pagador.\n\n**Permissão requerida:** `PIX:WRITE` ou `FULL_ACCESS`",
         "operationId": "ExternalPixController_createStaticQrCode",
         "parameters": [
           {
@@ -9730,12 +9730,12 @@
           "revenue": {
             "type": "number",
             "description": "Receita do dia em BRL",
-            "example": 1500.50
+            "example": 1500.5
           },
           "mrr": {
             "type": "number",
             "description": "MRR do dia em BRL",
-            "example": 500.00
+            "example": 500.0
           },
           "subscribers": {
             "type": "integer",
@@ -9751,12 +9751,12 @@
           "totalRevenue": {
             "type": "number",
             "description": "Receita total em BRL",
-            "example": 15000.00
+            "example": 15000.0
           },
           "currentMrr": {
             "type": "number",
             "description": "MRR (Monthly Recurring Revenue) atual em BRL",
-            "example": 5000.00
+            "example": 5000.0
           },
           "groupedByDay": {
             "type": "object",
@@ -9766,8 +9766,8 @@
             },
             "example": {
               "2024-01-15": {
-                "revenue": 1500.50,
-                "mrr": 500.00,
+                "revenue": 1500.5,
+                "mrr": 500.0,
                 "subscribers": 10
               }
             }
@@ -9846,7 +9846,7 @@
           "feeAmount": {
             "type": "number",
             "description": "Valor da taxa em BRL",
-            "example": 2.50
+            "example": 2.5
           },
           "netAmount": {
             "type": "number",
@@ -9908,7 +9908,17 @@
             "example": "2026-02-10T14:30:01.000Z"
           }
         },
-        "required": ["id", "bankAccountId", "amount", "feeAmount", "netAmount", "status", "snapshotHolderName", "snapshotHolderDocument", "createdAt"]
+        "required": [
+          "id",
+          "bankAccountId",
+          "amount",
+          "feeAmount",
+          "netAmount",
+          "status",
+          "snapshotHolderName",
+          "snapshotHolderDocument",
+          "createdAt"
+        ]
       },
       "StaticQrCodeTransactionDto": {
         "type": "object",
@@ -10006,7 +10016,14 @@
             "description": "Data de criação"
           }
         },
-        "required": ["id", "status", "amount", "currency", "pixCopyPaste", "createdAt"]
+        "required": [
+          "id",
+          "status",
+          "amount",
+          "currency",
+          "pixCopyPaste",
+          "createdAt"
+        ]
       }
     }
   }
