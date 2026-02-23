@@ -9920,47 +9920,31 @@
           "createdAt"
         ]
       },
-      "StaticQrCodeTransactionDto": {
+      "CreateStaticQrCodeInput": {
         "type": "object",
         "properties": {
-          "description": {
-            "type": "string",
-            "maxLength": 100,
-            "description": "Descrição do QR code estático",
-            "example": "Doação para ONG"
-          },
           "amount": {
             "type": "number",
             "minimum": 0.01,
             "description": "Valor em BRL (ex: 10.50 para R$ 10,50)",
             "example": 25.0
           },
-          "comment": {
+          "description": {
             "type": "string",
-            "maxLength": 140,
-            "description": "Comentário opcional",
-            "example": "Pagamento referente ao pedido XYZ"
+            "maxLength": 100,
+            "description": "Descrição do QR code estático",
+            "example": "Doação para ONG"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do projeto para associar a transação. Se não fornecido, será usado o primeiro projeto da conta."
           },
           "externalReference": {
             "type": "string",
             "maxLength": 255,
             "description": "Seu ID de referência externa",
             "example": "pedido-12345"
-          }
-        },
-        "required": ["description", "amount"]
-      },
-      "CreateStaticQrCodeInput": {
-        "type": "object",
-        "properties": {
-          "transaction": {
-            "$ref": "#/components/schemas/StaticQrCodeTransactionDto",
-            "description": "Dados da transação do QR code estático"
-          },
-          "projectId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID do projeto para associar a transação. Se não fornecido, será usado o primeiro projeto da conta."
           },
           "metadata": {
             "type": "object",
@@ -9972,7 +9956,7 @@
             }
           }
         },
-        "required": ["transaction"]
+        "required": ["amount", "description"]
       },
       "CreateStaticQrCodeOutput": {
         "type": "object",
