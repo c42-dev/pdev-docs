@@ -26,10 +26,17 @@ const pdev = new Pdev();
 ### Recursos
 
 <AccordionGroup>
-  <Accordion title="PIX">
-    Criar cobranças PIX instantâneas:
+  <Accordion title="PIX Dinâmico">
+    Criar cobrança PIX com dados do pagador:
     ```typescript
     await pdev.pix.create({ amount, description, customer });
+    ```
+  </Accordion>
+
+  <Accordion title="PIX QR Code Estático">
+    Criar QR code PIX estático (sem dados do pagador):
+    ```typescript
+    await pdev.pix.createStaticQrCode({ amount, description });
     ```
   </Accordion>
 
