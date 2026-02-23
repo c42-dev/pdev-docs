@@ -90,10 +90,16 @@ const pdev = new Pdev();
   </Accordion>
 
   <Accordion title="Webhooks">
-    Processar notificações de eventos:
+    Validar assinatura e processar notificações de eventos:
     ```typescript
-    import { parseWebhook } from '@pague-dev/sdk-node';
-    const event = parseWebhook(req.body);
+    import { verifyWebhookSignature, parseWebhook } from '@pague-dev/sdk-node';
+
+    // Validar assinatura
+    const signature = req.headers['x-webhook-signature'];
+    const isValid = verifyWebhookSignature(rawBody, signature, 'seu_webhook_secret');
+
+    // Parsear payload
+    const event = parseWebhook(rawBody);
     ```
   </Accordion>
 </AccordionGroup>
