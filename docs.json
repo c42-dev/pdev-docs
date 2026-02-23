@@ -35,17 +35,15 @@
         ]
       },
       {
-        "group": "Clientes",
+        "group": "Saques",
         "pages": [
-          "api-reference/customers/create",
-          "api-reference/customers/list"
+          "api-reference/withdrawals/create"
         ]
       },
       {
-        "group": "Projetos",
+        "group": "Transações",
         "pages": [
-          "api-reference/projects/create",
-          "api-reference/projects/list"
+          "api-reference/transactions/get"
         ]
       },
       {
@@ -57,15 +55,17 @@
         ]
       },
       {
-        "group": "Saques",
+        "group": "Clientes",
         "pages": [
-          "api-reference/withdrawals/create"
+          "api-reference/customers/create",
+          "api-reference/customers/list"
         ]
       },
       {
-        "group": "Transações",
+        "group": "Projetos",
         "pages": [
-          "api-reference/transactions/get"
+          "api-reference/projects/create",
+          "api-reference/projects/list"
         ]
       },
       {
