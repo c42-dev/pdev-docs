@@ -9925,7 +9925,7 @@
         "properties": {
           "amount": {
             "type": "number",
-            "minimum": 0.01,
+            "minimum": 1,
             "description": "Valor em BRL (ex: 10.50 para R$ 10,50)",
             "example": 25.0
           },
