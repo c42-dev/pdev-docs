@@ -30,7 +30,8 @@
       {
         "group": "PIX",
         "pages": [
-          "api-reference/pix/create"
+          "api-reference/pix/create",
+          "api-reference/pix/qrcode-static"
         ]
       },
       {

@@ -93,6 +93,97 @@
         "tags": ["External API - PIX"]
       }
     },
+    "/pix/qrcode-static": {
+      "post": {
+        "description": "Cria um QR code PIX estático. Diferente de uma cobrança PIX convencional, o QR code estático não expira e não requer dados do pagador.\n\n**Permissão requerida:** `PIX:WRITE` ou `FULL_ACCESS`",
+        "operationId": "ExternalPixController_createStaticQrCode",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStaticQrCodeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "QR code estático criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateStaticQrCodeOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Permission denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Criar um QR code PIX estático",
+        "tags": ["External API - PIX"]
+      }
+    },
     "/customers": {
       "post": {
         "description": "Cria um novo cliente.\n\n**Permissão requerida:** `CUSTOMER:WRITE` ou `FULL_ACCESS`",
@@ -9818,6 +9909,104 @@
           }
         },
         "required": ["id", "bankAccountId", "amount", "feeAmount", "netAmount", "status", "snapshotHolderName", "snapshotHolderDocument", "createdAt"]
+      },
+      "StaticQrCodeTransactionDto": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Descrição do QR code estático",
+            "example": "Doação para ONG"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0.01,
+            "description": "Valor em BRL (ex: 10.50 para R$ 10,50)",
+            "example": 25.0
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 140,
+            "description": "Comentário opcional",
+            "example": "Pagamento referente ao pedido XYZ"
+          },
+          "externalReference": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Seu ID de referência externa",
+            "example": "pedido-12345"
+          }
+        },
+        "required": ["description", "amount"]
+      },
+      "CreateStaticQrCodeInput": {
+        "type": "object",
+        "properties": {
+          "transaction": {
+            "$ref": "#/components/schemas/StaticQrCodeTransactionDto",
+            "description": "Dados da transação do QR code estático"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do projeto para associar a transação. Se não fornecido, será usado o primeiro projeto da conta."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Metadados customizados (pares chave-valor)",
+            "example": {
+              "orderId": "12345",
+              "source": "website"
+            }
+          }
+        },
+        "required": ["transaction"]
+      },
+      "CreateStaticQrCodeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID da transação interna"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "completed", "failed", "cancelled"],
+            "description": "Status da transação"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Valor em BRL",
+            "example": 25.0
+          },
+          "currency": {
+            "type": "string",
+            "description": "Código da moeda",
+            "example": "BRL"
+          },
+          "pixCopyPaste": {
+            "type": "string",
+            "description": "Código PIX copia e cola (brCode)"
+          },
+          "qrCodeBase64": {
+            "type": "string",
+            "description": "QR Code em formato data URI (data:image/png;base64,...)"
+          },
+          "externalReference": {
+            "type": "string",
+            "description": "Seu ID de referência externa",
+            "example": "pedido-12345"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data de criação"
+          }
+        },
+        "required": ["id", "status", "amount", "currency", "pixCopyPaste", "createdAt"]
       }
     }
   }
