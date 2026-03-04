@@ -1129,6 +1129,77 @@
         "summary": "Criar um saque via PIX",
         "tags": ["External API - Withdrawals (Saques)"]
       }
+    },
+    "/account": {
+      "get": {
+        "description": "Retorna os dados da conta, informações da empresa e saldo disponível.\n\n**Permissão requerida:** `ACCOUNT:READ` ou `FULL_ACCESS`",
+        "operationId": "ExternalAccountController_getAccountInfo",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados da conta, empresa e saldo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAccountInfoOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Permission denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Account not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obter dados da conta e saldo",
+        "tags": ["External API - Account (Conta)"]
+      }
     }
   },
   "components": {
@@ -10008,6 +10079,121 @@
           "pixCopyPaste",
           "createdAt"
         ]
+      },
+      "BalanceAmountDetail": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "Saldo em centavos",
+            "example": 150000
+          },
+          "amountFormatted": {
+            "type": "number",
+            "description": "Saldo formatado em reais (amount / 100)",
+            "example": 1500.00
+          }
+        },
+        "required": ["amount", "amountFormatted"]
+      },
+      "AccountInfoDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID da conta"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["approved", "pending", "pending_documents", "pending_approval", "rejected", "suspended"],
+            "description": "Status da conta"
+          }
+        },
+        "required": ["id", "status"]
+      },
+      "CompanyInfoDetail": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "razaoSocial": {
+            "type": "string",
+            "description": "Razão social da empresa"
+          },
+          "nomeFantasia": {
+            "type": "string",
+            "description": "Nome fantasia da empresa"
+          },
+          "cnpj": {
+            "type": "string",
+            "description": "CNPJ da empresa"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email da empresa"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Telefone da empresa"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "active", "suspended", "blocked"],
+            "description": "Status da empresa"
+          }
+        },
+        "required": ["razaoSocial", "cnpj", "email", "phone", "status"]
+      },
+      "BalanceInfoDetail": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "$ref": "#/components/schemas/BalanceAmountDetail",
+            "description": "Saldo disponível (conta principal)"
+          },
+          "promotional": {
+            "$ref": "#/components/schemas/BalanceAmountDetail",
+            "description": "Saldo promocional"
+          },
+          "total": {
+            "$ref": "#/components/schemas/BalanceAmountDetail",
+            "description": "Saldo total (disponível + promocional)"
+          },
+          "currency": {
+            "type": "string",
+            "description": "Código da moeda",
+            "example": "BRL"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data da última atualização do saldo"
+          }
+        },
+        "required": ["available", "promotional", "total", "currency", "updatedAt"]
+      },
+      "GetAccountInfoOutput": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/AccountInfoDetail",
+            "description": "Dados da conta"
+          },
+          "company": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CompanyInfoDetail"
+              }
+            ],
+            "description": "Dados da empresa (null se não cadastrada)"
+          },
+          "balance": {
+            "$ref": "#/components/schemas/BalanceInfoDetail",
+            "description": "Saldo da conta"
+          }
+        },
+        "required": ["account", "company", "balance"]
       }
     }
   }
