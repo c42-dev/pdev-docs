@@ -44,6 +44,7 @@ Cada chave de API possui permissões granulares que determinam quais endpoints e
 | `TRANSACTION:READ` | Buscar transações |
 | `WITHDRAWAL:WRITE` | Criar saques via PIX |
 | `METRICS:READ` | Obter métricas de receita |
+| `ACCOUNT:READ` | Visualizar dados da conta e saldo |
 
 <Note>
   A permissão `FULL_ACCESS` concede acesso a todos os endpoints, equivalente a possuir todas as permissões listadas acima.
@@ -75,6 +76,9 @@ Essa restrição existe para proteger operações sensíveis como saques e acess
   </Card>
   <Card title="Transações" icon="receipt" href="/api-reference/transactions/get">
     Visualizar detalhes de transações
+  </Card>
+  <Card title="Conta" icon="building" href="/api-reference/account/get">
+    Consultar dados da conta e saldo
   </Card>
 </CardGroup>
 

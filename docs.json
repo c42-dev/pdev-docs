@@ -73,6 +73,12 @@
         "pages": [
           "api-reference/metrics/get"
         ]
+      },
+      {
+        "group": "Conta",
+        "pages": [
+          "api-reference/account/get"
+        ]
       }
     ],
     "global": {

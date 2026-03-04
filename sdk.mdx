@@ -89,6 +89,19 @@ const pdev = new Pdev();
     ```
   </Accordion>
 
+  <Accordion title="Account (Conta)">
+    Consultar dados da conta, empresa e saldo:
+    ```typescript
+    const { data } = await pdev.account.get();
+
+    data.account.id;                      // ID da conta
+    data.account.status;                  // 'approved', 'pending', ...
+    data.company?.cnpj;                   // CNPJ da empresa
+    data.balance.available.amountFormatted; // Saldo disponível em reais
+    data.balance.total.amountFormatted;    // Saldo total em reais
+    ```
+  </Accordion>
+
   <Accordion title="Webhooks">
     Validar assinatura e processar notificações de eventos:
     ```typescript
