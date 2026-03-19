@@ -12,6 +12,7 @@ Webhooks permitem que você receba notificações HTTP automáticas quando event
 | Evento | Descrição |
 |--------|-----------|
 | `payment_completed` | Pagamento foi confirmado com sucesso |
+| `payment_expired` | Pagamento expirou sem confirmação |
 | `refund_completed` | Reembolso foi processado |
 | `withdrawal_completed` | Saque foi processado com sucesso |
 | `withdrawal_failed` | Saque foi rejeitado ou falhou |
@@ -157,6 +158,42 @@ Enviado quando um pagamento PIX é confirmado.
 | `paymentMethod` | string | Método de pagamento (pix) |
 | `status` | string | Status do pagamento (completed) |
 | `completedAt` | string | Data/hora da conclusão em ISO 8601 |
+| `externalReference` | string | Sua referência externa (opcional) |
+| `metadata` | object | Metadados customizados enviados na criação do pagamento (opcional) |
+
+### payment_expired
+
+Enviado quando um pagamento PIX expira sem confirmação.
+
+```json
+{
+  "event": "payment_expired",
+  "eventId": "payment_expired_d5e6f7a8-1234-5678-9abc-def012345678",
+  "timestamp": "2026-01-11T19:30:00.000Z",
+  "data": {
+    "transactionId": "d5e6f7a8-1234-5678-9abc-def012345678",
+    "amount": 75.50,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "expired",
+    "expiredAt": "2026-01-11T19:30:00.000Z",
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `transactionId` | string | ID único da transação |
+| `amount` | number | Valor do pagamento |
+| `currency` | string | Moeda (BRL) |
+| `paymentMethod` | string | Método de pagamento (pix) |
+| `status` | string | Status do pagamento (expired) |
+| `expiredAt` | string | Data/hora da expiração em ISO 8601 |
 | `externalReference` | string | Sua referência externa (opcional) |
 | `metadata` | object | Metadados customizados enviados na criação do pagamento (opcional) |
 

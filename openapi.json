@@ -10155,6 +10155,10 @@
             "$ref": "#/components/schemas/BalanceAmountDetail",
             "description": "Saldo promocional"
           },
+          "held": {
+            "$ref": "#/components/schemas/BalanceAmountDetail",
+            "description": "Saldo bloqueado"
+          },
           "total": {
             "$ref": "#/components/schemas/BalanceAmountDetail",
             "description": "Saldo total (disponível + promocional)"
@@ -10170,7 +10174,7 @@
             "description": "Data da última atualização do saldo"
           }
         },
-        "required": ["available", "promotional", "total", "currency", "updatedAt"]
+        "required": ["available", "promotional", "held", "total", "currency", "updatedAt"]
       },
       "GetAccountInfoOutput": {
         "type": "object",
