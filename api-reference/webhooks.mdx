@@ -18,6 +18,8 @@ Webhooks permitem que você receba notificações HTTP automáticas quando event
 | `withdrawal_failed` | Saque foi rejeitado ou falhou |
 | `withdrawal_reversed` | Saque foi estornado pelo PSP |
 | `balance_block_created` | Bloqueio de saldo criado (MED/judicial/administrativo) |
+| `balance_block_approved` | Bloqueio aprovado — valor devolvido ao pagador |
+| `balance_block_rejected` | Bloqueio rejeitado — valor retorna ao lojista |
 
 ## Estrutura do Payload
 
@@ -403,6 +405,88 @@ Enviado quando um bloqueio de saldo é criado (MED, judicial ou administrativo).
 | `reason` | string | Motivo do bloqueio |
 | `status` | string | Status inicial (`awaiting_response`) |
 | `createdAt` | string | Data/hora da criação em ISO 8601 |
+
+### balance_block_approved
+
+Enviado quando um bloqueio de saldo é aprovado e o valor é devolvido ao pagador original.
+
+```json
+{
+  "event": "balance_block_approved",
+  "eventId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+  "timestamp": "2026-01-12T14:00:00.000Z",
+  "data": {
+    "blockId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "production",
+    "amount": 1500.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-001234",
+    "reason": "Notificação de infração Pix recebida",
+    "resolutionReason": "Devolução confirmada pelo BACEN",
+    "status": "approved",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "resolvedAt": "2026-01-12T14:00:00.000Z"
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `blockId` | string | ID único do bloqueio |
+| `transactionId` | string | ID da transação original bloqueada |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
+| `amount` | number | Valor bloqueado em reais |
+| `currency` | string | Moeda (BRL) |
+| `blockType` | string | Tipo do bloqueio (`med`, `judicial` ou `administrative`) |
+| `referenceNumber` | string | Número de referência do bloqueio |
+| `reason` | string | Motivo original do bloqueio |
+| `resolutionReason` | string | Motivo da resolução (opcional) |
+| `status` | string | Status do bloqueio (`approved`) |
+| `createdAt` | string | Data/hora da criação em ISO 8601 |
+| `resolvedAt` | string | Data/hora da resolução em ISO 8601 |
+
+### balance_block_rejected
+
+Enviado quando um bloqueio de saldo é rejeitado e o valor retorna ao saldo disponível do lojista.
+
+```json
+{
+  "event": "balance_block_rejected",
+  "eventId": "e5f6a7b8-9c0d-1e2f-3a4b-567890abcdef",
+  "timestamp": "2026-01-12T14:00:00.000Z",
+  "data": {
+    "blockId": "e5f6a7b8-9c0d-1e2f-3a4b-567890abcdef",
+    "transactionId": "b1c89f20-d8e5-5f6a-99ee-4f47eafeb923",
+    "environment": "production",
+    "amount": 250.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-005678",
+    "reason": "Notificação de infração Pix recebida",
+    "resolutionReason": "Defesa aceita - transação legítima comprovada",
+    "status": "rejected",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "resolvedAt": "2026-01-12T14:00:00.000Z"
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `blockId` | string | ID único do bloqueio |
+| `transactionId` | string | ID da transação original bloqueada |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
+| `amount` | number | Valor bloqueado em reais |
+| `currency` | string | Moeda (BRL) |
+| `blockType` | string | Tipo do bloqueio (`med`, `judicial` ou `administrative`) |
+| `referenceNumber` | string | Número de referência do bloqueio |
+| `reason` | string | Motivo original do bloqueio |
+| `resolutionReason` | string | Motivo da resolução (opcional) |
+| `status` | string | Status do bloqueio (`rejected`) |
+| `createdAt` | string | Data/hora da criação em ISO 8601 |
+| `resolvedAt` | string | Data/hora da resolução em ISO 8601 |
 
 ## Boas Práticas
 
