@@ -16,6 +16,8 @@ Webhooks permitem que você receba notificações HTTP automáticas quando event
 | `refund_completed` | Reembolso foi processado |
 | `withdrawal_completed` | Saque foi processado com sucesso |
 | `withdrawal_failed` | Saque foi rejeitado ou falhou |
+| `withdrawal_reversed` | Saque foi estornado pelo PSP |
+| `balance_block_created` | Bloqueio de saldo criado (MED/judicial/administrativo) |
 
 ## Estrutura do Payload
 
@@ -172,7 +174,10 @@ Enviado quando um pagamento PIX expira sem confirmação.
   "timestamp": "2026-01-11T19:30:00.000Z",
   "data": {
     "transactionId": "d5e6f7a8-1234-5678-9abc-def012345678",
+    "environment": "sandbox",
     "amount": 75.50,
+    "feeAmount": 0,
+    "netAmount": 0,
     "currency": "BRL",
     "paymentMethod": "pix",
     "status": "expired",
@@ -189,7 +194,10 @@ Enviado quando um pagamento PIX expira sem confirmação.
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `transactionId` | string | ID único da transação |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
 | `amount` | number | Valor do pagamento |
+| `feeAmount` | number | Taxa cobrada (sempre 0 para pagamentos expirados) |
+| `netAmount` | number | Valor líquido (sempre 0 para pagamentos expirados) |
 | `currency` | string | Moeda (BRL) |
 | `paymentMethod` | string | Método de pagamento (pix) |
 | `status` | string | Status do pagamento (expired) |
@@ -214,8 +222,10 @@ Enviado quando um reembolso é processado.
     "feeAmount": 0.25,
     "netAmount": 49.75,
     "currency": "BRL",
+    "paymentMethod": "pix",
     "status": "completed",
-    "completedAt": "2026-01-11T19:22:15.400Z",
+    "refundedAt": "2026-01-11T19:22:15.400Z",
+    "externalReference": "pedido-12345",
     "metadata": {
       "orderId": "ORDER-12345",
       "customerId": "CUST-67890"
@@ -233,8 +243,10 @@ Enviado quando um reembolso é processado.
 | `feeAmount` | number | Taxa do reembolso |
 | `netAmount` | number | Valor líquido do reembolso |
 | `currency` | string | Moeda (BRL) |
+| `paymentMethod` | string | Método de pagamento da transação original |
 | `status` | string | Status do reembolso (completed) |
-| `completedAt` | string | Data/hora da conclusão em ISO 8601 |
+| `refundedAt` | string | Data/hora do reembolso em ISO 8601 |
+| `externalReference` | string | Sua referência externa do pagamento original (opcional) |
 | `metadata` | object | Metadados customizados do pagamento original (opcional) |
 
 ### withdrawal_completed
@@ -312,6 +324,85 @@ Enviado quando um saque é rejeitado ou falha.
 | `failedAt` | string | Data/hora da falha em ISO 8601 |
 | `failureReason` | string | Motivo da falha (insufficient_funds, invalid_account, etc.) |
 | `metadata` | object | Metadados customizados do saque (opcional) |
+
+### withdrawal_reversed
+
+Enviado quando um saque é estornado pelo PSP.
+
+```json
+{
+  "event": "withdrawal_reversed",
+  "eventId": "f12a34b5-6c78-9d01-ef23-456789abcdef",
+  "timestamp": "2026-01-11T20:00:00.000Z",
+  "data": {
+    "reversalTransactionId": "f12a34b5-6c78-9d01-ef23-456789abcdef",
+    "originalTransactionId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "environment": "sandbox",
+    "amount": 500.00,
+    "feeAmount": 0,
+    "netAmount": 500.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "reversedAt": "2026-01-11T20:00:00.000Z",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `reversalTransactionId` | string | ID único da transação de estorno |
+| `originalTransactionId` | string | ID do saque original que foi estornado |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
+| `amount` | number | Valor do estorno |
+| `feeAmount` | number | Taxa do estorno |
+| `netAmount` | number | Valor líquido do estorno |
+| `currency` | string | Moeda (BRL) |
+| `paymentMethod` | string | Método de pagamento (pix) |
+| `status` | string | Status do estorno (completed) |
+| `reversedAt` | string | Data/hora do estorno em ISO 8601 |
+| `externalReference` | string | Sua referência externa do saque original (opcional) |
+| `metadata` | object | Metadados customizados do saque original (opcional) |
+
+### balance_block_created
+
+Enviado quando um bloqueio de saldo é criado (MED, judicial ou administrativo).
+
+```json
+{
+  "event": "balance_block_created",
+  "eventId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+  "timestamp": "2026-01-11T19:30:00.000Z",
+  "data": {
+    "blockId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "production",
+    "amount": 1500.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-001234",
+    "reason": "Notificação de infração Pix recebida",
+    "status": "awaiting_response",
+    "createdAt": "2026-01-11T19:30:00.000Z"
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `blockId` | string | ID único do bloqueio |
+| `transactionId` | string | ID da transação original bloqueada |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
+| `amount` | number | Valor bloqueado em reais |
+| `currency` | string | Moeda (BRL) |
+| `blockType` | string | Tipo do bloqueio (`med`, `judicial` ou `administrative`) |
+| `referenceNumber` | string | Número de referência do bloqueio |
+| `reason` | string | Motivo do bloqueio |
+| `status` | string | Status inicial (`awaiting_response`) |
+| `createdAt` | string | Data/hora da criação em ISO 8601 |
 
 ## Boas Práticas
 
