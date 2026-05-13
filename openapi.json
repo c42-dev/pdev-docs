@@ -727,7 +727,7 @@
     },
     "/withdrawals": {
       "post": {
-        "description": "Cria um novo saque via PIX. Você pode usar uma conta bancária PIX salva (bankAccountId) ou enviar os dados PIX diretamente (pixKey, pixKeyType, holderName, holderDocument).\n\n**Permissão requerida:** `WITHDRAWAL:WRITE` ou `FULL_ACCESS`\n\n**Restrição de IP:** Este endpoint exige que a chave de API tenha IPs permitidos configurados.",
+        "description": "Cria um novo saque via PIX informando os dados da chave PIX e do titular da conta destino.\n\n**Permissão requerida:** `WITHDRAWAL:WRITE` ou `FULL_ACCESS`\n\n**Restrição de IP:** Este endpoint exige que a chave de API tenha IPs permitidos configurados.",
         "operationId": "ExternalWithdrawalsController_create",
         "parameters": [
           {
@@ -8840,46 +8840,40 @@
       },
       "CreateExternalWithdrawalInput": {
         "type": "object",
-        "description": "Dados para criar um saque via PIX. Informe bankAccountId para usar uma conta salva, ou os campos PIX inline (pixKey, pixKeyType, holderName, holderDocument).",
+        "description": "Dados para criar um saque via PIX informando os dados da chave PIX e do titular da conta destino.",
         "properties": {
-          "bankAccountId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID de uma conta bancária PIX salva. Se não informado, os campos PIX inline são obrigatórios.",
-            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-          },
-          "pixKey": {
-            "type": "string",
-            "description": "Chave PIX do destinatário. Obrigatório quando bankAccountId não é informado.",
-            "example": "12345678901"
-          },
-          "pixKeyType": {
-            "type": "string",
-            "enum": ["cpf", "cnpj", "email", "phone", "random"],
-            "description": "Tipo da chave PIX. Obrigatório quando bankAccountId não é informado.",
-            "example": "cpf"
-          },
-          "holderName": {
-            "type": "string",
-            "description": "Nome do titular da conta PIX. Obrigatório quando bankAccountId não é informado.",
-            "example": "João da Silva"
-          },
-          "holderDocument": {
-            "type": "string",
-            "description": "CPF ou CNPJ do titular. Obrigatório quando bankAccountId não é informado.",
-            "example": "12345678901"
-          },
-          "holderDocumentType": {
-            "type": "string",
-            "enum": ["cpf", "cnpj"],
-            "description": "Tipo do documento do titular. Padrão: cpf.",
-            "default": "cpf"
-          },
           "amount": {
             "type": "number",
             "minimum": 1,
             "description": "Valor do saque em BRL (ex: 100.50 para R$ 100,50). Mínimo R$ 1,00.",
             "example": 150.75
+          },
+          "pixKey": {
+            "type": "string",
+            "description": "Chave PIX do destinatário.",
+            "example": "12345678901"
+          },
+          "pixKeyType": {
+            "type": "string",
+            "enum": ["cpf", "cnpj", "email", "phone", "random"],
+            "description": "Tipo da chave PIX.",
+            "example": "cpf"
+          },
+          "holderName": {
+            "type": "string",
+            "description": "Nome do titular da conta PIX.",
+            "example": "João da Silva"
+          },
+          "holderDocument": {
+            "type": "string",
+            "description": "CPF ou CNPJ do titular.",
+            "example": "12345678901"
+          },
+          "holderDocumentType": {
+            "type": "string",
+            "enum": ["cpf", "cnpj"],
+            "description": "Tipo do documento do titular.",
+            "example": "cpf"
           },
           "externalReference": {
             "type": "string",
@@ -8888,7 +8882,14 @@
             "example": "saque-empresa-001"
           }
         },
-        "required": ["amount"]
+        "required": [
+          "amount",
+          "pixKey",
+          "pixKeyType",
+          "holderName",
+          "holderDocument",
+          "holderDocumentType"
+        ]
       },
       "GetExternalWithdrawalOutput": {
         "type": "object",
@@ -8899,13 +8900,6 @@
             "format": "uuid",
             "description": "ID do saque",
             "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-          },
-          "bankAccountId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true,
-            "description": "ID da conta bancária usada (null para PIX avulso)",
-            "example": null
           },
           "amount": {
             "type": "number",
@@ -8985,7 +8979,6 @@
         },
         "required": [
           "id",
-          "bankAccountId",
           "amount",
           "feeAmount",
           "netAmount",
