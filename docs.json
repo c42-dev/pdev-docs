@@ -30,8 +30,7 @@
       {
         "group": "PIX",
         "pages": [
-          "api-reference/pix/create",
-          "api-reference/pix/qrcode-static"
+          "api-reference/pix/create"
         ]
       },
       {
@@ -43,7 +42,8 @@
       {
         "group": "Transações",
         "pages": [
-          "api-reference/transactions/get"
+          "api-reference/transactions/get",
+          "api-reference/transactions/refund"
         ]
       },
       {

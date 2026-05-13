@@ -93,97 +93,6 @@
         "tags": ["External API - PIX"]
       }
     },
-    "/pix/qrcode-static": {
-      "post": {
-        "description": "Cria um QR code PIX estático. Diferente de uma cobrança PIX convencional, o QR não requer dados do pagador.\n\n**Permissão requerida:** `PIX:WRITE` ou `FULL_ACCESS`",
-        "operationId": "ExternalPixController_createStaticQrCode",
-        "parameters": [
-          {
-            "name": "X-API-Key",
-            "in": "header",
-            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateStaticQrCodeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "QR code estático criado com sucesso",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateStaticQrCodeOutput"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - Permission denied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found - Resource not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InternalServerErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Criar um QR code PIX estático",
-        "tags": ["External API - PIX"]
-      }
-    },
     "/customers": {
       "post": {
         "description": "Cria um novo cliente.\n\n**Permissão requerida:** `CUSTOMER:WRITE` ou `FULL_ACCESS`",
@@ -722,6 +631,97 @@
           }
         },
         "summary": "Buscar transação por ID",
+        "tags": ["External API - Transactions"]
+      }
+    },
+    "/transactions/{id}/refund": {
+      "post": {
+        "description": "Solicita um reembolso total da transação de pagamento informada. O reembolso é assíncrono — a confirmação chega via webhook `refund_completed` quando o PSP processar.\n\n**Permissão requerida:** `REFUND:WRITE` ou `FULL_ACCESS`",
+        "operationId": "ExternalTransactionsController_requestRefund",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da transação de pagamento a ser reembolsada",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestRefundInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reembolso solicitado com sucesso. Status PENDING até a confirmação via webhook.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestRefundOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Transação não pode ser reembolsada (já reembolsada, expirada, status inválido, etc.)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Transação não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Solicitar reembolso de transação",
         "tags": ["External API - Transactions"]
       }
     },
@@ -1521,7 +1521,7 @@
           "type": {
             "type": "string",
             "description": "Transaction type",
-            "enum": ["payment", "fee", "refund", "chargeback", "withdrawal"]
+            "enum": ["payment", "fee", "refund", "chargeback", "withdrawal", "adjustment"]
           },
           "status": {
             "type": "string",
@@ -1596,7 +1596,7 @@
           "type": {
             "type": "string",
             "description": "Tipo da transação",
-            "enum": ["payment", "fee", "refund", "chargeback", "withdrawal"]
+            "enum": ["payment", "fee", "refund", "chargeback", "withdrawal", "adjustment"]
           },
           "paymentMethod": {
             "type": "string",
@@ -2435,65 +2435,6 @@
           }
         }
       },
-      "GetPspCredentialOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Credential ID",
-            "format": "uuid"
-          },
-          "accountId": {
-            "type": "string",
-            "description": "Account ID",
-            "format": "uuid"
-          },
-          "provider": {
-            "type": "string",
-            "enum": ["avista", "asaas"],
-            "description": "PSP provider"
-          },
-          "name": {
-            "type": "string",
-            "description": "Friendly name"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether credential is active"
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "Creation timestamp",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "description": "Last update timestamp",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "accountId",
-          "provider",
-          "name",
-          "isActive",
-          "createdAt"
-        ]
-      },
-      "GetAllPspCredentialsOutput": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "description": "List of PSP credentials",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GetPspCredentialOutput"
-            }
-          }
-        },
-        "required": ["items"]
-      },
       "AsaasCredentialsInput": {
         "type": "object",
         "properties": {
@@ -2509,68 +2450,6 @@
           }
         },
         "required": ["apiKey"]
-      },
-      "AvistaCredentialsInput": {
-        "type": "object",
-        "properties": {
-          "clientId": {
-            "type": "string",
-            "description": "Avista client ID"
-          },
-          "clientSecret": {
-            "type": "string",
-            "description": "Avista client secret"
-          }
-        },
-        "required": ["clientId", "clientSecret"]
-      },
-      "CreatePspCredentialInput": {
-        "type": "object",
-        "properties": {
-          "provider": {
-            "type": "string",
-            "enum": ["avista", "asaas", "mock"],
-            "description": "PSP provider"
-          },
-          "name": {
-            "type": "string",
-            "description": "Friendly name for the credential",
-            "maxLength": 100
-          },
-          "credentials": {
-            "description": "PSP API credentials object (will be encrypted)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/AsaasCredentialsInput"
-              },
-              {
-                "$ref": "#/components/schemas/AvistaCredentialsInput"
-              }
-            ]
-          }
-        },
-        "required": ["provider", "name", "credentials"]
-      },
-      "UpdatePspCredentialInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Friendly name for the credential",
-            "maxLength": 100
-          },
-          "credentials": {
-            "description": "PSP API credentials object (will be encrypted)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/AsaasCredentialsInput"
-              },
-              {
-                "$ref": "#/components/schemas/AvistaCredentialsInput"
-              }
-            ]
-          }
-        }
       },
       "PaymentMethodConfigOutput": {
         "type": "object",
@@ -8444,34 +8323,6 @@
           }
         }
       },
-      "AvistaPspCredentialInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Friendly name for the credential",
-            "maxLength": 100
-          },
-          "credentials": {
-            "description": "Avista API credentials (will be encrypted)",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AvistaCredentialsInput"
-              }
-            ]
-          },
-          "enabledMethods": {
-            "type": "array",
-            "description": "Payment methods to enable (Avista supports: pix)",
-            "example": ["pix"],
-            "items": {
-              "type": "string",
-              "enum": ["pix"]
-            }
-          }
-        },
-        "required": ["name", "credentials", "enabledMethods"]
-      },
       "AsaasPspCredentialInput": {
         "type": "object",
         "properties": {
@@ -8499,27 +8350,6 @@
           }
         },
         "required": ["name", "credentials", "enabledMethods"]
-      },
-      "PspCredentialsInput": {
-        "type": "object",
-        "properties": {
-          "avista": {
-            "description": "Avista PSP credentials (supports PIX)",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AvistaPspCredentialInput"
-              }
-            ]
-          },
-          "asaas": {
-            "description": "Asaas PSP credentials (supports PIX, credit_card, boleto)",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AsaasPspCredentialInput"
-              }
-            ]
-          }
-        }
       },
       "PaymentMethodFeeInput": {
         "type": "object",
@@ -8756,134 +8586,6 @@
         },
         "required": ["name", "url", "secret", "events"]
       },
-      "AdminCreateAccountInput": {
-        "type": "object",
-        "properties": {
-          "razaoSocial": {
-            "type": "string",
-            "description": "Company legal name (Razao Social)",
-            "maxLength": 255
-          },
-          "nomeFantasia": {
-            "type": "string",
-            "description": "Company trade name (Nome Fantasia)",
-            "maxLength": 255
-          },
-          "cnpj": {
-            "type": "string",
-            "description": "Company CNPJ (14 digits)",
-            "maxLength": 14
-          },
-          "email": {
-            "type": "string",
-            "description": "Company email address",
-            "format": "email"
-          },
-          "phone": {
-            "type": "string",
-            "description": "Company phone number",
-            "maxLength": 20
-          },
-          "street": {
-            "type": "string",
-            "description": "Street name",
-            "example": "Rua das Flores",
-            "maxLength": 255
-          },
-          "number": {
-            "type": "string",
-            "description": "Street number",
-            "example": "123",
-            "maxLength": 20
-          },
-          "complement": {
-            "type": "string",
-            "description": "Address complement (apartment, suite, etc.)",
-            "maxLength": 100
-          },
-          "neighborhood": {
-            "type": "string",
-            "description": "Neighborhood",
-            "example": "Centro",
-            "maxLength": 100
-          },
-          "city": {
-            "type": "string",
-            "description": "City name",
-            "example": "São Paulo",
-            "maxLength": 100
-          },
-          "state": {
-            "type": "string",
-            "description": "State code (UF)",
-            "example": "SP",
-            "minLength": 2,
-            "maxLength": 2
-          },
-          "zipCode": {
-            "type": "string",
-            "description": "ZIP code (CEP)",
-            "example": "01234567",
-            "minLength": 8,
-            "maxLength": 8
-          },
-          "country": {
-            "type": "string",
-            "description": "Country code (ISO 3166-1 alpha-2)",
-            "example": "BR",
-            "default": "BR"
-          },
-          "pspCredentials": {
-            "description": "PSP credentials configuration",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PspCredentialsInput"
-              }
-            ]
-          },
-          "fees": {
-            "description": "Fee configuration per payment method",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PaymentMethodFeesInput"
-              }
-            ]
-          },
-          "users": {
-            "description": "Users to create for this account",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminUserInput"
-            }
-          },
-          "bankAccounts": {
-            "description": "Bank accounts to create for this account",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminBankAccountInput"
-            }
-          },
-          "webhooks": {
-            "description": "Webhook endpoints to create for this account",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminWebhookInput"
-            }
-          }
-        },
-        "required": [
-          "razaoSocial",
-          "cnpj",
-          "email",
-          "phone",
-          "street",
-          "number",
-          "neighborhood",
-          "city",
-          "state",
-          "zipCode"
-        ]
-      },
       "AdminCreateAccountCompanyInfoOutput": {
         "type": "object",
         "properties": {
@@ -8943,30 +8645,6 @@
         },
         "required": ["available", "held", "credits"]
       },
-      "AdminCreateAccountSandboxOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Sandbox account ID",
-            "format": "uuid"
-          },
-          "mockPspCredentialId": {
-            "type": "string",
-            "description": "Mock PSP credential ID",
-            "format": "uuid"
-          },
-          "ledgerAccounts": {
-            "description": "TigerBeetle ledger accounts for sandbox",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminCreateAccountLedgerAccountsOutput"
-              }
-            ]
-          }
-        },
-        "required": ["id", "mockPspCredentialId", "ledgerAccounts"]
-      },
       "AdminPspCredentialOutput": {
         "type": "object",
         "properties": {
@@ -8981,27 +8659,6 @@
           }
         },
         "required": ["id", "name"]
-      },
-      "AdminPspCredentialsOutput": {
-        "type": "object",
-        "properties": {
-          "avista": {
-            "description": "Avista PSP credential",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminPspCredentialOutput"
-              }
-            ]
-          },
-          "asaas": {
-            "description": "Asaas PSP credential",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminPspCredentialOutput"
-              }
-            ]
-          }
-        }
       },
       "AdminPaymentMethodFeeOutput": {
         "type": "object",
@@ -9168,104 +8825,6 @@
         },
         "required": ["id", "name", "url", "environment", "events", "isActive"]
       },
-      "AdminCreateAccountOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Account ID",
-            "format": "uuid"
-          },
-          "status": {
-            "type": "string",
-            "description": "Account status",
-            "enum": ["approved"]
-          },
-          "companyInfo": {
-            "description": "Company information",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminCreateAccountCompanyInfoOutput"
-              }
-            ]
-          },
-          "integrationKeys": {
-            "description": "Integration keys (API keys)",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminCreateAccountIntegrationKeysOutput"
-              }
-            ]
-          },
-          "ledgerAccounts": {
-            "description": "TigerBeetle ledger accounts",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminCreateAccountLedgerAccountsOutput"
-              }
-            ]
-          },
-          "sandbox": {
-            "description": "Sandbox account (automatically created)",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminCreateAccountSandboxOutput"
-              }
-            ]
-          },
-          "pspCredentials": {
-            "description": "PSP credentials (if configured)",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminPspCredentialsOutput"
-              }
-            ]
-          },
-          "paymentMethods": {
-            "description": "Payment methods (if configured)",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminPaymentMethodsOutput"
-              }
-            ]
-          },
-          "users": {
-            "description": "Users created for this account",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminUserOutput"
-            }
-          },
-          "bankAccounts": {
-            "description": "Bank accounts created for this account",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminBankAccountOutput"
-            }
-          },
-          "webhooks": {
-            "description": "Webhook endpoints created for this account",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminWebhookOutput"
-            }
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "Account creation timestamp",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "status",
-          "companyInfo",
-          "integrationKeys",
-          "ledgerAccounts",
-          "sandbox",
-          "createdAt"
-        ]
-      },
       "CustomerDto": {
         "type": "object",
         "properties": {
@@ -9313,11 +8872,11 @@
           },
           "customerId": {
             "type": "string",
-            "description": "ID de um cliente existente. Informe customerId ou customer, não ambos.",
+            "description": "ID de um cliente existente. Informe customerId ou customer, não ambos. Se ambos forem omitidos, o endpoint cria um QR Code estático (disponível apenas para contas cujo PSP suporta o caminho estático; caso contrário retorna 400).",
             "format": "uuid"
           },
           "customer": {
-            "description": "Informações do cliente. Informe customerId ou customer, não ambos.",
+            "description": "Informações do cliente. Informe customerId ou customer, não ambos. Se ambos forem omitidos, o endpoint cria um QR Code estático (disponível apenas para contas cujo PSP suporta o caminho estático; caso contrário retorna 400).",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CustomerDto"
@@ -9398,7 +8957,7 @@
           },
           "customerId": {
             "type": "string",
-            "description": "ID do cliente",
+            "description": "ID do cliente. Ausente quando criado como QR Code estático (sem pagador).",
             "format": "uuid"
           },
           "createdAt": {
@@ -9414,7 +8973,6 @@
           "currency",
           "pixCopyPaste",
           "expiresAt",
-          "customerId",
           "createdAt"
         ]
       },
@@ -9888,6 +9446,12 @@
             "minimum": 1,
             "description": "Valor do saque em BRL (ex: 100.50 para R$ 100,50). Mínimo R$ 1,00.",
             "example": 150.75
+          },
+          "externalReference": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Seu ID de referência externa (opcional). É devolvido no response e nos webhooks `withdrawal_completed` e `withdrawal_failed` para facilitar a reconciliação com seus sistemas internos.",
+            "example": "saque-empresa-001"
           }
         },
         "required": ["amount"]
@@ -9977,6 +9541,12 @@
             "nullable": true,
             "description": "Data de processamento",
             "example": "2026-02-10T14:30:01.000Z"
+          },
+          "externalReference": {
+            "type": "string",
+            "nullable": true,
+            "description": "Sua referência externa enviada na criação do saque (opcional)",
+            "example": "saque-empresa-001"
           }
         },
         "required": [
@@ -9991,93 +9561,45 @@
           "createdAt"
         ]
       },
-      "CreateStaticQrCodeInput": {
+      "RequestRefundInput": {
         "type": "object",
         "properties": {
-          "amount": {
-            "type": "number",
-            "minimum": 1,
-            "description": "Valor em BRL (ex: 10.50 para R$ 10,50)",
-            "example": 25.0
-          },
-          "description": {
-            "type": "string",
-            "maxLength": 100,
-            "description": "Descrição do QR code estático",
-            "example": "Doação para ONG"
-          },
-          "projectId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID do projeto para associar a transação. Se não fornecido, será usado o primeiro projeto da conta."
-          },
-          "externalReference": {
+          "reason": {
             "type": "string",
             "maxLength": 255,
-            "description": "Seu ID de referência externa",
-            "example": "pedido-12345"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Metadados customizados (pares chave-valor)",
-            "example": {
-              "orderId": "12345",
-              "source": "website"
-            }
+            "description": "Motivo do reembolso (opcional, máximo 255 caracteres)",
+            "example": "Cliente solicitou cancelamento"
           }
-        },
-        "required": ["amount", "description"]
+        }
       },
-      "CreateStaticQrCodeOutput": {
+      "RequestRefundOutput": {
         "type": "object",
         "properties": {
-          "id": {
+          "originalTransactionId": {
             "type": "string",
             "format": "uuid",
-            "description": "ID da transação interna"
+            "description": "ID da transação original que está sendo reembolsada"
+          },
+          "pspProvider": {
+            "type": "string",
+            "description": "Provedor PSP que processou o reembolso"
+          },
+          "pspRefundTransactionId": {
+            "type": "string",
+            "description": "ID da transação de reembolso no PSP"
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "completed", "failed", "cancelled"],
-            "description": "Status da transação"
-          },
-          "amount": {
-            "type": "number",
-            "description": "Valor em BRL",
-            "example": 25.0
-          },
-          "currency": {
-            "type": "string",
-            "description": "Código da moeda",
-            "example": "BRL"
-          },
-          "pixCopyPaste": {
-            "type": "string",
-            "description": "Código PIX copia e cola (brCode)"
-          },
-          "qrCodeBase64": {
-            "type": "string",
-            "description": "QR Code em formato data URI (data:image/png;base64,...)"
-          },
-          "externalReference": {
-            "type": "string",
-            "description": "Seu ID de referência externa",
-            "example": "pedido-12345"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Data de criação"
+            "enum": ["PENDING", "CONFIRMED", "ERROR"],
+            "description": "Status retornado pelo PSP. PENDING significa que o reembolso foi aceito mas ainda não foi confirmado — a confirmação chega via webhook `refund_completed`.",
+            "example": "PENDING"
           }
         },
         "required": [
-          "id",
-          "status",
-          "amount",
-          "currency",
-          "pixCopyPaste",
-          "createdAt"
+          "originalTransactionId",
+          "pspProvider",
+          "pspRefundTransactionId",
+          "status"
         ]
       },
       "BalanceAmountDetail": {

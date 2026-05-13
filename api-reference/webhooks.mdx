@@ -143,6 +143,9 @@ Enviado quando um pagamento PIX é confirmado.
     "status": "completed",
     "completedAt": "2026-01-11T19:03:28.277Z",
     "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "Maria Silva",
+    "counterpartDocument": "12345678900",
     "metadata": {
       "orderId": "ORDER-12345",
       "customerId": "CUST-67890"
@@ -163,6 +166,9 @@ Enviado quando um pagamento PIX é confirmado.
 | `status` | string | Status do pagamento (completed) |
 | `completedAt` | string | Data/hora da conclusão em ISO 8601 |
 | `externalReference` | string | Sua referência externa (opcional) |
+| `e2eId` | string | ID fim-a-fim da rede PIX (opcional, presente quando disponível) |
+| `counterpartName` | string | Nome do pagador conforme retornado pelo PSP (opcional) |
+| `counterpartDocument` | string | CPF/CNPJ do pagador conforme retornado pelo PSP (opcional, sem máscara) |
 | `metadata` | object | Metadados customizados enviados na criação do pagamento (opcional) |
 
 ### payment_expired
@@ -222,7 +228,7 @@ Enviado quando um reembolso é processado.
     "environment": "sandbox",
     "amount": 50.00,
     "feeAmount": 0.25,
-    "netAmount": 49.75,
+    "netAmount": 50.00,
     "currency": "BRL",
     "paymentMethod": "pix",
     "status": "completed",
@@ -236,14 +242,18 @@ Enviado quando um reembolso é processado.
 }
 ```
 
+<Note>
+**Convenção do `netAmount` em refund**: representa o que o destinatário do evento (o cliente final) efetivamente recebe — ou seja, o valor cheio do reembolso. A taxa de reembolso é debitada separadamente do saldo do lojista. O custo total do refund para o lojista é `amount + feeAmount`.
+</Note>
+
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `refundTransactionId` | string | ID único da transação de reembolso |
 | `originalTransactionId` | string | ID da transação original que foi reembolsada |
 | `environment` | string | Ambiente (`production` ou `sandbox`) |
 | `amount` | number | Valor do reembolso |
-| `feeAmount` | number | Taxa do reembolso |
-| `netAmount` | number | Valor líquido do reembolso |
+| `feeAmount` | number | Taxa do reembolso cobrada do lojista |
+| `netAmount` | number | Valor líquido recebido pelo cliente final (igual a `amount`) |
 | `currency` | string | Moeda (BRL) |
 | `paymentMethod` | string | Método de pagamento da transação original |
 | `status` | string | Status do reembolso (completed) |
@@ -269,6 +279,10 @@ Enviado quando um saque é processado com sucesso.
     "currency": "BRL",
     "status": "completed",
     "completedAt": "2026-01-11T19:08:21.939Z",
+    "externalReference": "saque-empresa-001",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "João da Silva",
+    "counterpartDocument": "12345678900",
     "metadata": {
       "batchId": "BATCH-001"
     }
@@ -286,6 +300,10 @@ Enviado quando um saque é processado com sucesso.
 | `currency` | string | Moeda (BRL) |
 | `status` | string | Status do saque (completed) |
 | `completedAt` | string | Data/hora da conclusão em ISO 8601 |
+| `externalReference` | string | Sua referência externa enviada na criação do saque (opcional) |
+| `e2eId` | string | ID fim-a-fim da rede PIX (opcional, presente após confirmação do PSP) |
+| `counterpartName` | string | Nome do destinatário no banco de destino (opcional) |
+| `counterpartDocument` | string | CPF/CNPJ do destinatário (opcional, sem máscara) |
 | `metadata` | object | Metadados customizados do saque (opcional) |
 
 ### withdrawal_failed
@@ -307,6 +325,10 @@ Enviado quando um saque é rejeitado ou falha.
     "status": "failed",
     "failedAt": "2026-01-11T19:15:42.100Z",
     "failureReason": "insufficient_funds",
+    "externalReference": "saque-empresa-001",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "João da Silva",
+    "counterpartDocument": "12345678900",
     "metadata": {
       "batchId": "BATCH-001"
     }
@@ -325,6 +347,10 @@ Enviado quando um saque é rejeitado ou falha.
 | `status` | string | Status do saque (failed) |
 | `failedAt` | string | Data/hora da falha em ISO 8601 |
 | `failureReason` | string | Motivo da falha (insufficient_funds, invalid_account, etc.) |
+| `externalReference` | string | Sua referência externa enviada na criação do saque (opcional) |
+| `e2eId` | string | ID fim-a-fim da rede PIX (opcional, presente apenas se o saque chegou a ser processado pelo PSP) |
+| `counterpartName` | string | Nome do destinatário no banco de destino (opcional) |
+| `counterpartDocument` | string | CPF/CNPJ do destinatário (opcional, sem máscara) |
 | `metadata` | object | Metadados customizados do saque (opcional) |
 
 ### withdrawal_reversed
@@ -388,7 +414,9 @@ Enviado quando um bloqueio de saldo é criado (MED, judicial ou administrativo).
     "referenceNumber": "MED-2026-001234",
     "reason": "Notificação de infração Pix recebida",
     "status": "awaiting_response",
-    "createdAt": "2026-01-11T19:30:00.000Z"
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D"
   }
 }
 ```
@@ -405,6 +433,8 @@ Enviado quando um bloqueio de saldo é criado (MED, judicial ou administrativo).
 | `reason` | string | Motivo do bloqueio |
 | `status` | string | Status inicial (`awaiting_response`) |
 | `createdAt` | string | Data/hora da criação em ISO 8601 |
+| `externalReference` | string | Referência externa da transação original (opcional) |
+| `e2eId` | string | ID fim-a-fim da rede PIX da transação original (opcional) |
 
 ### balance_block_approved
 
@@ -427,7 +457,9 @@ Enviado quando um bloqueio de saldo é aprovado e o valor é devolvido ao pagado
     "resolutionReason": "Devolução confirmada pelo BACEN",
     "status": "approved",
     "createdAt": "2026-01-11T19:30:00.000Z",
-    "resolvedAt": "2026-01-12T14:00:00.000Z"
+    "resolvedAt": "2026-01-12T14:00:00.000Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D"
   }
 }
 ```
@@ -446,6 +478,8 @@ Enviado quando um bloqueio de saldo é aprovado e o valor é devolvido ao pagado
 | `status` | string | Status do bloqueio (`approved`) |
 | `createdAt` | string | Data/hora da criação em ISO 8601 |
 | `resolvedAt` | string | Data/hora da resolução em ISO 8601 |
+| `externalReference` | string | Referência externa da transação original (opcional) |
+| `e2eId` | string | ID fim-a-fim da rede PIX da transação original (opcional) |
 
 ### balance_block_rejected
 
@@ -468,7 +502,9 @@ Enviado quando um bloqueio de saldo é rejeitado e o valor retorna ao saldo disp
     "resolutionReason": "Defesa aceita - transação legítima comprovada",
     "status": "rejected",
     "createdAt": "2026-01-11T19:30:00.000Z",
-    "resolvedAt": "2026-01-12T14:00:00.000Z"
+    "resolvedAt": "2026-01-12T14:00:00.000Z",
+    "externalReference": "pedido-67890",
+    "e2eId": "E4071059520260316020613919677838"
   }
 }
 ```
@@ -487,6 +523,8 @@ Enviado quando um bloqueio de saldo é rejeitado e o valor retorna ao saldo disp
 | `status` | string | Status do bloqueio (`rejected`) |
 | `createdAt` | string | Data/hora da criação em ISO 8601 |
 | `resolvedAt` | string | Data/hora da resolução em ISO 8601 |
+| `externalReference` | string | Referência externa da transação original (opcional) |
+| `e2eId` | string | ID fim-a-fim da rede PIX da transação original (opcional) |
 
 ## Boas Práticas
 
