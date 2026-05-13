@@ -725,67 +725,6 @@
         "tags": ["External API - Transactions"]
       }
     },
-    "/metrics": {
-      "get": {
-        "description": "Retorna métricas de receita da conta.\n\n**Permissão requerida:** `METRICS:READ` ou `FULL_ACCESS`",
-        "operationId": "ExternalMetricsController_getMetrics",
-        "parameters": [
-          {
-            "name": "X-API-Key",
-            "in": "header",
-            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Métricas de receita da conta",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetMetricsOutput"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - Permission denied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InternalServerErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Obter métricas de receita",
-        "tags": ["External API - Metrics"]
-      }
-    },
     "/charges": {
       "post": {
         "description": "Cria um novo link de pagamento único que suporta PIX, cartão de crédito e boleto.\n\n**Permissão requerida:** `CHARGE:WRITE` ou `FULL_ACCESS`",
@@ -9352,57 +9291,6 @@
           }
         },
         "required": ["items", "total", "page", "limit", "totalPages"]
-      },
-      "DayMetrics": {
-        "type": "object",
-        "properties": {
-          "revenue": {
-            "type": "number",
-            "description": "Receita do dia em BRL",
-            "example": 1500.5
-          },
-          "mrr": {
-            "type": "number",
-            "description": "MRR do dia em BRL",
-            "example": 500.0
-          },
-          "subscribers": {
-            "type": "integer",
-            "description": "Número de assinantes ativos no dia",
-            "example": 10
-          }
-        },
-        "required": ["revenue", "mrr", "subscribers"]
-      },
-      "GetMetricsOutput": {
-        "type": "object",
-        "properties": {
-          "totalRevenue": {
-            "type": "number",
-            "description": "Receita total em BRL",
-            "example": 15000.0
-          },
-          "currentMrr": {
-            "type": "number",
-            "description": "MRR (Monthly Recurring Revenue) atual em BRL",
-            "example": 5000.0
-          },
-          "groupedByDay": {
-            "type": "object",
-            "description": "Métricas agrupadas por dia (YYYY-MM-DD)",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/DayMetrics"
-            },
-            "example": {
-              "2024-01-15": {
-                "revenue": 1500.5,
-                "mrr": 500.0,
-                "subscribers": 10
-              }
-            }
-          }
-        },
-        "required": ["totalRevenue", "currentMrr", "groupedByDay"]
       },
       "CreateExternalWithdrawalInput": {
         "type": "object",

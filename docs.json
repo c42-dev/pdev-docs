@@ -73,12 +73,6 @@
           "api-reference/projects/create",
           "api-reference/projects/list"
         ]
-      },
-      {
-        "group": "Métricas",
-        "pages": [
-          "api-reference/metrics/get"
-        ]
       }
     ],
     "global": {
