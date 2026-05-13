@@ -66,10 +66,14 @@ const pdev = new Pdev();
   </Accordion>
 
   <Accordion title="Withdrawals (Saques)">
-    Criar saques via PIX:
+    Criar saques via PIX. Informe **`amount`** (valor bruto debitado do saldo; destinatário recebe `amount - fee`) **ou** **`netAmount`** (valor líquido que o destinatário recebe; saldo é debitado em `netAmount + fee`) — nunca os dois.
+
     ```typescript
-    // Com conta bancária salva
+    // Por valor bruto (sai 150,75 do saldo; destinatário recebe 150,75 - fee)
     await pdev.withdrawals.create({ amount: 150.75, bankAccountId: 'uuid' });
+
+    // Por valor líquido (destinatário recebe 150,00 exatos; saldo debita 150,00 + fee)
+    await pdev.withdrawals.create({ netAmount: 150.0, bankAccountId: 'uuid' });
 
     // Com PIX avulso (inline)
     await pdev.withdrawals.create({

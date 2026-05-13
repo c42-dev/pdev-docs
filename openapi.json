@@ -8995,13 +8995,19 @@
       },
       "CreateExternalWithdrawalInput": {
         "type": "object",
-        "description": "Dados para criar um saque via PIX informando os dados da chave PIX e do titular da conta destino.",
+        "description": "Dados para criar um saque via PIX. Informe **exatamente um** entre `amount` (valor bruto debitado do saldo) **ou** `netAmount` (valor líquido que o destinatário deve receber).",
         "properties": {
           "amount": {
             "type": "number",
             "minimum": 1,
-            "description": "Valor do saque em BRL (ex: 100.50 para R$ 100,50). Mínimo R$ 1,00.",
+            "description": "Valor **bruto** em BRL debitado do saldo. O destinatário recebe `amount - feeAmount`. Mínimo R$ 1,00. Informe `amount` OU `netAmount` — nunca os dois.",
             "example": 150.75
+          },
+          "netAmount": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Valor **líquido** em BRL que o destinatário deve receber. A API calcula o gross necessário (`gross = netAmount + feeAmount`) e debita esse total do saldo. Mínimo R$ 1,00. Informe `amount` OU `netAmount` — nunca os dois.",
+            "example": 150.0
           },
           "pixKey": {
             "type": "string",
@@ -9038,7 +9044,6 @@
           }
         },
         "required": [
-          "amount",
           "pixKey",
           "pixKeyType",
           "holderName",
