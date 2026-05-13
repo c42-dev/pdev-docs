@@ -725,6 +725,67 @@
         "tags": ["External API - Transactions"]
       }
     },
+    "/balance-blocks": {
+      "get": {
+        "description": "Retorna os bloqueios de saldo (MED, judiciais ou administrativos) da conta. Permite filtrar opcionalmente pelo status do bloqueio.\n\n**Permissão requerida:** `BALANCE_BLOCK:READ` ou `FULL_ACCESS`",
+        "operationId": "ExternalBalanceBlocksController_findAll",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Chave de API de integração (pd_live_* para produção, pd_test_* para sandbox)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filtra os bloqueios pelo status. Se omitido, retorna todos os bloqueios da conta.",
+            "schema": {
+              "type": "string",
+              "enum": ["awaiting_response", "defended", "approved", "rejected"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de bloqueios de saldo da conta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllExternalBalanceBlocksOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Listar bloqueios de saldo",
+        "tags": ["External API - Balance Blocks"]
+      }
+    },
     "/withdrawals": {
       "post": {
         "description": "Cria um novo saque via PIX informando os dados da chave PIX e do titular da conta destino.\n\n**Permissão requerida:** `WITHDRAWAL:WRITE` ou `FULL_ACCESS`\n\n**Restrição de IP:** Este endpoint exige que a chave de API tenha IPs permitidos configurados.",
@@ -8837,6 +8898,100 @@
           "totalSpent",
           "createdAt"
         ]
+      },
+      "ExternalBalanceBlockOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do bloqueio"
+          },
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID da transação bloqueada"
+          },
+          "externalReference": {
+            "type": "string",
+            "nullable": true,
+            "description": "Referência externa da transação original (se houver)"
+          },
+          "e2eId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID fim-a-fim da rede PIX da transação original (se houver)"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Valor bloqueado em BRL",
+            "example": 150.5
+          },
+          "status": {
+            "type": "string",
+            "enum": ["awaiting_response", "defended", "approved", "rejected"],
+            "description": "Status do bloqueio",
+            "example": "awaiting_response"
+          },
+          "blockType": {
+            "type": "string",
+            "enum": ["med", "judicial", "administrative"],
+            "description": "Tipo do bloqueio",
+            "example": "med"
+          },
+          "referenceNumber": {
+            "type": "string",
+            "description": "Número de referência do bloqueio"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Motivo do bloqueio"
+          },
+          "resolutionReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Motivo da resolução (presente quando o bloqueio já foi resolvido)"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Data/hora da resolução em ISO 8601 (presente quando o bloqueio já foi resolvido)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data/hora da criação em ISO 8601"
+          }
+        },
+        "required": [
+          "id",
+          "transactionId",
+          "amount",
+          "status",
+          "blockType",
+          "referenceNumber",
+          "reason",
+          "createdAt"
+        ]
+      },
+      "GetAllExternalBalanceBlocksOutput": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Lista de bloqueios de saldo da conta",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExternalBalanceBlockOutput"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total de bloqueios retornados",
+            "example": 3
+          }
+        },
+        "required": ["items", "total"]
       },
       "CreateExternalWithdrawalInput": {
         "type": "object",

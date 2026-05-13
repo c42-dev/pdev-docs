@@ -53,6 +53,12 @@
         ]
       },
       {
+        "group": "Bloqueios de Saldo",
+        "pages": [
+          "api-reference/balance-blocks/list"
+        ]
+      },
+      {
         "group": "Clientes",
         "pages": [
           "api-reference/customers/create",
