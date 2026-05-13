@@ -28,6 +28,12 @@
         ]
       },
       {
+        "group": "Conta",
+        "pages": [
+          "api-reference/account/get"
+        ]
+      },
+      {
         "group": "PIX",
         "pages": [
           "api-reference/pix/create"
@@ -72,12 +78,6 @@
         "group": "Métricas",
         "pages": [
           "api-reference/metrics/get"
-        ]
-      },
-      {
-        "group": "Conta",
-        "pages": [
-          "api-reference/account/get"
         ]
       }
     ],
