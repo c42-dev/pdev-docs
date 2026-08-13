@@ -50,11 +50,11 @@ description: 'Получайте уведомления о платёжных с
 | Заголовок | Описание |
 |--------|-----------|
 | `Content-Type` | `application/json` |
-| `User-Agent` | `Misespay-Webhook/1.0` |
-| `X-Misespay-Event` | Тип события (напр., `payment_completed`) |
-| `X-Misespay-Webhook-ID` | Уникальный ID этой доставки (UUID) |
-| `X-Misespay-Signature` | Подпись полезной нагрузки: `sha256=<HMAC-SHA256 в hex>` |
-| `X-Misespay-Timestamp` | Метка времени доставки в миллисекундах (Unix epoch) |
+| `User-Agent` | `Pague-Webhook/1.0` |
+| `X-Pague-Event` | Тип события (напр., `payment_completed`) |
+| `X-Pague-Webhook-ID` | Уникальный ID этой доставки (UUID) |
+| `X-Pague-Signature` | Подпись полезной нагрузки: `sha256=<HMAC-SHA256 в hex>` |
+| `X-Pague-Timestamp` | Метка времени доставки в миллисекундах (Unix epoch) |
 
 ## Проверка подписи
 
@@ -63,7 +63,7 @@ description: 'Получайте уведомления о платёжных с
 
 1. Вычислите **HMAC-SHA256** от сырого тела запроса, используя ваш secret в качестве ключа
 2. Добавьте к результату в hex префикс `sha256=`
-3. Сравните с заголовком `X-Misespay-Signature`, используя сравнение за константное время
+3. Сравните с заголовком `X-Pague-Signature`, используя сравнение за константное время
 
 ```typescript Node.js (crypto)
 import { createHmac, timingSafeEqual } from 'node:crypto';

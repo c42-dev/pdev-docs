@@ -50,11 +50,11 @@ Every webhook request includes the following headers:
 | Header | Description |
 |--------|-----------|
 | `Content-Type` | `application/json` |
-| `User-Agent` | `Misespay-Webhook/1.0` |
-| `X-Misespay-Event` | Event type (e.g. `payment_completed`) |
-| `X-Misespay-Webhook-ID` | Unique ID of this delivery (UUID) |
-| `X-Misespay-Signature` | Payload signature: `sha256=<hex-encoded HMAC-SHA256>` |
-| `X-Misespay-Timestamp` | Delivery timestamp in milliseconds (Unix epoch) |
+| `User-Agent` | `Pague-Webhook/1.0` |
+| `X-Pague-Event` | Event type (e.g. `payment_completed`) |
+| `X-Pague-Webhook-ID` | Unique ID of this delivery (UUID) |
+| `X-Pague-Signature` | Payload signature: `sha256=<hex-encoded HMAC-SHA256>` |
+| `X-Pague-Timestamp` | Delivery timestamp in milliseconds (Unix epoch) |
 
 ## Validating the Signature
 
@@ -63,7 +63,7 @@ Every webhook is signed with HMAC-SHA256 using your **endpoint's secret**
 
 1. Compute the **HMAC-SHA256** of the raw request body using your secret as the key
 2. Prefix the hex result with `sha256=`
-3. Compare it with the `X-Misespay-Signature` header using a constant-time comparison
+3. Compare it with the `X-Pague-Signature` header using a constant-time comparison
 
 ```typescript Node.js (crypto)
 import { createHmac, timingSafeEqual } from 'node:crypto';
