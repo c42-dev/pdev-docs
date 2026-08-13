@@ -15,9 +15,11 @@
     "/auth": {
       "post": {
         "operationId": "ExternalAuthController_authenticate",
-        "summary": "Gerar Access Token",
-        "description": "Troca o `client_id` e o `client_secret` da sua credencial por um access token de curta duração. Envie o token retornado no header `Authorization: Bearer <access_token>` das demais requisições.\n\nO token expira em **300 segundos (5 minutos)** — gere um novo quando expirar; não há refresh token.",
-        "tags": ["Autenticação"],
+        "summary": "Generate Access Token",
+        "description": "Exchanges your credential's `client_id` and `client_secret` for a short-lived access token. Send the returned token in the `Authorization: Bearer <access_token>` header of subsequent requests.\n\nThe token expires in **300 seconds (5 minutes)** — generate a new one when it expires; there is no refresh token.",
+        "tags": [
+          "Autenticação"
+        ],
         "security": [],
         "requestBody": {
           "required": true,
@@ -28,22 +30,25 @@
                 "properties": {
                   "client_id": {
                     "type": "string",
-                    "description": "Identificador da credencial (mp_live_* produção, mp_test_* sandbox)",
+                    "description": "Credential identifier (mp_live_* production, mp_test_* sandbox)",
                     "example": "mp_live_0123456789abcdef01234567"
                   },
                   "client_secret": {
                     "type": "string",
-                    "description": "Secret da credencial (exibido uma única vez na criação)"
+                    "description": "Credential secret (shown only once at creation)"
                   }
                 },
-                "required": ["client_id", "client_secret"]
+                "required": [
+                  "client_id",
+                  "client_secret"
+                ]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Token gerado com sucesso",
+            "description": "Token generated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -51,7 +56,7 @@
                   "properties": {
                     "access_token": {
                       "type": "string",
-                      "description": "Token JWT para usar no header Authorization",
+                      "description": "JWT token to use in the Authorization header",
                       "example": "eyJhbGciOiJSUzI1NiIs..."
                     },
                     "token_type": {
@@ -60,17 +65,21 @@
                     },
                     "expires_in": {
                       "type": "integer",
-                      "description": "Validade do token em segundos",
+                      "description": "Token validity in seconds",
                       "example": 300
                     }
                   },
-                  "required": ["access_token", "token_type", "expires_in"]
+                  "required": [
+                    "access_token",
+                    "token_type",
+                    "expires_in"
+                  ]
                 }
               }
             }
           },
           "400": {
-            "description": "client_id ou client_secret ausentes",
+            "description": "Missing client_id or client_secret",
             "content": {
               "application/json": {
                 "schema": {
@@ -92,7 +101,7 @@
             }
           },
           "401": {
-            "description": "Credencial inválida, revogada ou secret incorreto",
+            "description": "Invalid or revoked credential, or incorrect secret",
             "content": {
               "application/json": {
                 "schema": {
@@ -118,14 +127,14 @@
     },
     "/pix": {
       "post": {
-        "description": "Cria uma cobrança PIX instantânea.\n\n**Permissão requerida:** `PIX:WRITE` ou `FULL_ACCESS`",
+        "description": "Creates an instant PIX charge.\n\n**Required permission:** `PIX:WRITE` or `FULL_ACCESS`",
         "operationId": "ExternalPixController_createCharge",
         "parameters": [
           {
             "name": "Idempotency-Key",
             "in": "header",
             "required": false,
-            "description": "Chave única do cliente (8-255 chars) que torna a requisição idempotente. Retentativas com a mesma chave retornam a resposta cacheada (TTL 24h). Mesma chave com body diferente retorna 422.",
+            "description": "Unique client-provided key (8-255 chars) that makes the request idempotent. Retries with the same key return the cached response (24h TTL). The same key with a different body returns 422.",
             "schema": {
               "type": "string",
               "minLength": 8,
@@ -145,7 +154,7 @@
         },
         "responses": {
           "201": {
-            "description": "Cobrança PIX criada com sucesso",
+            "description": "PIX charge created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -195,8 +204,10 @@
             }
           }
         },
-        "summary": "Criar uma cobrança PIX",
-        "tags": ["External API - PIX"],
+        "summary": "Create a PIX charge",
+        "tags": [
+          "External API - PIX"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -206,7 +217,7 @@
     },
     "/projects": {
       "post": {
-        "description": "Cria um novo projeto.\n\n**Permissão requerida:** `PROJECT:WRITE` ou `FULL_ACCESS`",
+        "description": "Creates a new project.\n\n**Required permission:** `PROJECT:WRITE` or `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_createProject",
         "requestBody": {
           "required": true,
@@ -220,7 +231,7 @@
         },
         "responses": {
           "201": {
-            "description": "Projeto criado com sucesso",
+            "description": "Project created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -270,8 +281,10 @@
             }
           }
         },
-        "summary": "Criar um projeto",
-        "tags": ["External API - Projects"],
+        "summary": "Create a project",
+        "tags": [
+          "External API - Projects"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -279,14 +292,14 @@
         ]
       },
       "get": {
-        "description": "Retorna uma lista paginada de projetos.\n\n**Permissão requerida:** `PROJECT:READ` ou `FULL_ACCESS`",
+        "description": "Returns a paginated list of projects.\n\n**Required permission:** `PROJECT:READ` or `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_getAllProjects",
         "parameters": [
           {
             "name": "page",
             "required": false,
             "in": "query",
-            "description": "Número da página",
+            "description": "Page number",
             "schema": {
               "minimum": 1,
               "default": 1,
@@ -297,7 +310,7 @@
             "name": "limit",
             "required": false,
             "in": "query",
-            "description": "Itens por página",
+            "description": "Items per page",
             "schema": {
               "minimum": 1,
               "maximum": 100,
@@ -309,28 +322,35 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Ordenar por campo",
+            "description": "Sort by field",
             "schema": {
               "default": "createdAt",
               "type": "string",
-              "enum": ["createdAt", "updatedAt", "name"]
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "name"
+              ]
             }
           },
           {
             "name": "sortOrder",
             "required": false,
             "in": "query",
-            "description": "Ordem de classificação",
+            "description": "Sort order",
             "schema": {
               "default": "desc",
               "type": "string",
-              "enum": ["asc", "desc"]
+              "enum": [
+                "asc",
+                "desc"
+              ]
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Lista de projetos",
+            "description": "List of projects",
             "content": {
               "application/json": {
                 "schema": {
@@ -360,8 +380,10 @@
             }
           }
         },
-        "summary": "Listar projetos",
-        "tags": ["External API - Projects"],
+        "summary": "List projects",
+        "tags": [
+          "External API - Projects"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -371,14 +393,14 @@
     },
     "/projects/{id}": {
       "get": {
-        "description": "Retorna os detalhes de um projeto específico pelo seu ID.\n\n**Permissão requerida:** `PROJECT:READ` ou `FULL_ACCESS`",
+        "description": "Returns the details of a specific project by its ID.\n\n**Required permission:** `PROJECT:READ` or `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_getProject",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "ID do projeto",
+            "description": "Project ID",
             "schema": {
               "format": "uuid",
               "type": "string"
@@ -387,7 +409,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Detalhes do projeto",
+            "description": "Project details",
             "content": {
               "application/json": {
                 "schema": {
@@ -427,8 +449,10 @@
             }
           }
         },
-        "summary": "Buscar projeto por ID",
-        "tags": ["External API - Projects"],
+        "summary": "Get project by ID",
+        "tags": [
+          "External API - Projects"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -438,14 +462,14 @@
     },
     "/transactions/{id}": {
       "get": {
-        "description": "Retorna os detalhes de uma transação específica pelo seu ID.\n\n**Permissão requerida:** `TRANSACTION:READ` ou `FULL_ACCESS`",
+        "description": "Returns the details of a specific transaction by its ID.\n\n**Required permission:** `TRANSACTION:READ` or `FULL_ACCESS`",
         "operationId": "ExternalTransactionsController_getTransaction",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "ID da transação",
+            "description": "Transaction ID",
             "schema": {
               "format": "uuid",
               "type": "string"
@@ -454,7 +478,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Detalhes da transação",
+            "description": "Transaction details",
             "content": {
               "application/json": {
                 "schema": {
@@ -494,8 +518,10 @@
             }
           }
         },
-        "summary": "Buscar transação por ID",
-        "tags": ["External API - Transactions"],
+        "summary": "Get transaction by ID",
+        "tags": [
+          "External API - Transactions"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -505,14 +531,14 @@
     },
     "/transactions/{id}/refund": {
       "post": {
-        "description": "Solicita um reembolso total da transação de pagamento informada. O reembolso é assíncrono — a confirmação chega via webhook `refund_completed` quando o PSP processar.\n\n**Permissão requerida:** `REFUND:WRITE` ou `FULL_ACCESS`",
+        "description": "Requests a full refund of the given payment transaction. The refund is asynchronous — confirmation arrives via the `refund_completed` webhook once the PSP processes it.\n\n**Required permission:** `REFUND:WRITE` or `FULL_ACCESS`",
         "operationId": "ExternalTransactionsController_requestRefund",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "ID da transação de pagamento a ser reembolsada",
+            "description": "ID of the payment transaction to be refunded",
             "schema": {
               "format": "uuid",
               "type": "string"
@@ -531,7 +557,7 @@
         },
         "responses": {
           "201": {
-            "description": "Reembolso solicitado com sucesso. Status PENDING até a confirmação via webhook.",
+            "description": "Refund requested successfully. Status remains PENDING until confirmation via webhook.",
             "content": {
               "application/json": {
                 "schema": {
@@ -541,7 +567,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Transação não pode ser reembolsada (já reembolsada, expirada, status inválido, etc.)",
+            "description": "Bad Request - Transaction cannot be refunded (already refunded, expired, invalid status, etc.)",
             "content": {
               "application/json": {
                 "schema": {
@@ -561,7 +587,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Transação não encontrada",
+            "description": "Not Found - Transaction not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -581,8 +607,10 @@
             }
           }
         },
-        "summary": "Solicitar reembolso de transação",
-        "tags": ["External API - Transactions"],
+        "summary": "Request transaction refund",
+        "tags": [
+          "External API - Transactions"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -592,23 +620,28 @@
     },
     "/balance-blocks": {
       "get": {
-        "description": "Retorna os bloqueios de saldo (MED, judiciais ou administrativos) da conta. Permite filtrar opcionalmente pelo status do bloqueio.\n\n**Permissão requerida:** `BALANCE_BLOCK:READ` ou `FULL_ACCESS`",
+        "description": "Returns the account's balance blocks (MED, judicial, or administrative). Optionally filter by block status.\n\n**Required permission:** `BALANCE_BLOCK:READ` or `FULL_ACCESS`",
         "operationId": "ExternalBalanceBlocksController_findAll",
         "parameters": [
           {
             "name": "status",
             "in": "query",
             "required": false,
-            "description": "Filtra os bloqueios pelo status. Se omitido, retorna todos os bloqueios da conta.",
+            "description": "Filters blocks by status. If omitted, returns all blocks on the account.",
             "schema": {
               "type": "string",
-              "enum": ["awaiting_response", "defended", "approved", "rejected"]
+              "enum": [
+                "awaiting_response",
+                "defended",
+                "approved",
+                "rejected"
+              ]
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Lista de bloqueios de saldo da conta",
+            "description": "List of the account's balance blocks",
             "content": {
               "application/json": {
                 "schema": {
@@ -638,8 +671,10 @@
             }
           }
         },
-        "summary": "Listar bloqueios de saldo",
-        "tags": ["External API - Balance Blocks"],
+        "summary": "List balance blocks",
+        "tags": [
+          "External API - Balance Blocks"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -649,14 +684,14 @@
     },
     "/withdrawals": {
       "post": {
-        "description": "Cria um novo saque via PIX informando os dados da chave PIX e do titular da conta destino.\n\n**Permissão requerida:** `WITHDRAWAL:WRITE` ou `FULL_ACCESS`\n\n**Restrição de IP:** Se a credencial tiver uma lista de IPs permitidos configurada, requisições fora dela são rejeitadas com `403`. Recomendado para credenciais com esta permissão.",
+        "description": "Creates a new PIX withdrawal by providing the PIX key and destination account holder details.\n\n**Required permission:** `WITHDRAWAL:WRITE` or `FULL_ACCESS`\n\n**IP restriction:** If the credential has an allowed IP list configured, requests from outside of it are rejected with `403`. Recommended for credentials with this permission.",
         "operationId": "ExternalWithdrawalsController_create",
         "parameters": [
           {
             "name": "Idempotency-Key",
             "in": "header",
             "required": false,
-            "description": "Chave única do cliente (8-255 chars) que torna a requisição idempotente. Retentativas com a mesma chave retornam a resposta cacheada (TTL 24h). Mesma chave com body diferente retorna 422.",
+            "description": "Unique client-provided key (8-255 chars) that makes the request idempotent. Retries with the same key return the cached response (24h TTL). The same key with a different body returns 422.",
             "schema": {
               "type": "string",
               "minLength": 8,
@@ -676,7 +711,7 @@
         },
         "responses": {
           "201": {
-            "description": "Saque criado com sucesso",
+            "description": "Withdrawal created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -736,8 +771,10 @@
             }
           }
         },
-        "summary": "Criar um saque via PIX",
-        "tags": ["External API - Withdrawals (Saques)"],
+        "summary": "Create a PIX withdrawal",
+        "tags": [
+          "External API - Withdrawals (Saques)"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -747,11 +784,11 @@
     },
     "/account": {
       "get": {
-        "description": "Retorna os dados da conta, informações da empresa e saldo disponível.\n\n**Permissão requerida:** `ACCOUNT:READ` ou `FULL_ACCESS`",
+        "description": "Returns the account details, company information, and available balance.\n\n**Required permission:** `ACCOUNT:READ` or `FULL_ACCESS`",
         "operationId": "ExternalAccountController_getAccountInfo",
         "responses": {
           "200": {
-            "description": "Dados da conta e saldo",
+            "description": "Account details and balance",
             "content": {
               "application/json": {
                 "schema": {
@@ -801,8 +838,10 @@
             }
           }
         },
-        "summary": "Obter dados da conta e saldo",
-        "tags": ["External API - Account (Conta)"],
+        "summary": "Get account details and balance",
+        "tags": [
+          "External API - Account (Conta)"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -817,7 +856,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "Access token obtido no POST /auth (client_id + client_secret). Válido por 300 segundos."
+        "description": "Access token obtained from POST /auth (client_id + client_secret). Valid for 300 seconds."
       }
     },
     "schemas": {
@@ -847,7 +886,12 @@
           "status": {
             "type": "string",
             "description": "Delivery status",
-            "enum": ["success", "failed", "pending", "retrying"]
+            "enum": [
+              "success",
+              "failed",
+              "pending",
+              "retrying"
+            ]
           },
           "url": {
             "type": "string",
@@ -975,7 +1019,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "BadRequestErrorResponse": {
         "type": "object",
@@ -1003,7 +1050,12 @@
             "type": "string"
           }
         },
-        "required": ["statusCode", "error", "message", "timestamp"]
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
       },
       "InternalServerErrorResponse": {
         "type": "object",
@@ -1032,7 +1084,12 @@
             "example": "2771463d58840c8e116dc6dda1e1e5d0"
           }
         },
-        "required": ["statusCode", "error", "message", "timestamp"]
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
       },
       "NotFoundErrorResponse": {
         "type": "object",
@@ -1064,7 +1121,12 @@
             "type": "string"
           }
         },
-        "required": ["statusCode", "error", "message", "timestamp"]
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
       },
       "CreateTransactionInput": {
         "type": "object",
@@ -1130,12 +1192,22 @@
           "status": {
             "type": "string",
             "description": "Transaction status",
-            "enum": ["completed", "pending", "failed", "cancelled"]
+            "enum": [
+              "completed",
+              "pending",
+              "failed",
+              "cancelled"
+            ]
           },
           "paymentMethod": {
             "type": "string",
             "description": "Payment method",
-            "enum": ["ask_customer", "pix", "credit_card", "boleto"]
+            "enum": [
+              "ask_customer",
+              "pix",
+              "credit_card",
+              "boleto"
+            ]
           },
           "installmentNumber": {
             "type": "number",
@@ -1168,7 +1240,11 @@
           "ledgerSyncStatus": {
             "type": "string",
             "description": "Ledger sync status",
-            "enum": ["pending", "synced", "failed"]
+            "enum": [
+              "pending",
+              "synced",
+              "failed"
+            ]
           },
           "ledgerSyncedAt": {
             "type": "string",
@@ -1189,17 +1265,22 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID da transação",
+            "description": "Transaction ID",
             "format": "uuid"
           },
           "status": {
             "type": "string",
-            "description": "Status da transação",
-            "enum": ["pending", "completed", "failed", "cancelled"]
+            "description": "Transaction status",
+            "enum": [
+              "pending",
+              "completed",
+              "failed",
+              "cancelled"
+            ]
           },
           "type": {
             "type": "string",
-            "description": "Tipo da transação",
+            "description": "Transaction type",
             "enum": [
               "payment",
               "fee",
@@ -1211,41 +1292,45 @@
           },
           "paymentMethod": {
             "type": "string",
-            "description": "Método de pagamento utilizado",
-            "enum": ["pix", "credit_card", "boleto"]
+            "description": "Payment method used",
+            "enum": [
+              "pix",
+              "credit_card",
+              "boleto"
+            ]
           },
           "amount": {
             "type": "number",
-            "description": "Valor em BRL",
+            "description": "Amount in BRL",
             "example": 150.75
           },
           "currency": {
             "type": "string",
-            "description": "Código da moeda",
+            "description": "Currency code",
             "example": "BRL"
           },
           "description": {
             "type": "string",
-            "description": "Descrição da transação"
+            "description": "Transaction description"
           },
           "externalReference": {
             "type": "string",
-            "description": "Seu ID de referência externa",
+            "description": "Your external reference ID",
             "example": "pedido-12345"
           },
           "customerId": {
             "type": "string",
-            "description": "ID do cliente",
+            "description": "Client ID",
             "format": "uuid"
           },
           "projectId": {
             "type": "string",
-            "description": "ID do projeto",
+            "description": "Project ID",
             "format": "uuid"
           },
           "metadata": {
             "type": "object",
-            "description": "Metadados personalizados (pares chave-valor)",
+            "description": "Custom metadata (key-value pairs)",
             "additionalProperties": true,
             "example": {
               "orderId": "12345",
@@ -1254,27 +1339,27 @@
           },
           "pixCopyPaste": {
             "type": "string",
-            "description": "Código PIX copia e cola (apenas para transações PIX pendentes)",
+            "description": "PIX copy-and-paste code (only for pending PIX transactions)",
             "example": "00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6-7890-abcd-ef1234567890"
           },
           "expiresAt": {
             "type": "string",
-            "description": "Data de expiração (apenas para transações pendentes)",
+            "description": "Expiration date (only for pending transactions)",
             "format": "date-time"
           },
           "paidAt": {
             "type": "string",
-            "description": "Data em que a transação foi paga",
+            "description": "Date the transaction was paid",
             "format": "date-time"
           },
           "createdAt": {
             "type": "string",
-            "description": "Data de criação",
+            "description": "Creation date",
             "format": "date-time"
           },
           "updatedAt": {
             "type": "string",
-            "description": "Data de atualização",
+            "description": "Last update date",
             "format": "date-time"
           }
         },
@@ -1307,7 +1392,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "LedgerAccountOutput": {
         "type": "object",
@@ -1398,7 +1486,13 @@
             "description": "Whether accounts were newly created or already existed"
           }
         },
-        "required": ["accountId", "available", "held", "credits", "created"]
+        "required": [
+          "accountId",
+          "available",
+          "held",
+          "credits",
+          "created"
+        ]
       },
       "UnauthorizedErrorResponse": {
         "type": "object",
@@ -1426,7 +1520,12 @@
             "type": "string"
           }
         },
-        "required": ["statusCode", "error", "message", "timestamp"]
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
       },
       "AccountBalanceOutput": {
         "type": "object",
@@ -1592,7 +1691,10 @@
             "description": "Additional metadata"
           }
         },
-        "required": ["amount", "methodKey"]
+        "required": [
+          "amount",
+          "methodKey"
+        ]
       },
       "TransferOutput": {
         "type": "object",
@@ -1612,12 +1714,20 @@
           "type": {
             "type": "string",
             "description": "Transfer type",
-            "enum": ["payment", "fee", "settlement"]
+            "enum": [
+              "payment",
+              "fee",
+              "settlement"
+            ]
           },
           "status": {
             "type": "string",
             "description": "Transfer status",
-            "enum": ["pending", "posted", "voided"]
+            "enum": [
+              "pending",
+              "posted",
+              "voided"
+            ]
           },
           "debitAccountId": {
             "type": "string",
@@ -1720,7 +1830,10 @@
             "maximum": 2592000
           }
         },
-        "required": ["amount", "methodKey"]
+        "required": [
+          "amount",
+          "methodKey"
+        ]
       },
       "CreateFeeInput": {
         "type": "object",
@@ -1732,7 +1845,13 @@
           "methodKey": {
             "type": "string",
             "description": "Fee method key",
-            "enum": ["pix", "credit_card", "boleto", "withdrawal", "refund"],
+            "enum": [
+              "pix",
+              "credit_card",
+              "boleto",
+              "withdrawal",
+              "refund"
+            ],
             "example": "pix"
           },
           "methodDisplayName": {
@@ -1774,7 +1893,10 @@
             "default": true
           }
         },
-        "required": ["methodKey", "methodDisplayName"]
+        "required": [
+          "methodKey",
+          "methodDisplayName"
+        ]
       },
       "GetFeeOutput": {
         "type": "object",
@@ -1875,7 +1997,12 @@
             "type": "string"
           }
         },
-        "required": ["statusCode", "error", "message", "timestamp"]
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
       },
       "GetAllFeesOutput": {
         "type": "object",
@@ -1896,7 +2023,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "UpdateFeeInput": {
         "type": "object",
@@ -1908,7 +2038,13 @@
           "methodKey": {
             "type": "string",
             "description": "Fee method key",
-            "enum": ["pix", "credit_card", "boleto", "withdrawal", "refund"],
+            "enum": [
+              "pix",
+              "credit_card",
+              "boleto",
+              "withdrawal",
+              "refund"
+            ],
             "example": "pix"
           },
           "methodDisplayName": {
@@ -1953,7 +2089,12 @@
           "status": {
             "type": "string",
             "description": "Account status",
-            "enum": ["approved", "pending", "rejected", "suspended"],
+            "enum": [
+              "approved",
+              "pending",
+              "rejected",
+              "suspended"
+            ],
             "default": "pending",
             "example": "pending"
           }
@@ -1969,14 +2110,23 @@
           "status": {
             "type": "string",
             "example": "pending",
-            "enum": ["approved", "pending", "rejected", "suspended"]
+            "enum": [
+              "approved",
+              "pending",
+              "rejected",
+              "suspended"
+            ]
           },
           "createdAt": {
             "type": "string",
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": ["id", "status", "createdAt"]
+        "required": [
+          "id",
+          "status",
+          "createdAt"
+        ]
       },
       "AccountItem": {
         "type": "object",
@@ -1988,14 +2138,23 @@
           "status": {
             "type": "string",
             "example": "pending",
-            "enum": ["approved", "pending", "rejected", "suspended"]
+            "enum": [
+              "approved",
+              "pending",
+              "rejected",
+              "suspended"
+            ]
           },
           "createdAt": {
             "type": "string",
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": ["id", "status", "createdAt"]
+        "required": [
+          "id",
+          "status",
+          "createdAt"
+        ]
       },
       "GetAllAccountsOutput": {
         "type": "object",
@@ -2010,7 +2169,10 @@
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "GetAccountOutput": {
         "type": "object",
@@ -2022,7 +2184,12 @@
           "status": {
             "type": "string",
             "example": "pending",
-            "enum": ["approved", "pending", "rejected", "suspended"]
+            "enum": [
+              "approved",
+              "pending",
+              "rejected",
+              "suspended"
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -2033,7 +2200,11 @@
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": ["id", "status", "createdAt"]
+        "required": [
+          "id",
+          "status",
+          "createdAt"
+        ]
       },
       "UpdateAccountInput": {
         "type": "object",
@@ -2041,7 +2212,12 @@
           "status": {
             "type": "string",
             "description": "Account status",
-            "enum": ["approved", "pending", "rejected", "suspended"],
+            "enum": [
+              "approved",
+              "pending",
+              "rejected",
+              "suspended"
+            ],
             "example": "approved"
           }
         }
@@ -2060,7 +2236,9 @@
             "default": false
           }
         },
-        "required": ["apiKey"]
+        "required": [
+          "apiKey"
+        ]
       },
       "PaymentMethodConfigOutput": {
         "type": "object",
@@ -2072,7 +2250,11 @@
           },
           "paymentMethod": {
             "type": "string",
-            "enum": ["pix", "credit_card", "boleto"],
+            "enum": [
+              "pix",
+              "credit_card",
+              "boleto"
+            ],
             "description": "Payment method"
           },
           "pspCredentialId": {
@@ -2128,7 +2310,10 @@
             }
           }
         },
-        "required": ["accountId", "methods"]
+        "required": [
+          "accountId",
+          "methods"
+        ]
       },
       "PaymentMethodSettingsInput": {
         "type": "object",
@@ -2168,7 +2353,11 @@
         "properties": {
           "paymentMethod": {
             "type": "string",
-            "enum": ["pix", "credit_card", "boleto"],
+            "enum": [
+              "pix",
+              "credit_card",
+              "boleto"
+            ],
             "description": "Payment method to configure"
           },
           "pspCredentialId": {
@@ -2190,7 +2379,10 @@
             ]
           }
         },
-        "required": ["paymentMethod", "pspCredentialId"]
+        "required": [
+          "paymentMethod",
+          "pspCredentialId"
+        ]
       },
       "UpdatePaymentMethodInput": {
         "type": "object",
@@ -2219,7 +2411,9 @@
             "format": "uuid"
           }
         },
-        "required": ["pspCredentialId"]
+        "required": [
+          "pspCredentialId"
+        ]
       },
       "CreateNotificationInput": {
         "type": "object",
@@ -2261,7 +2455,11 @@
             "description": "Related entity ID"
           }
         },
-        "required": ["type", "title", "description"]
+        "required": [
+          "type",
+          "title",
+          "description"
+        ]
       },
       "GetNotificationOutput": {
         "type": "object",
@@ -2352,7 +2550,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "UpdateNotificationInput": {
         "type": "object",
@@ -2373,7 +2574,10 @@
           "environment": {
             "type": "string",
             "description": "Environment for this webhook",
-            "enum": ["production", "sandbox"],
+            "enum": [
+              "production",
+              "sandbox"
+            ],
             "default": "production"
           },
           "url": {
@@ -2386,7 +2590,10 @@
           },
           "events": {
             "description": "Events to subscribe to",
-            "example": ["payment_completed", "subscription_created"],
+            "example": [
+              "payment_completed",
+              "subscription_created"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -2402,7 +2609,13 @@
             "default": true
           }
         },
-        "required": ["name", "environment", "url", "secret", "events"]
+        "required": [
+          "name",
+          "environment",
+          "url",
+          "secret",
+          "events"
+        ]
       },
       "GetWebhookEndpointOutput": {
         "type": "object",
@@ -2422,7 +2635,10 @@
           "environment": {
             "type": "string",
             "description": "Environment",
-            "enum": ["production", "sandbox"]
+            "enum": [
+              "production",
+              "sandbox"
+            ]
           },
           "url": {
             "type": "string",
@@ -2504,7 +2720,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "UpdateWebhookEndpointInput": {
         "type": "object",
@@ -2566,7 +2785,12 @@
           "status": {
             "type": "string",
             "description": "Payment link status",
-            "enum": ["active", "expired", "disabled", "paid"],
+            "enum": [
+              "active",
+              "expired",
+              "disabled",
+              "paid"
+            ],
             "default": "active"
           },
           "slug": {
@@ -2577,11 +2801,17 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": ["one_time", "subscription"]
+            "enum": [
+              "one_time",
+              "subscription"
+            ]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
-            "example": ["pix", "credit_card"],
+            "example": [
+              "pix",
+              "credit_card"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -2611,7 +2841,10 @@
           },
           "notifications": {
             "description": "Notification channels",
-            "example": ["email", "whatsapp"],
+            "example": [
+              "email",
+              "whatsapp"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -2674,7 +2907,12 @@
           "status": {
             "type": "string",
             "description": "Status",
-            "enum": ["active", "expired", "disabled", "paid"]
+            "enum": [
+              "active",
+              "expired",
+              "disabled",
+              "paid"
+            ]
           },
           "slug": {
             "type": "string",
@@ -2691,7 +2929,10 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": ["one_time", "subscription"]
+            "enum": [
+              "one_time",
+              "subscription"
+            ]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
@@ -2773,7 +3014,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "UpdatePaymentLinkInput": {
         "type": "object",
@@ -2806,7 +3050,12 @@
           "status": {
             "type": "string",
             "description": "Payment link status",
-            "enum": ["active", "expired", "disabled", "paid"]
+            "enum": [
+              "active",
+              "expired",
+              "disabled",
+              "paid"
+            ]
           },
           "slug": {
             "type": "string",
@@ -2816,11 +3065,17 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": ["one_time", "subscription"]
+            "enum": [
+              "one_time",
+              "subscription"
+            ]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
-            "example": ["pix", "credit_card"],
+            "example": [
+              "pix",
+              "credit_card"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -2849,7 +3104,10 @@
           },
           "notifications": {
             "description": "Notification channels",
-            "example": ["email", "whatsapp"],
+            "example": [
+              "email",
+              "whatsapp"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -2889,7 +3147,12 @@
             "description": "Company phone"
           }
         },
-        "required": ["razaoSocial", "cnpj", "email", "phone"]
+        "required": [
+          "razaoSocial",
+          "cnpj",
+          "email",
+          "phone"
+        ]
       },
       "PublicProjectOutput": {
         "type": "object",
@@ -2911,7 +3174,10 @@
             "description": "Project logo URL"
           }
         },
-        "required": ["name", "color"]
+        "required": [
+          "name",
+          "color"
+        ]
       },
       "GetPublicPaymentLinkOutput": {
         "type": "object",
@@ -2927,7 +3193,12 @@
           "status": {
             "type": "string",
             "description": "Payment link status",
-            "enum": ["active", "expired", "disabled", "paid"]
+            "enum": [
+              "active",
+              "expired",
+              "disabled",
+              "paid"
+            ]
           },
           "description": {
             "type": "object",
@@ -2944,7 +3215,10 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": ["one_time", "subscription"]
+            "enum": [
+              "one_time",
+              "subscription"
+            ]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
@@ -3085,7 +3359,10 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": ["cpf", "cnpj"],
+            "enum": [
+              "cpf",
+              "cnpj"
+            ],
             "example": "cpf"
           },
           "document": {
@@ -3126,7 +3403,10 @@
             "format": "uuid"
           }
         },
-        "required": ["clientId", "paymentLinkId"]
+        "required": [
+          "clientId",
+          "paymentLinkId"
+        ]
       },
       "CreatePaymentLinkPixInput": {
         "type": "object",
@@ -3143,7 +3423,9 @@
             "minimum": 100
           }
         },
-        "required": ["clientId"]
+        "required": [
+          "clientId"
+        ]
       },
       "CreatePaymentLinkPixOutput": {
         "type": "object",
@@ -3165,7 +3447,11 @@
             "example": "2024-01-15T23:59:59.000Z"
           }
         },
-        "required": ["transactionId", "pixCopyPaste", "expiresAt"]
+        "required": [
+          "transactionId",
+          "pixCopyPaste",
+          "expiresAt"
+        ]
       },
       "GetTransactionStatusOutput": {
         "type": "object",
@@ -3173,7 +3459,12 @@
           "status": {
             "type": "string",
             "description": "Transaction status",
-            "enum": ["pending", "completed", "failed", "cancelled"],
+            "enum": [
+              "pending",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
             "example": "pending"
           },
           "completedAt": {
@@ -3182,7 +3473,9 @@
             "example": "2024-01-15T14:30:00.000Z"
           }
         },
-        "required": ["status"]
+        "required": [
+          "status"
+        ]
       },
       "GetCompanyInfoOutput": {
         "type": "object",
@@ -3225,7 +3518,12 @@
           "status": {
             "type": "string",
             "description": "Company status",
-            "enum": ["pending", "active", "suspended", "blocked"]
+            "enum": [
+              "pending",
+              "active",
+              "suspended",
+              "blocked"
+            ]
           },
           "statusUpdatedAt": {
             "type": "string",
@@ -3296,80 +3594,99 @@
           "status": {
             "type": "string",
             "description": "Company status",
-            "enum": ["pending", "approved", "rejected", "suspended"]
+            "enum": [
+              "pending",
+              "approved",
+              "rejected",
+              "suspended"
+            ]
           },
           "statusMessage": {
             "type": "string",
             "description": "Status change message"
           }
         },
-        "required": ["addressId", "razaoSocial", "cnpj", "email", "phone"]
+        "required": [
+          "addressId",
+          "razaoSocial",
+          "cnpj",
+          "email",
+          "phone"
+        ]
       },
       "CreateProjectInput": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "description": "Nome do projeto",
+            "description": "Project name",
             "maxLength": 255,
             "example": "Minha Loja"
           },
           "description": {
             "type": "string",
-            "description": "Descrição do projeto",
+            "description": "Project description",
             "example": "Loja virtual de eletrônicos"
           },
           "color": {
             "type": "string",
-            "description": "Cor do projeto em formato hexadecimal",
+            "description": "Project color in hexadecimal format",
             "pattern": "^#[0-9A-Fa-f]{6}$",
             "example": "#3B82F6"
           },
           "logoUrl": {
             "type": "string",
-            "description": "URL do logo do projeto",
+            "description": "Project logo URL",
             "format": "uri",
             "example": "https://example.com/logo.png"
           }
         },
-        "required": ["name", "color"]
+        "required": [
+          "name",
+          "color"
+        ]
       },
       "CreateProjectOutput": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID do projeto",
+            "description": "Project ID",
             "format": "uuid"
           },
           "name": {
             "type": "string",
-            "description": "Nome do projeto",
+            "description": "Project name",
             "example": "Minha Loja"
           },
           "description": {
             "type": "string",
-            "description": "Descrição do projeto",
+            "description": "Project description",
             "example": "Loja virtual de eletrônicos"
           },
           "color": {
             "type": "string",
-            "description": "Cor do projeto em formato hexadecimal",
+            "description": "Project color in hexadecimal format",
             "example": "#3B82F6"
           },
           "logoUrl": {
             "type": "string",
-            "description": "URL do logo do projeto",
+            "description": "Project logo URL",
             "format": "uri",
             "example": "https://example.com/logo.png"
           },
           "createdAt": {
             "type": "string",
-            "description": "Data de criação",
+            "description": "Creation date",
             "format": "date-time"
           }
         },
-        "required": ["id", "name", "color", "createdAt"]
+        "required": [
+          "id",
+          "name",
+          "color",
+          "createdAt"
+        ]
       },
       "ProjectListItem": {
         "type": "object",
@@ -3419,7 +3736,7 @@
         "type": "object",
         "properties": {
           "items": {
-            "description": "Lista de projetos",
+            "description": "List of projects",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CreateProjectOutput"
@@ -3427,68 +3744,79 @@
           },
           "total": {
             "type": "integer",
-            "description": "Número total de projetos",
+            "description": "Total number of projects",
             "example": 100
           },
           "page": {
             "type": "integer",
-            "description": "Página atual",
+            "description": "Current page",
             "example": 1
           },
           "limit": {
             "type": "integer",
-            "description": "Itens por página",
+            "description": "Items per page",
             "example": 20
           },
           "totalPages": {
             "type": "integer",
-            "description": "Número total de páginas",
+            "description": "Total number of pages",
             "example": 5
           }
         },
-        "required": ["items", "total", "page", "limit", "totalPages"]
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
       },
       "GetProjectOutput": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID do projeto",
+            "description": "Project ID",
             "format": "uuid"
           },
           "name": {
             "type": "string",
-            "description": "Nome do projeto",
+            "description": "Project name",
             "example": "Minha Loja"
           },
           "description": {
             "type": "string",
-            "description": "Descrição do projeto",
+            "description": "Project description",
             "example": "Loja virtual de eletrônicos"
           },
           "color": {
             "type": "string",
-            "description": "Cor do projeto em formato hexadecimal",
+            "description": "Project color in hexadecimal format",
             "example": "#3B82F6"
           },
           "logoUrl": {
             "type": "string",
-            "description": "URL do logo do projeto",
+            "description": "Project logo URL",
             "format": "uri",
             "example": "https://example.com/logo.png"
           },
           "createdAt": {
             "type": "string",
-            "description": "Data de criação",
+            "description": "Creation date",
             "format": "date-time"
           },
           "updatedAt": {
             "type": "string",
-            "description": "Data de atualização",
+            "description": "Last update date",
             "format": "date-time"
           }
         },
-        "required": ["id", "name", "color", "createdAt"]
+        "required": [
+          "id",
+          "name",
+          "color",
+          "createdAt"
+        ]
       },
       "UpdateProjectInput": {
         "type": "object",
@@ -3544,7 +3872,10 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "document": {
             "type": "string",
@@ -3552,7 +3883,13 @@
             "maxLength": 14
           }
         },
-        "required": ["name", "email", "phone", "documentType", "document"]
+        "required": [
+          "name",
+          "email",
+          "phone",
+          "documentType",
+          "document"
+        ]
       },
       "CreateClientOutput": {
         "type": "object",
@@ -3587,7 +3924,10 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "document": {
             "type": "string",
@@ -3627,7 +3967,11 @@
             "description": "Project color (hex)"
           }
         },
-        "required": ["id", "name", "color"]
+        "required": [
+          "id",
+          "name",
+          "color"
+        ]
       },
       "ClientListItem": {
         "type": "object",
@@ -3653,7 +3997,10 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "totalTransactions": {
             "type": "number",
@@ -3707,7 +4054,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "GetClientOutput": {
         "type": "object",
@@ -3742,7 +4092,10 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "document": {
             "type": "string",
@@ -3814,7 +4167,9 @@
             "format": "uuid"
           }
         },
-        "required": ["projectId"]
+        "required": [
+          "projectId"
+        ]
       },
       "ClientProjectOutput": {
         "type": "object",
@@ -3835,7 +4190,11 @@
             "format": "date-time"
           }
         },
-        "required": ["clientId", "projectId", "createdAt"]
+        "required": [
+          "clientId",
+          "projectId",
+          "createdAt"
+        ]
       },
       "ClientProjectsListOutput": {
         "type": "object",
@@ -3848,7 +4207,9 @@
             }
           }
         },
-        "required": ["items"]
+        "required": [
+          "items"
+        ]
       },
       "CreateAddressInput": {
         "type": "object",
@@ -4040,7 +4401,10 @@
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "GetAddressOutput": {
         "type": "object",
@@ -4178,7 +4542,12 @@
             "description": "Total in cents"
           }
         },
-        "required": ["description", "quantity", "unitPrice", "total"]
+        "required": [
+          "description",
+          "quantity",
+          "unitPrice",
+          "total"
+        ]
       },
       "CreateInvoiceInput": {
         "type": "object",
@@ -4289,7 +4658,12 @@
             "type": "number"
           }
         },
-        "required": ["description", "quantity", "unitPrice", "total"]
+        "required": [
+          "description",
+          "quantity",
+          "unitPrice",
+          "total"
+        ]
       },
       "GetInvoiceOutput": {
         "type": "object",
@@ -4421,7 +4795,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "UpdateInvoiceInput": {
         "type": "object",
@@ -4466,7 +4843,9 @@
             "maxLength": 100
           }
         },
-        "required": ["name"]
+        "required": [
+          "name"
+        ]
       },
       "CreateExampleOutput": {
         "type": "object",
@@ -4484,7 +4863,11 @@
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": ["id", "name", "createdAt"]
+        "required": [
+          "id",
+          "name",
+          "createdAt"
+        ]
       },
       "ExampleItem": {
         "type": "object",
@@ -4502,7 +4885,11 @@
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": ["id", "name", "createdAt"]
+        "required": [
+          "id",
+          "name",
+          "createdAt"
+        ]
       },
       "GetAllExamplesOutput": {
         "type": "object",
@@ -4518,7 +4905,10 @@
             "example": 1
           }
         },
-        "required": ["items", "total"]
+        "required": [
+          "items",
+          "total"
+        ]
       },
       "GetExampleOutput": {
         "type": "object",
@@ -4540,7 +4930,12 @@
             "example": "2025-12-15T22:00:00.000Z"
           }
         },
-        "required": ["id", "name", "createdAt", "updatedAt"]
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "CreateAccountUserInput": {
         "type": "object",
@@ -4563,13 +4958,21 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": ["owner", "admin", "member"],
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ],
             "default": "member"
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": ["pending", "active", "suspended"],
+            "enum": [
+              "pending",
+              "active",
+              "suspended"
+            ],
             "default": "pending"
           },
           "avatarUrl": {
@@ -4582,7 +4985,11 @@
             "default": false
           }
         },
-        "required": ["name", "password", "email"]
+        "required": [
+          "name",
+          "password",
+          "email"
+        ]
       },
       "CreateAccountUserOutput": {
         "type": "object",
@@ -4612,12 +5019,20 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": ["owner", "admin", "member"]
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": ["pending", "active", "suspended"]
+            "enum": [
+              "pending",
+              "active",
+              "suspended"
+            ]
           },
           "avatarUrl": {
             "type": "string",
@@ -4668,12 +5083,20 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": ["owner", "admin", "member"]
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": ["pending", "active", "suspended"]
+            "enum": [
+              "pending",
+              "active",
+              "suspended"
+            ]
           },
           "twoFactorEnabled": {
             "type": "boolean",
@@ -4715,7 +5138,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "GetAccountUserOutput": {
         "type": "object",
@@ -4745,12 +5171,20 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": ["owner", "admin", "member"]
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": ["pending", "active", "suspended"]
+            "enum": [
+              "pending",
+              "active",
+              "suspended"
+            ]
           },
           "avatarUrl": {
             "type": "string",
@@ -4807,12 +5241,20 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": ["owner", "admin", "member"]
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": ["pending", "active", "suspended"]
+            "enum": [
+              "pending",
+              "active",
+              "suspended"
+            ]
           },
           "avatarUrl": {
             "type": "string",
@@ -4885,7 +5327,11 @@
           "keyType": {
             "type": "string",
             "description": "Which key to regenerate (production, sandbox, or both)",
-            "enum": ["production", "sandbox", "both"],
+            "enum": [
+              "production",
+              "sandbox",
+              "both"
+            ],
             "default": "both"
           }
         }
@@ -5002,7 +5448,12 @@
             "format": "date-time"
           }
         },
-        "required": ["id", "accountId", "primaryColor", "createdAt"]
+        "required": [
+          "id",
+          "accountId",
+          "primaryColor",
+          "createdAt"
+        ]
       },
       "UpsertCustomizationInput": {
         "type": "object",
@@ -5091,7 +5542,11 @@
             "maxLength": 64
           }
         },
-        "required": ["name", "type", "fileUrl"]
+        "required": [
+          "name",
+          "type",
+          "fileUrl"
+        ]
       },
       "CreateCompanyDocumentOutput": {
         "type": "object",
@@ -5131,7 +5586,11 @@
           "status": {
             "type": "string",
             "description": "Document status",
-            "enum": ["pending", "approved", "rejected"]
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
           },
           "uploadedAt": {
             "type": "string",
@@ -5179,7 +5638,11 @@
           "status": {
             "type": "string",
             "description": "Document status",
-            "enum": ["pending", "approved", "rejected"]
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
           },
           "uploadedAt": {
             "type": "string",
@@ -5187,7 +5650,14 @@
             "format": "date-time"
           }
         },
-        "required": ["id", "accountId", "name", "type", "status", "uploadedAt"]
+        "required": [
+          "id",
+          "accountId",
+          "name",
+          "type",
+          "status",
+          "uploadedAt"
+        ]
       },
       "GetAllCompanyDocumentsOutput": {
         "type": "object",
@@ -5208,7 +5678,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "GetCompanyDocumentOutput": {
         "type": "object",
@@ -5248,7 +5721,11 @@
           "status": {
             "type": "string",
             "description": "Document status",
-            "enum": ["pending", "approved", "rejected"]
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
           },
           "uploadedAt": {
             "type": "string",
@@ -5323,7 +5800,10 @@
           "type": {
             "type": "string",
             "description": "Discount type",
-            "enum": ["percentage", "fixed_amount"]
+            "enum": [
+              "percentage",
+              "fixed_amount"
+            ]
           },
           "value": {
             "type": "number",
@@ -5350,7 +5830,12 @@
           "status": {
             "type": "string",
             "description": "Coupon status",
-            "enum": ["active", "expired", "depleted", "disabled"],
+            "enum": [
+              "active",
+              "expired",
+              "depleted",
+              "disabled"
+            ],
             "default": "active"
           },
           "validFrom": {
@@ -5362,7 +5847,12 @@
             "description": "End date for coupon validity"
           }
         },
-        "required": ["code", "type", "value", "validFrom"]
+        "required": [
+          "code",
+          "type",
+          "value",
+          "validFrom"
+        ]
       },
       "GetCouponOutput": {
         "type": "object",
@@ -5390,7 +5880,10 @@
           "type": {
             "type": "string",
             "description": "Discount type",
-            "enum": ["percentage", "fixed_amount"]
+            "enum": [
+              "percentage",
+              "fixed_amount"
+            ]
           },
           "value": {
             "type": "number",
@@ -5419,7 +5912,12 @@
           "status": {
             "type": "string",
             "description": "Coupon status",
-            "enum": ["active", "expired", "depleted", "disabled"]
+            "enum": [
+              "active",
+              "expired",
+              "depleted",
+              "disabled"
+            ]
           },
           "validFrom": {
             "type": "string",
@@ -5469,7 +5967,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "UpdateCouponInput": {
         "type": "object",
@@ -5490,7 +5991,10 @@
           "type": {
             "type": "string",
             "description": "Discount type",
-            "enum": ["percentage", "fixed_amount"]
+            "enum": [
+              "percentage",
+              "fixed_amount"
+            ]
           },
           "value": {
             "type": "number",
@@ -5517,7 +6021,12 @@
           "status": {
             "type": "string",
             "description": "Coupon status",
-            "enum": ["active", "expired", "depleted", "disabled"]
+            "enum": [
+              "active",
+              "expired",
+              "depleted",
+              "disabled"
+            ]
           },
           "validFrom": {
             "type": "string",
@@ -5535,7 +6044,10 @@
           "accountMode": {
             "type": "string",
             "description": "Account mode: PIX or traditional bank account",
-            "enum": ["pix", "traditional"]
+            "enum": [
+              "pix",
+              "traditional"
+            ]
           },
           "bankName": {
             "type": "string",
@@ -5570,7 +6082,10 @@
           "type": {
             "type": "string",
             "description": "Account type (required for traditional)",
-            "enum": ["checking", "savings"]
+            "enum": [
+              "checking",
+              "savings"
+            ]
           },
           "pixKey": {
             "type": "string",
@@ -5580,7 +6095,13 @@
           "pixKeyType": {
             "type": "string",
             "description": "PIX key type (required for pix mode)",
-            "enum": ["cpf", "cnpj", "email", "phone", "random"]
+            "enum": [
+              "cpf",
+              "cnpj",
+              "email",
+              "phone",
+              "random"
+            ]
           },
           "isDefault": {
             "type": "boolean",
@@ -5600,7 +6121,10 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Holder document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           }
         },
         "required": [
@@ -5624,7 +6148,10 @@
           "accountMode": {
             "type": "string",
             "description": "Account mode",
-            "enum": ["pix", "traditional"]
+            "enum": [
+              "pix",
+              "traditional"
+            ]
           },
           "bankName": {
             "type": "object",
@@ -5653,7 +6180,10 @@
           "type": {
             "type": "string",
             "description": "Account type",
-            "enum": ["checking", "savings"]
+            "enum": [
+              "checking",
+              "savings"
+            ]
           },
           "pixKey": {
             "type": "object",
@@ -5662,7 +6192,13 @@
           "pixKeyType": {
             "type": "string",
             "description": "PIX key type",
-            "enum": ["cpf", "cnpj", "email", "phone", "random"]
+            "enum": [
+              "cpf",
+              "cnpj",
+              "email",
+              "phone",
+              "random"
+            ]
           },
           "isDefault": {
             "type": "boolean",
@@ -5679,7 +6215,10 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Holder document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "verifiedAt": {
             "type": "object",
@@ -5724,7 +6263,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "UpdateBankAccountInput": {
         "type": "object",
@@ -5762,7 +6304,10 @@
           "type": {
             "type": "string",
             "description": "Account type",
-            "enum": ["checking", "savings"]
+            "enum": [
+              "checking",
+              "savings"
+            ]
           },
           "isDefault": {
             "type": "boolean",
@@ -5781,7 +6326,10 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Holder document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "pixKey": {
             "type": "object",
@@ -5843,7 +6391,12 @@
           "status": {
             "type": "string",
             "description": "Subscription status",
-            "enum": ["active", "cancelled", "paused", "past_due"],
+            "enum": [
+              "active",
+              "cancelled",
+              "paused",
+              "past_due"
+            ],
             "default": "active"
           },
           "currentPeriodStart": {
@@ -5868,7 +6421,10 @@
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
-            "example": ["pix", "credit_card"],
+            "example": [
+              "pix",
+              "credit_card"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -5880,7 +6436,10 @@
           },
           "notifications": {
             "description": "Notification channels",
-            "example": ["email", "whatsapp"],
+            "example": [
+              "email",
+              "whatsapp"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -6064,7 +6623,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "UpdateSubscriptionInput": {
         "type": "object",
@@ -6102,7 +6664,12 @@
           "status": {
             "type": "string",
             "description": "Subscription status",
-            "enum": ["active", "cancelled", "paused", "past_due"]
+            "enum": [
+              "active",
+              "cancelled",
+              "paused",
+              "past_due"
+            ]
           },
           "currentPeriodStart": {
             "type": "string",
@@ -6122,7 +6689,10 @@
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
-            "example": ["pix", "credit_card"],
+            "example": [
+              "pix",
+              "credit_card"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -6134,7 +6704,10 @@
           },
           "notifications": {
             "description": "Notification channels",
-            "example": ["email", "whatsapp"],
+            "example": [
+              "email",
+              "whatsapp"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -6167,7 +6740,10 @@
             "default": "BRL"
           }
         },
-        "required": ["bankAccountId", "amount"]
+        "required": [
+          "bankAccountId",
+          "amount"
+        ]
       },
       "GetWithdrawalOutput": {
         "type": "object",
@@ -6183,7 +6759,11 @@
           "ledgerSyncStatus": {
             "type": "string",
             "description": "Ledger sync status",
-            "enum": ["pending", "synced", "failed"]
+            "enum": [
+              "pending",
+              "synced",
+              "failed"
+            ]
           },
           "ledgerSyncedAt": {
             "type": "object",
@@ -6216,7 +6796,12 @@
           "status": {
             "type": "string",
             "description": "Withdrawal status",
-            "enum": ["pending", "processing", "completed", "failed"]
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ]
           },
           "requestedAt": {
             "type": "string",
@@ -6237,7 +6822,10 @@
           "snapshotAccountMode": {
             "type": "string",
             "description": "Snapshot: Account mode",
-            "enum": ["pix", "traditional"]
+            "enum": [
+              "pix",
+              "traditional"
+            ]
           },
           "snapshotBankName": {
             "type": "object",
@@ -6258,7 +6846,10 @@
           "snapshotAccountType": {
             "type": "string",
             "description": "Snapshot: Account type (traditional accounts only)",
-            "enum": ["checking", "savings"]
+            "enum": [
+              "checking",
+              "savings"
+            ]
           },
           "snapshotPixKey": {
             "type": "object",
@@ -6267,7 +6858,13 @@
           "snapshotPixKeyType": {
             "type": "string",
             "description": "Snapshot: PIX key type (PIX accounts only)",
-            "enum": ["cpf", "cnpj", "email", "phone", "random"]
+            "enum": [
+              "cpf",
+              "cnpj",
+              "email",
+              "phone",
+              "random"
+            ]
           },
           "snapshotHolderName": {
             "type": "string",
@@ -6322,7 +6919,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "CreateReferralInput": {
         "type": "object",
@@ -6348,7 +6948,11 @@
             "description": "Expiration date (ISO 8601)"
           }
         },
-        "required": ["referredName", "referredEmail", "bonusAmount"]
+        "required": [
+          "referredName",
+          "referredEmail",
+          "bonusAmount"
+        ]
       },
       "GetReferralOutput": {
         "type": "object",
@@ -6376,7 +6980,12 @@
           "status": {
             "type": "string",
             "description": "Referral status",
-            "enum": ["pending", "qualified", "paid", "expired"]
+            "enum": [
+              "pending",
+              "qualified",
+              "paid",
+              "expired"
+            ]
           },
           "bonusAmount": {
             "type": "number",
@@ -6436,7 +7045,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "GetAuditLogOutput": {
         "type": "object",
@@ -6529,7 +7141,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "BffCreateWithdrawalInput": {
         "type": "object",
@@ -6548,7 +7163,10 @@
             "default": "BRL"
           }
         },
-        "required": ["bankAccountId", "amount"]
+        "required": [
+          "bankAccountId",
+          "amount"
+        ]
       },
       "BffWithdrawalBankAccountOutput": {
         "type": "object",
@@ -6577,7 +7195,10 @@
           "type": {
             "type": "string",
             "description": "Account type",
-            "enum": ["checking", "savings"]
+            "enum": [
+              "checking",
+              "savings"
+            ]
           },
           "holderName": {
             "type": "string",
@@ -6608,7 +7229,11 @@
           "ledgerSyncStatus": {
             "type": "string",
             "description": "Ledger sync status",
-            "enum": ["pending", "synced", "failed"]
+            "enum": [
+              "pending",
+              "synced",
+              "failed"
+            ]
           },
           "ledgerSyncedAt": {
             "type": "object",
@@ -6649,7 +7274,12 @@
           "status": {
             "type": "string",
             "description": "Withdrawal status",
-            "enum": ["pending", "processing", "completed", "failed"]
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ]
           },
           "requestedAt": {
             "type": "string",
@@ -6670,7 +7300,10 @@
           "snapshotAccountMode": {
             "type": "string",
             "description": "Snapshot: Account mode",
-            "enum": ["pix", "traditional"]
+            "enum": [
+              "pix",
+              "traditional"
+            ]
           },
           "snapshotBankName": {
             "type": "object",
@@ -6691,7 +7324,10 @@
           "snapshotAccountType": {
             "type": "string",
             "description": "Snapshot: Account type (traditional accounts only)",
-            "enum": ["checking", "savings"]
+            "enum": [
+              "checking",
+              "savings"
+            ]
           },
           "snapshotPixKey": {
             "type": "object",
@@ -6700,7 +7336,13 @@
           "snapshotPixKeyType": {
             "type": "string",
             "description": "Snapshot: PIX key type (PIX accounts only)",
-            "enum": ["cpf", "cnpj", "email", "phone", "random"]
+            "enum": [
+              "cpf",
+              "cnpj",
+              "email",
+              "phone",
+              "random"
+            ]
           },
           "snapshotHolderName": {
             "type": "string",
@@ -6755,7 +7397,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "WithdrawalTotalItem": {
         "type": "object",
@@ -6773,7 +7418,11 @@
             "description": "Number of withdrawals"
           }
         },
-        "required": ["amount", "amountFormatted", "count"]
+        "required": [
+          "amount",
+          "amountFormatted",
+          "count"
+        ]
       },
       "GetWithdrawalTotalsOutput": {
         "type": "object",
@@ -6803,7 +7452,11 @@
             ]
           }
         },
-        "required": ["processing", "completed", "failed"]
+        "required": [
+          "processing",
+          "completed",
+          "failed"
+        ]
       },
       "BffAddressInput": {
         "type": "object",
@@ -6891,7 +7544,10 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "document": {
             "type": "string",
@@ -7002,7 +7658,11 @@
             "example": "#FF5733"
           }
         },
-        "required": ["id", "name", "color"]
+        "required": [
+          "id",
+          "name",
+          "color"
+        ]
       },
       "BffGetClientOutput": {
         "type": "object",
@@ -7047,7 +7707,10 @@
           "documentType": {
             "type": "string",
             "description": "Document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "document": {
             "type": "string",
@@ -7170,7 +7833,10 @@
           },
           "projectIds": {
             "description": "Project IDs to associate with the client",
-            "example": ["uuid-1", "uuid-2"],
+            "example": [
+              "uuid-1",
+              "uuid-2"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -7195,7 +7861,11 @@
             "description": "Client email"
           }
         },
-        "required": ["id", "name", "email"]
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
       },
       "BffSubscriptionProjectOutput": {
         "type": "object",
@@ -7215,7 +7885,11 @@
             "example": "#FF5733"
           }
         },
-        "required": ["id", "name", "color"]
+        "required": [
+          "id",
+          "name",
+          "color"
+        ]
       },
       "BffGetSubscriptionOutput": {
         "type": "object",
@@ -7382,7 +8056,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "BffSubscriptionCountOutput": {
         "type": "object",
@@ -7392,7 +8069,9 @@
             "description": "Number of subscriptions matching the criteria"
           }
         },
-        "required": ["count"]
+        "required": [
+          "count"
+        ]
       },
       "BffCancelSubscriptionInput": {
         "type": "object",
@@ -7420,7 +8099,11 @@
             "description": "Project color"
           }
         },
-        "required": ["id", "name", "color"]
+        "required": [
+          "id",
+          "name",
+          "color"
+        ]
       },
       "BffPaymentLinkClientOutput": {
         "type": "object",
@@ -7439,7 +8122,11 @@
             "description": "Client email"
           }
         },
-        "required": ["id", "name", "email"]
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
       },
       "BffGetPaymentLinkOutput": {
         "type": "object",
@@ -7487,7 +8174,12 @@
           "status": {
             "type": "string",
             "description": "Status",
-            "enum": ["active", "expired", "disabled", "paid"]
+            "enum": [
+              "active",
+              "expired",
+              "disabled",
+              "paid"
+            ]
           },
           "slug": {
             "type": "string",
@@ -7504,7 +8196,10 @@
           "paymentType": {
             "type": "string",
             "description": "Payment type",
-            "enum": ["one_time", "subscription"]
+            "enum": [
+              "one_time",
+              "subscription"
+            ]
           },
           "paymentMethods": {
             "description": "Accepted payment methods",
@@ -7585,7 +8280,10 @@
             ]
           }
         },
-        "required": ["items", "meta"]
+        "required": [
+          "items",
+          "meta"
+        ]
       },
       "BffCreateBankAccountInput": {
         "type": "object",
@@ -7593,7 +8291,10 @@
           "accountMode": {
             "type": "string",
             "description": "Account mode: PIX or traditional bank account",
-            "enum": ["pix", "traditional"]
+            "enum": [
+              "pix",
+              "traditional"
+            ]
           },
           "bankName": {
             "type": "string",
@@ -7628,7 +8329,10 @@
           "type": {
             "type": "string",
             "description": "Account type (required for traditional)",
-            "enum": ["checking", "savings"]
+            "enum": [
+              "checking",
+              "savings"
+            ]
           },
           "pixKey": {
             "type": "string",
@@ -7638,7 +8342,13 @@
           "pixKeyType": {
             "type": "string",
             "description": "PIX key type (required for pix mode)",
-            "enum": ["cpf", "cnpj", "email", "phone", "random"]
+            "enum": [
+              "cpf",
+              "cnpj",
+              "email",
+              "phone",
+              "random"
+            ]
           },
           "isDefault": {
             "type": "boolean",
@@ -7658,7 +8368,10 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Holder document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           }
         },
         "required": [
@@ -7696,7 +8409,10 @@
             "maxLength": 3
           }
         },
-        "required": ["name", "color"]
+        "required": [
+          "name",
+          "color"
+        ]
       },
       "BffUpdateProjectInput": {
         "type": "object",
@@ -7734,7 +8450,9 @@
             "description": "Number of notifications marked as read"
           }
         },
-        "required": ["count"]
+        "required": [
+          "count"
+        ]
       },
       "BalanceDetail": {
         "type": "object",
@@ -7748,7 +8466,10 @@
             "description": "Balance formatted in currency (amount / 100)"
           }
         },
-        "required": ["amount", "amountFormatted"]
+        "required": [
+          "amount",
+          "amountFormatted"
+        ]
       },
       "GetBalanceOutput": {
         "type": "object",
@@ -7851,7 +8572,13 @@
             "description": "Total withdrawals in cents"
           }
         },
-        "required": ["date", "payments", "fees", "refunds", "withdrawals"]
+        "required": [
+          "date",
+          "payments",
+          "fees",
+          "refunds",
+          "withdrawals"
+        ]
       },
       "BffTransactionsGraphOutput": {
         "type": "object",
@@ -7863,7 +8590,9 @@
             }
           }
         },
-        "required": ["items"]
+        "required": [
+          "items"
+        ]
       },
       "GetProfileOutput": {
         "type": "object",
@@ -7887,14 +8616,24 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": ["owner", "admin", "member"]
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ]
           },
           "createdAt": {
             "type": "string",
             "description": "Date when user was created"
           }
         },
-        "required": ["id", "name", "email", "role", "createdAt"]
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "createdAt"
+        ]
       },
       "UpdateProfileInput": {
         "type": "object",
@@ -7919,7 +8658,10 @@
             "minLength": 8
           }
         },
-        "required": ["currentPassword", "newPassword"]
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
       },
       "AccountStatusOutput": {
         "type": "object",
@@ -7953,14 +8695,26 @@
           "enabledMethods": {
             "type": "array",
             "description": "Payment methods to enable (Asaas supports: pix, credit_card, boleto)",
-            "example": ["pix", "credit_card", "boleto"],
+            "example": [
+              "pix",
+              "credit_card",
+              "boleto"
+            ],
             "items": {
               "type": "string",
-              "enum": ["pix", "credit_card", "boleto"]
+              "enum": [
+                "pix",
+                "credit_card",
+                "boleto"
+              ]
             }
           }
         },
-        "required": ["name", "credentials", "enabledMethods"]
+        "required": [
+          "name",
+          "credentials",
+          "enabledMethods"
+        ]
       },
       "PaymentMethodFeeInput": {
         "type": "object",
@@ -8061,17 +8815,28 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": ["owner", "admin", "member"],
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ],
             "default": "member"
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": ["pending", "active"],
+            "enum": [
+              "pending",
+              "active"
+            ],
             "default": "active"
           }
         },
-        "required": ["name", "email", "password"]
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
       },
       "AdminBankAccountInput": {
         "type": "object",
@@ -8109,7 +8874,10 @@
           "type": {
             "type": "string",
             "description": "Account type",
-            "enum": ["checking", "savings"]
+            "enum": [
+              "checking",
+              "savings"
+            ]
           },
           "holderName": {
             "type": "string",
@@ -8124,7 +8892,10 @@
           "holderDocumentType": {
             "type": "string",
             "description": "Document type",
-            "enum": ["cpf", "cnpj"]
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
           },
           "isDefault": {
             "type": "boolean",
@@ -8172,7 +8943,10 @@
           },
           "events": {
             "description": "Events to subscribe to",
-            "example": ["payment.created", "payment.completed"],
+            "example": [
+              "payment.created",
+              "payment.completed"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -8181,7 +8955,10 @@
           "environment": {
             "type": "string",
             "description": "Environment",
-            "enum": ["production", "sandbox"],
+            "enum": [
+              "production",
+              "sandbox"
+            ],
             "default": "production"
           },
           "headers": {
@@ -8195,7 +8972,12 @@
             "default": true
           }
         },
-        "required": ["name", "url", "secret", "events"]
+        "required": [
+          "name",
+          "url",
+          "secret",
+          "events"
+        ]
       },
       "AdminCreateAccountCompanyInfoOutput": {
         "type": "object",
@@ -8222,7 +9004,13 @@
             "description": "Company phone"
           }
         },
-        "required": ["id", "razaoSocial", "cnpj", "email", "phone"]
+        "required": [
+          "id",
+          "razaoSocial",
+          "cnpj",
+          "email",
+          "phone"
+        ]
       },
       "AdminCreateAccountIntegrationKeysOutput": {
         "type": "object",
@@ -8236,7 +9024,10 @@
             "description": "Sandbox API key (only shown once)"
           }
         },
-        "required": ["productionKey", "sandboxKey"]
+        "required": [
+          "productionKey",
+          "sandboxKey"
+        ]
       },
       "AdminCreateAccountLedgerAccountsOutput": {
         "type": "object",
@@ -8254,7 +9045,11 @@
             "description": "Credits ledger account ID"
           }
         },
-        "required": ["available", "held", "credits"]
+        "required": [
+          "available",
+          "held",
+          "credits"
+        ]
       },
       "AdminPspCredentialOutput": {
         "type": "object",
@@ -8269,7 +9064,10 @@
             "description": "Friendly name"
           }
         },
-        "required": ["id", "name"]
+        "required": [
+          "id",
+          "name"
+        ]
       },
       "AdminPaymentMethodFeeOutput": {
         "type": "object",
@@ -8287,7 +9085,11 @@
             "description": "Settlement days"
           }
         },
-        "required": ["fixedFee", "percentFee", "settlementDays"]
+        "required": [
+          "fixedFee",
+          "percentFee",
+          "settlementDays"
+        ]
       },
       "AdminPaymentMethodOutput": {
         "type": "object",
@@ -8310,7 +9112,10 @@
             ]
           }
         },
-        "required": ["pspCredentialId", "isDefault"]
+        "required": [
+          "pspCredentialId",
+          "isDefault"
+        ]
       },
       "AdminPaymentMethodsOutput": {
         "type": "object",
@@ -8360,15 +9165,28 @@
           "role": {
             "type": "string",
             "description": "User role",
-            "enum": ["owner", "admin", "member"]
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ]
           },
           "status": {
             "type": "string",
             "description": "User status",
-            "enum": ["pending", "active"]
+            "enum": [
+              "pending",
+              "active"
+            ]
           }
         },
-        "required": ["id", "name", "email", "role", "status"]
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "status"
+        ]
       },
       "AdminBankAccountOutput": {
         "type": "object",
@@ -8399,7 +9217,10 @@
             "description": "Whether this is the default bank account"
           }
         },
-        "required": ["id", "isDefault"]
+        "required": [
+          "id",
+          "isDefault"
+        ]
       },
       "AdminWebhookOutput": {
         "type": "object",
@@ -8420,7 +9241,10 @@
           "environment": {
             "type": "string",
             "description": "Environment",
-            "enum": ["production", "sandbox"]
+            "enum": [
+              "production",
+              "sandbox"
+            ]
           },
           "events": {
             "description": "Subscribed events",
@@ -8434,32 +9258,39 @@
             "description": "Whether the webhook is active"
           }
         },
-        "required": ["id", "name", "url", "environment", "events", "isActive"]
+        "required": [
+          "id",
+          "name",
+          "url",
+          "environment",
+          "events",
+          "isActive"
+        ]
       },
       "CustomerDto": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "description": "Nome do pagador",
+            "description": "Payer's name",
             "maxLength": 255,
             "example": "João da Silva"
           },
           "document": {
             "type": "string",
-            "description": "CPF ou CNPJ do pagador, apenas números (opcional)",
+            "description": "Payer's CPF or CNPJ, digits only (optional)",
             "maxLength": 20,
             "example": "12345678909"
           },
           "email": {
             "type": "string",
-            "description": "E-mail do pagador",
+            "description": "Payer's email",
             "format": "email",
             "maxLength": 255
           },
           "phone": {
             "type": "string",
-            "description": "Telefone do pagador (formato livre)",
+            "description": "Payer's phone number (free format)",
             "maxLength": 20,
             "example": "+5511999998888"
           }
@@ -8470,18 +9301,18 @@
         "properties": {
           "amount": {
             "type": "number",
-            "description": "Valor em BRL (ex: 100.50 para R$ 100,50)",
+            "description": "Amount in BRL (e.g. 100.50 for R$ 100,50)",
             "minimum": 1,
             "example": 150.75
           },
           "description": {
             "type": "string",
-            "description": "Descrição da cobrança",
+            "description": "Charge description",
             "maxLength": 255,
             "example": "Pagamento do pedido #12345"
           },
           "customer": {
-            "description": "Dados do pagador (todos opcionais).",
+            "description": "Payer details (all optional).",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CustomerDto"
@@ -8490,25 +9321,25 @@
           },
           "projectId": {
             "type": "string",
-            "description": "ID do projeto para associar a transação. Se não informado e a conta tiver um único projeto, a cobrança herda esse projeto; com mais de um, a cobrança fica sem projeto.",
+            "description": "Project ID to associate the transaction with. If omitted, the charge inherits the account's project when there is a single one; with multiple projects the charge is created without a project.",
             "format": "uuid"
           },
           "expiresIn": {
             "type": "integer",
-            "description": "Segundos até expiração (padrão: 86400 = 24h)",
+            "description": "Seconds until expiration (default: 86400 = 24h)",
             "minimum": 300,
             "maximum": 604800,
             "example": 3600
           },
           "externalReference": {
             "type": "string",
-            "description": "Seu ID de referência externa",
+            "description": "Your external reference ID",
             "maxLength": 255,
             "example": "pedido-12345"
           },
           "metadata": {
             "type": "object",
-            "description": "Metadados customizados (pares chave-valor)",
+            "description": "Custom metadata (key-value pairs)",
             "additionalProperties": true,
             "example": {
               "orderId": "12345",
@@ -8516,58 +9347,66 @@
             }
           }
         },
-        "required": ["amount", "description"]
+        "required": [
+          "amount",
+          "description"
+        ]
       },
       "CreatePixChargeOutput": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID da cobrança (ID da transação)",
+            "description": "Charge ID (transaction ID)",
             "format": "uuid"
           },
           "status": {
             "type": "string",
-            "description": "Status da cobrança",
-            "enum": ["pending", "completed", "failed", "cancelled"]
+            "description": "Charge status",
+            "enum": [
+              "pending",
+              "completed",
+              "failed",
+              "cancelled"
+            ]
           },
           "amount": {
             "type": "number",
-            "description": "Valor em BRL",
+            "description": "Amount in BRL",
             "example": 150.75
           },
           "currency": {
             "type": "string",
-            "description": "Código da moeda",
+            "description": "Currency code",
             "example": "BRL"
           },
           "pixCopyPaste": {
             "type": "string",
-            "description": "Código PIX copia e cola",
+            "description": "PIX copy-and-paste code",
             "example": "00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6-7890-abcd-ef1234567890"
           },
           "qrCodeBase64": {
             "type": "string",
-            "description": "QR Code do PIX em formato data URI (data:image/png;base64,...)"
+            "description": "PIX QR Code as a data URI (data:image/png;base64,...)"
           },
           "pspPaymentId": {
             "type": "string",
-            "description": "ID da transação no provedor de pagamento (PSP). Use para conciliação; ausente se o PSP não retornou o ID na criação.",
+            "description": "Transaction ID at the payment service provider (PSP). Use it for reconciliation; absent if the PSP did not return the ID at creation.",
             "example": "de3516a2-c63a-4c02-b132-a239bf42e183"
           },
           "expiresAt": {
             "type": "string",
-            "description": "Data de expiração",
+            "description": "Expiration date",
             "format": "date-time"
           },
           "externalReference": {
             "type": "string",
-            "description": "Seu ID de referência externa",
+            "description": "Your external reference ID",
             "example": "pedido-12345"
           },
           "createdAt": {
             "type": "string",
-            "description": "Data de criação",
+            "description": "Creation date",
             "format": "date-time"
           }
         },
@@ -8587,63 +9426,73 @@
           "id": {
             "type": "string",
             "format": "uuid",
-            "description": "ID do bloqueio"
+            "description": "Block ID"
           },
           "transactionId": {
             "type": "string",
             "format": "uuid",
-            "description": "ID da transação bloqueada"
+            "description": "ID of the blocked transaction"
           },
           "externalReference": {
             "type": "string",
             "nullable": true,
-            "description": "Referência externa da transação original (se houver)"
+            "example": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+            "description": "External reference of the original transaction (if any)"
           },
           "e2eId": {
             "type": "string",
             "nullable": true,
-            "description": "ID fim-a-fim da rede PIX da transação original (se houver)"
+            "description": "PIX network end-to-end ID of the original transaction (if any)"
           },
           "amount": {
             "type": "number",
-            "description": "Valor bloqueado em BRL",
+            "description": "Blocked amount in BRL",
             "example": 150.5
           },
           "status": {
             "type": "string",
-            "enum": ["awaiting_response", "defended", "approved", "rejected"],
-            "description": "Status do bloqueio",
+            "enum": [
+              "awaiting_response",
+              "defended",
+              "approved",
+              "rejected"
+            ],
+            "description": "Block status",
             "example": "awaiting_response"
           },
           "blockType": {
             "type": "string",
-            "enum": ["med", "judicial", "administrative"],
-            "description": "Tipo do bloqueio",
+            "enum": [
+              "med",
+              "judicial",
+              "administrative"
+            ],
+            "description": "Block type",
             "example": "med"
           },
           "referenceNumber": {
             "type": "string",
-            "description": "Número de referência do bloqueio"
+            "description": "Block reference number"
           },
           "reason": {
             "type": "string",
-            "description": "Motivo do bloqueio"
+            "description": "Block reason"
           },
           "resolutionReason": {
             "type": "string",
             "nullable": true,
-            "description": "Motivo da resolução (presente quando o bloqueio já foi resolvido)"
+            "description": "Resolution reason (present once the block has been resolved)"
           },
           "resolvedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true,
-            "description": "Data/hora da resolução em ISO 8601 (presente quando o bloqueio já foi resolvido)"
+            "description": "Resolution date/time in ISO 8601 (present once the block has been resolved)"
           },
           "createdAt": {
             "type": "string",
             "format": "date-time",
-            "description": "Data/hora da criação em ISO 8601"
+            "description": "Creation date/time in ISO 8601"
           }
         },
         "required": [
@@ -8661,7 +9510,7 @@
         "type": "object",
         "properties": {
           "items": {
-            "description": "Lista de bloqueios de saldo da conta",
+            "description": "List of the account's balance blocks",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ExternalBalanceBlockOutput"
@@ -8669,65 +9518,77 @@
           },
           "total": {
             "type": "integer",
-            "description": "Total de bloqueios retornados",
+            "description": "Total number of blocks returned",
             "example": 3
           }
         },
-        "required": ["items", "total"]
+        "required": [
+          "items",
+          "total"
+        ]
       },
       "CreateExternalWithdrawalInput": {
         "type": "object",
-        "description": "Dados para criar um saque via PIX. Informe **exatamente um** entre `amount` (valor bruto debitado do saldo) **ou** `netAmount` (valor líquido que o destinatário deve receber).",
+        "description": "Data to create a PIX withdrawal. Provide **exactly one** of `amount` (gross amount debited from the balance) **or** `netAmount` (net amount the recipient should receive).",
         "properties": {
           "projectId": {
             "type": "string",
+            "description": "ID of the project the withdrawal belongs to. If omitted, the withdrawal inherits the account's project when there is a single one; with multiple projects the withdrawal is created without a project — same behavior as PIX charge creation.",
             "format": "uuid",
-            "description": "ID do projeto ao qual o saque pertence. Se não informado e a conta tiver um único projeto, o saque herda esse projeto; com mais de um projeto, o saque fica sem projeto — mesmo comportamento da criação de cobrança PIX.",
             "example": "3c90c3cc-0d44-4b50-8888-8dd25736052a"
           },
           "amount": {
             "type": "number",
             "minimum": 1,
-            "description": "Valor **bruto** em BRL debitado do saldo. O destinatário recebe `amount - feeAmount`. Mínimo R$ 1,00. Informe `amount` OU `netAmount` — nunca os dois.",
+            "description": "**Gross** amount in BRL debited from the balance. The recipient receives `amount - feeAmount`. Minimum R$ 1.00. Provide `amount` OR `netAmount` — never both.",
             "example": 150.75
           },
           "netAmount": {
             "type": "number",
             "minimum": 1,
-            "description": "Valor **líquido** em BRL que o destinatário deve receber. A API calcula o gross necessário (`gross = netAmount + feeAmount`) e debita esse total do saldo. Mínimo R$ 1,00. Informe `amount` OU `netAmount` — nunca os dois.",
+            "description": "**Net** amount in BRL the recipient should receive. The API computes the required gross (`gross = netAmount + feeAmount`) and debits that total from the balance. Minimum R$ 1.00. Provide `amount` OR `netAmount` — never both.",
             "example": 150.0
           },
           "pixKey": {
             "type": "string",
-            "description": "Chave PIX do destinatário.",
+            "description": "Recipient's PIX key.",
             "example": "12345678901"
           },
           "pixKeyType": {
             "type": "string",
-            "enum": ["cpf", "cnpj", "email", "phone", "random"],
-            "description": "Tipo da chave PIX.",
+            "enum": [
+              "cpf",
+              "cnpj",
+              "email",
+              "phone",
+              "random"
+            ],
+            "description": "PIX key type.",
             "example": "cpf"
           },
           "holderName": {
             "type": "string",
-            "description": "Nome do titular da conta PIX.",
+            "description": "PIX account holder's name.",
             "example": "João da Silva"
           },
           "holderDocument": {
             "type": "string",
-            "description": "CPF ou CNPJ do titular.",
+            "description": "Account holder's CPF or CNPJ.",
             "example": "12345678901"
           },
           "holderDocumentType": {
             "type": "string",
-            "enum": ["cpf", "cnpj"],
-            "description": "Tipo do documento do titular.",
+            "enum": [
+              "cpf",
+              "cnpj"
+            ],
+            "description": "Holder's document type.",
             "example": "cpf"
           },
           "externalReference": {
             "type": "string",
             "maxLength": 255,
-            "description": "Seu ID de referência externa (opcional). É devolvido no response e nos webhooks `withdrawal_completed` e `withdrawal_failed` para facilitar a reconciliação com seus sistemas internos.",
+            "description": "Your external reference ID (optional). It is returned in the response and in the `withdrawal_completed` and `withdrawal_failed` webhooks to make reconciliation with your internal systems easier.",
             "example": "saque-empresa-001"
           }
         },
@@ -8741,94 +9602,104 @@
       },
       "GetExternalWithdrawalOutput": {
         "type": "object",
-        "description": "Dados do saque criado.",
+        "description": "Details of the created withdrawal.",
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid",
-            "description": "ID do saque",
+            "description": "Withdrawal ID",
             "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
           },
           "projectId": {
             "type": "string",
-            "format": "uuid",
             "nullable": true,
-            "description": "ID do projeto do saque (null quando não informado na criação e a conta tem 2+ projetos)",
-            "example": "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+            "description": "Project ID of the withdrawal (null when not provided at creation and the account has 2+ projects)",
+            "format": "uuid"
           },
           "amount": {
             "type": "number",
-            "description": "Valor do saque em BRL",
+            "description": "Withdrawal amount in BRL",
             "example": 150.75
           },
           "feeAmount": {
             "type": "number",
-            "description": "Valor da taxa em BRL",
+            "description": "Fee amount in BRL",
             "example": 2.5
           },
           "netAmount": {
             "type": "number",
-            "description": "Valor líquido em BRL",
+            "description": "Net amount in BRL",
             "example": 148.25
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "processing", "completed", "failed"],
-            "description": "Status do saque",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "description": "Withdrawal status",
             "example": "completed"
           },
           "snapshotPixKey": {
             "type": "string",
             "nullable": true,
-            "description": "Chave PIX usada no momento do saque",
+            "description": "PIX key used at the time of the withdrawal",
             "example": "12345678901"
           },
           "snapshotPixKeyType": {
             "type": "string",
-            "enum": ["cpf", "cnpj", "email", "phone", "random"],
+            "enum": [
+              "cpf",
+              "cnpj",
+              "email",
+              "phone",
+              "random"
+            ],
             "nullable": true,
-            "description": "Tipo da chave PIX usada no momento do saque",
+            "description": "Type of the PIX key used at the time of the withdrawal",
             "example": "cpf"
           },
           "snapshotHolderName": {
             "type": "string",
-            "description": "Nome do titular no momento do saque",
+            "description": "Holder's name at the time of the withdrawal",
             "example": "João da Silva"
           },
           "snapshotHolderDocument": {
             "type": "string",
-            "description": "Documento do titular no momento do saque",
+            "description": "Holder's document at the time of the withdrawal",
             "example": "12345678901"
           },
           "failureReason": {
             "type": "string",
             "nullable": true,
-            "description": "Motivo da falha (quando status = failed)",
+            "description": "Failure reason (when status = failed)",
             "example": null
           },
           "pspReference": {
             "type": "string",
             "nullable": true,
-            "description": "Referência do PSP (provedor de pagamento)",
+            "description": "PSP (payment service provider) reference",
             "example": null
           },
           "createdAt": {
             "type": "string",
             "format": "date-time",
-            "description": "Data de criação",
+            "description": "Creation date",
             "example": "2026-02-10T14:30:00.000Z"
           },
           "processedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true,
-            "description": "Data de processamento",
+            "description": "Processing date",
             "example": "2026-02-10T14:30:01.000Z"
           },
           "externalReference": {
             "type": "string",
             "nullable": true,
-            "description": "Sua referência externa enviada na criação do saque (opcional)",
+            "description": "Your external reference sent when the withdrawal was created (optional)",
             "example": "saque-empresa-001"
           }
         },
@@ -8849,7 +9720,7 @@
           "reason": {
             "type": "string",
             "maxLength": 255,
-            "description": "Motivo do reembolso (opcional, máximo 255 caracteres)",
+            "description": "Refund reason (optional, up to 255 characters)",
             "example": "Cliente solicitou cancelamento"
           }
         }
@@ -8860,20 +9731,24 @@
           "originalTransactionId": {
             "type": "string",
             "format": "uuid",
-            "description": "ID da transação original que está sendo reembolsada"
+            "description": "ID of the original transaction being refunded"
           },
           "pspProvider": {
             "type": "string",
-            "description": "Provedor PSP que processou o reembolso"
+            "description": "PSP provider that processed the refund"
           },
           "pspRefundTransactionId": {
             "type": "string",
-            "description": "ID da transação de reembolso no PSP"
+            "description": "Refund transaction ID at the PSP"
           },
           "status": {
             "type": "string",
-            "enum": ["PENDING", "CONFIRMED", "ERROR"],
-            "description": "Status retornado pelo PSP. PENDING significa que o reembolso foi aceito mas ainda não foi confirmado — a confirmação chega via webhook `refund_completed`.",
+            "enum": [
+              "PENDING",
+              "CONFIRMED",
+              "ERROR"
+            ],
+            "description": "Status returned by the PSP. PENDING means the refund was accepted but not yet confirmed — confirmation arrives via the `refund_completed` webhook.",
             "example": "PENDING"
           }
         },
@@ -8889,16 +9764,19 @@
         "properties": {
           "amount": {
             "type": "number",
-            "description": "Saldo em centavos",
+            "description": "Balance in cents",
             "example": 150000
           },
           "amountFormatted": {
             "type": "number",
-            "description": "Saldo formatado em reais (amount / 100)",
+            "description": "Balance formatted in BRL (amount / 100)",
             "example": 1500.0
           }
         },
-        "required": ["amount", "amountFormatted"]
+        "required": [
+          "amount",
+          "amountFormatted"
+        ]
       },
       "AccountInfoDetail": {
         "type": "object",
@@ -8906,7 +9784,7 @@
           "id": {
             "type": "string",
             "format": "uuid",
-            "description": "ID da conta"
+            "description": "Account ID"
           },
           "status": {
             "type": "string",
@@ -8918,39 +9796,42 @@
               "rejected",
               "suspended"
             ],
-            "description": "Status da conta"
+            "description": "Account status"
           }
         },
-        "required": ["id", "status"]
+        "required": [
+          "id",
+          "status"
+        ]
       },
       "BalanceInfoDetail": {
         "type": "object",
         "properties": {
           "available": {
             "$ref": "#/components/schemas/BalanceAmountDetail",
-            "description": "Saldo disponível (conta principal)"
+            "description": "Available balance (main account)"
           },
           "promotional": {
             "$ref": "#/components/schemas/BalanceAmountDetail",
-            "description": "Saldo promocional"
+            "description": "Promotional balance"
           },
           "held": {
             "$ref": "#/components/schemas/BalanceAmountDetail",
-            "description": "Saldo bloqueado"
+            "description": "Blocked balance"
           },
           "total": {
             "$ref": "#/components/schemas/BalanceAmountDetail",
-            "description": "Saldo total (disponível + promocional)"
+            "description": "Total balance (available + promotional)"
           },
           "currency": {
             "type": "string",
-            "description": "Código da moeda",
+            "description": "Currency code",
             "example": "BRL"
           },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
-            "description": "Data da última atualização do saldo"
+            "description": "Date of the last balance update"
           }
         },
         "required": [
@@ -8967,14 +9848,17 @@
         "properties": {
           "account": {
             "$ref": "#/components/schemas/AccountInfoDetail",
-            "description": "Dados da conta"
+            "description": "Account details"
           },
           "balance": {
             "$ref": "#/components/schemas/BalanceInfoDetail",
-            "description": "Saldo da conta"
+            "description": "Account balance"
           }
         },
-        "required": ["account", "balance"]
+        "required": [
+          "account",
+          "balance"
+        ]
       }
     }
   }

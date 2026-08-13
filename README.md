@@ -1,16 +1,9 @@
-# Mintlify Starter Kit
+# Documentação MisesPay
 
-Use the starter kit to get your docs deployed and ready to customize.
+Documentação pública da API MisesPay (Mintlify) — publicada em https://docs.misespay.com.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
-
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
-
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+- Referência da API externa (`https://api.misespay.com/v1`, autenticação via `X-API-Key`)
+- Webhooks (eventos v2)
 
 ## Development
 

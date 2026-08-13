@@ -1,4 +1,10 @@
 ---
 title: 'Criar Saque PIX'
-openapi: 'POST /withdrawals'
+openapi: '/openapi.json POST /withdrawals'
 ---
+
+<Note>
+**Processamento assíncrono.** A criação do saque retorna um status não-terminal (`pending` ou `processing`) — o desfecho definitivo é sempre entregue via webhook (`withdrawal.completed` ou `withdrawal.failed`). Trate o webhook como a fonte da verdade; não trate a resposta da criação como resultado final.
+
+Erros de validação (saldo insuficiente, limite excedido, dados inválidos) retornam erro na própria chamada.
+</Note>

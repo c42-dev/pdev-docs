@@ -1,0 +1,534 @@
+---
+title: 'Вебхуки'
+description: 'Получайте уведомления о платёжных событиях в реальном времени'
+---
+
+## Обзор
+
+Вебхуки позволяют вам получать автоматические HTTP-уведомления о важных событиях в вашем аккаунте, таких как подтверждённые платежи, обработанные возвраты или завершённые выводы средств.
+
+## Доступные события
+
+| Событие | Описание |
+|--------|-----------|
+| `payment_completed` | Платёж успешно подтверждён |
+| `payment_expired` | Платёж истёк без подтверждения |
+| `refund_completed` | Возврат обработан |
+| `withdrawal_completed` | Вывод средств успешно обработан |
+| `withdrawal_failed` | Вывод средств отклонён или завершился сбоем |
+| `withdrawal_reversed` | Вывод средств отменён (реверсирован) со стороны PSP |
+| `balance_block_created` | Создана блокировка баланса (MED/судебная/административная) |
+| `balance_block_approved` | Блокировка одобрена — сумма возвращена плательщику |
+| `balance_block_rejected` | Блокировка отклонена — сумма возвращается продавцу |
+
+## Структура полезной нагрузки
+
+Все вебхуки следуют одной базовой структуре:
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "data": {
+    // Данные, специфичные для события
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `event` | string | Тип события |
+| `eventId` | string | Уникальный ID события (как правило, ID транзакции) |
+| `timestamp` | string | Дата и время события в формате ISO 8601 |
+| `data` | object | Данные, специфичные для события |
+
+## Отправляемые заголовки
+
+Каждый запрос вебхука включает следующие заголовки:
+
+| Заголовок | Описание |
+|--------|-----------|
+| `Content-Type` | `application/json` |
+| `User-Agent` | `Pague-Webhook/1.0` |
+| `X-Pague-Event` | Тип события (напр., `payment_completed`) |
+| `X-Pague-Webhook-ID` | Уникальный ID этой доставки (UUID) |
+| `X-Pague-Signature` | Подпись полезной нагрузки: `sha256=<HMAC-SHA256 в hex>` |
+| `X-Pague-Timestamp` | Метка времени доставки в миллисекундах (Unix epoch) |
+
+## Проверка подписи
+
+Каждый вебхук подписан с использованием HMAC-SHA256 и **secret вашего эндпоинта**
+(отображается только один раз при создании). Для проверки выполните следующие шаги:
+
+1. Вычислите **HMAC-SHA256** от сырого тела запроса, используя ваш secret в качестве ключа
+2. Добавьте к результату в hex префикс `sha256=`
+3. Сравните с заголовком `X-Pague-Signature`, используя сравнение за константное время
+
+```typescript Node.js (crypto)
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+app.post('/webhook', (req, res) => {
+  const signature = req.headers['x-pague.dev-signature'] as string; // "sha256=<hex>"
+  const rawBody = req.body; // сырое тело запроса в виде строки
+
+  // 1. HMAC-SHA256 полезной нагрузки с ВАШИМ secret (не хешируйте сам secret)
+  // 2. Добавить префикс "sha256="
+  const expected = `sha256=${createHmac('sha256', 'seu_webhook_secret')
+    .update(rawBody)
+    .digest('hex')}`;
+
+  // 3. Сравнить за константное время
+  const isValid =
+    typeof signature === 'string' &&
+    signature.length === expected.length &&
+    timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+
+  if (!isValid) {
+    return res.status(401).send('Assinatura inválida');
+  }
+
+  // Обработать событие...
+  res.status(200).send('OK');
+});
+```
+
+<Warning>
+  Всегда используйте сравнение за константное время (`timingSafeEqual`), чтобы избежать атак по времени (timing attacks).
+  Никогда не сравнивайте подписи через `===`.
+</Warning>
+
+## Примеры полезной нагрузки
+
+### payment_completed
+
+Отправляется, когда платёж PIX подтверждён.
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "data": {
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "sandbox",
+    "amount": 100.21,
+    "feeAmount": 0.5,
+    "netAmount": 99.71,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "completedAt": "2026-01-11T19:03:28.277Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "Maria Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `transactionId` | string | Уникальный ID транзакции |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Общая сумма платежа |
+| `feeAmount` | number | Взимаемая комиссия |
+| `netAmount` | number | Чистая сумма (amount - feeAmount) |
+| `currency` | string | Валюта (BRL) |
+| `paymentMethod` | string | Способ оплаты (pix) |
+| `status` | string | Статус платежа (completed) |
+| `completedAt` | string | Дата и время завершения в формате ISO 8601 |
+| `externalReference` | string | Ваш внешний референс (необязательно) |
+| `e2eId` | string | Сквозной идентификатор (E2E) сети PIX (необязательно, присутствует при наличии) |
+| `counterpartName` | string | Имя плательщика, возвращённое PSP (необязательно) |
+| `counterpartDocument` | string | CPF/CNPJ плательщика, возвращённый PSP (необязательно, без маски) |
+| `metadata` | object | Пользовательские метаданные, отправленные при создании платежа (необязательно) |
+
+### payment_expired
+
+Отправляется, когда платёж PIX истекает без подтверждения.
+
+```json
+{
+  "event": "payment_expired",
+  "eventId": "payment_expired_d5e6f7a8-1234-5678-9abc-def012345678",
+  "timestamp": "2026-01-11T19:30:00.000Z",
+  "data": {
+    "transactionId": "d5e6f7a8-1234-5678-9abc-def012345678",
+    "environment": "sandbox",
+    "amount": 75.50,
+    "feeAmount": 0,
+    "netAmount": 0,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "expired",
+    "expiredAt": "2026-01-11T19:30:00.000Z",
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `transactionId` | string | Уникальный ID транзакции |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Сумма платежа |
+| `feeAmount` | number | Взимаемая комиссия (всегда 0 для истёкших платежей) |
+| `netAmount` | number | Чистая сумма (всегда 0 для истёкших платежей) |
+| `currency` | string | Валюта (BRL) |
+| `paymentMethod` | string | Способ оплаты (pix) |
+| `status` | string | Статус платежа (expired) |
+| `expiredAt` | string | Дата и время истечения в формате ISO 8601 |
+| `externalReference` | string | Ваш внешний референс (необязательно) |
+| `metadata` | object | Пользовательские метаданные, отправленные при создании платежа (необязательно) |
+
+### refund_completed
+
+Отправляется, когда возврат обработан.
+
+```json
+{
+  "event": "refund_completed",
+  "eventId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
+  "timestamp": "2026-01-11T19:22:15.456Z",
+  "data": {
+    "refundTransactionId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
+    "originalTransactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "sandbox",
+    "amount": 50.00,
+    "feeAmount": 0.25,
+    "netAmount": 50.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "refundedAt": "2026-01-11T19:22:15.400Z",
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+<Note>
+**Соглашение о `netAmount` в возвратах**: это то, что фактически получает адресат события (конечный клиент) — то есть полная сумма возврата. Комиссия за возврат списывается отдельно с баланса продавца. Общая стоимость возврата для продавца составляет `amount + feeAmount`.
+</Note>
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `refundTransactionId` | string | Уникальный ID транзакции возврата |
+| `originalTransactionId` | string | ID исходной транзакции, по которой выполнен возврат |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Сумма возврата |
+| `feeAmount` | number | Комиссия за возврат, взимаемая с продавца |
+| `netAmount` | number | Чистая сумма, полученная конечным клиентом (равна `amount`) |
+| `currency` | string | Валюта (BRL) |
+| `paymentMethod` | string | Способ оплаты исходной транзакции |
+| `status` | string | Статус возврата (completed) |
+| `refundedAt` | string | Дата и время возврата в формате ISO 8601 |
+| `externalReference` | string | Ваш внешний референс исходного платежа (необязательно) |
+| `metadata` | object | Пользовательские метаданные исходного платежа (необязательно) |
+
+### withdrawal_completed
+
+Отправляется, когда вывод средств успешно обработан.
+
+```json
+{
+  "event": "withdrawal_completed",
+  "eventId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+  "timestamp": "2026-01-11T19:08:21.953Z",
+  "data": {
+    "withdrawalId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "projectId": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "environment": "sandbox",
+    "amount": 500.00,
+    "feeAmount": 2.50,
+    "netAmount": 497.50,
+    "currency": "BRL",
+    "status": "completed",
+    "completedAt": "2026-01-11T19:08:21.939Z",
+    "externalReference": "saque-empresa-001",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "João da Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `withdrawalId` | string | Уникальный ID вывода средств |
+| `projectId` | string | ID проекта вывода (null, если не указан при создании и у аккаунта 2+ проекта) |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Сумма вывода средств |
+| `feeAmount` | number | Комиссия за вывод средств |
+| `netAmount` | number | Чистая переведённая сумма |
+| `currency` | string | Валюта (BRL) |
+| `status` | string | Статус вывода средств (completed) |
+| `completedAt` | string | Дата и время завершения в формате ISO 8601 |
+| `externalReference` | string | Ваш внешний референс, отправленный при создании вывода средств (необязательно) |
+| `e2eId` | string | Сквозной идентификатор (E2E) сети PIX (необязательно, присутствует после подтверждения PSP) |
+| `counterpartName` | string | Имя получателя в банке назначения (необязательно) |
+| `counterpartDocument` | string | CPF/CNPJ получателя (необязательно, без маски) |
+| `metadata` | object | Пользовательские метаданные вывода средств (необязательно) |
+
+### withdrawal_failed
+
+Отправляется, когда вывод средств отклонён или завершился сбоем.
+
+```json
+{
+  "event": "withdrawal_failed",
+  "eventId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+  "timestamp": "2026-01-11T19:15:42.123Z",
+  "data": {
+    "withdrawalId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+    "projectId": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "environment": "sandbox",
+    "amount": 1000.00,
+    "feeAmount": 5.00,
+    "netAmount": 995.00,
+    "currency": "BRL",
+    "status": "failed",
+    "failedAt": "2026-01-11T19:15:42.100Z",
+    "failureReason": "insufficient_funds",
+    "externalReference": "saque-empresa-001",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "João da Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `withdrawalId` | string | Уникальный ID вывода средств |
+| `projectId` | string | ID проекта вывода (null, если не указан при создании и у аккаунта 2+ проекта) |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Сумма вывода средств |
+| `feeAmount` | number | Комиссия за вывод средств |
+| `netAmount` | number | Чистая сумма, которая была бы переведена |
+| `currency` | string | Валюта (BRL) |
+| `status` | string | Статус вывода средств (failed) |
+| `failedAt` | string | Дата и время сбоя в формате ISO 8601 |
+| `failureReason` | string | Причина сбоя (insufficient_funds, invalid_account и т.д.) |
+| `externalReference` | string | Ваш внешний референс, отправленный при создании вывода средств (необязательно) |
+| `e2eId` | string | Сквозной идентификатор (E2E) сети PIX (необязательно, присутствует только если вывод средств успел быть обработан PSP) |
+| `counterpartName` | string | Имя получателя в банке назначения (необязательно) |
+| `counterpartDocument` | string | CPF/CNPJ получателя (необязательно, без маски) |
+| `metadata` | object | Пользовательские метаданные вывода средств (необязательно) |
+
+### withdrawal_reversed
+
+Отправляется, когда вывод средств отменён (реверсирован) со стороны PSP.
+
+```json
+{
+  "event": "withdrawal_reversed",
+  "eventId": "f12a34b5-6c78-9d01-ef23-456789abcdef",
+  "timestamp": "2026-01-11T20:00:00.000Z",
+  "data": {
+    "reversalTransactionId": "f12a34b5-6c78-9d01-ef23-456789abcdef",
+    "originalTransactionId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "environment": "sandbox",
+    "amount": 500.00,
+    "feeAmount": 0,
+    "netAmount": 500.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "reversedAt": "2026-01-11T20:00:00.000Z",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `reversalTransactionId` | string | Уникальный ID транзакции отмены |
+| `originalTransactionId` | string | ID исходного вывода средств, который был отменён |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Сумма отмены |
+| `feeAmount` | number | Комиссия за отмену |
+| `netAmount` | number | Чистая сумма отмены |
+| `currency` | string | Валюта (BRL) |
+| `paymentMethod` | string | Способ оплаты (pix) |
+| `status` | string | Статус отмены (completed) |
+| `reversedAt` | string | Дата и время отмены в формате ISO 8601 |
+| `externalReference` | string | Ваш внешний референс исходного вывода средств (необязательно) |
+| `metadata` | object | Пользовательские метаданные исходного вывода средств (необязательно) |
+
+### balance_block_created
+
+Отправляется, когда создаётся блокировка баланса (MED, судебная или административная).
+
+```json
+{
+  "event": "balance_block_created",
+  "eventId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+  "timestamp": "2026-01-11T19:30:00.000Z",
+  "data": {
+    "blockId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "production",
+    "amount": 1500.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-001234",
+    "reason": "Notificação de infração Pix recebida",
+    "status": "awaiting_response",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D"
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `blockId` | string | Уникальный ID блокировки |
+| `transactionId` | string | ID исходной заблокированной транзакции |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Заблокированная сумма в реалах |
+| `currency` | string | Валюта (BRL) |
+| `blockType` | string | Тип блокировки (`med`, `judicial` или `administrative`) |
+| `referenceNumber` | string | Референсный номер блокировки |
+| `reason` | string | Причина блокировки |
+| `status` | string | Начальный статус (`awaiting_response`) |
+| `createdAt` | string | Дата и время создания в формате ISO 8601 |
+| `externalReference` | string | Внешняя референция исходной транзакции (необязательно) |
+| `e2eId` | string | Сквозной идентификатор (E2E) сети PIX исходной транзакции (необязательно) |
+
+### balance_block_approved
+
+Отправляется, когда блокировка баланса одобрена и сумма возвращена исходному плательщику.
+
+```json
+{
+  "event": "balance_block_approved",
+  "eventId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+  "timestamp": "2026-01-12T14:00:00.000Z",
+  "data": {
+    "blockId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "production",
+    "amount": 1500.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-001234",
+    "reason": "Notificação de infração Pix recebida",
+    "resolutionReason": "Devolução confirmada pelo BACEN",
+    "status": "approved",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "resolvedAt": "2026-01-12T14:00:00.000Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D"
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `blockId` | string | Уникальный ID блокировки |
+| `transactionId` | string | ID исходной заблокированной транзакции |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Заблокированная сумма в реалах |
+| `currency` | string | Валюта (BRL) |
+| `blockType` | string | Тип блокировки (`med`, `judicial` или `administrative`) |
+| `referenceNumber` | string | Референсный номер блокировки |
+| `reason` | string | Исходная причина блокировки |
+| `resolutionReason` | string | Причина разрешения (необязательно) |
+| `status` | string | Статус блокировки (`approved`) |
+| `createdAt` | string | Дата и время создания в формате ISO 8601 |
+| `resolvedAt` | string | Дата и время разрешения в формате ISO 8601 |
+| `externalReference` | string | Внешняя референция исходной транзакции (необязательно) |
+| `e2eId` | string | Сквозной идентификатор (E2E) сети PIX исходной транзакции (необязательно) |
+
+### balance_block_rejected
+
+Отправляется, когда блокировка баланса отклонена и сумма возвращается в доступный баланс продавца.
+
+```json
+{
+  "event": "balance_block_rejected",
+  "eventId": "e5f6a7b8-9c0d-1e2f-3a4b-567890abcdef",
+  "timestamp": "2026-01-12T14:00:00.000Z",
+  "data": {
+    "blockId": "e5f6a7b8-9c0d-1e2f-3a4b-567890abcdef",
+    "transactionId": "b1c89f20-d8e5-5f6a-99ee-4f47eafeb923",
+    "environment": "production",
+    "amount": 250.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-005678",
+    "reason": "Notificação de infração Pix recebida",
+    "resolutionReason": "Defesa aceita - transação legítima comprovada",
+    "status": "rejected",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "resolvedAt": "2026-01-12T14:00:00.000Z",
+    "externalReference": "pedido-67890",
+    "e2eId": "E4071059520260316020613919677838"
+  }
+}
+```
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `blockId` | string | Уникальный ID блокировки |
+| `transactionId` | string | ID исходной заблокированной транзакции |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Заблокированная сумма в реалах |
+| `currency` | string | Валюта (BRL) |
+| `blockType` | string | Тип блокировки (`med`, `judicial` или `administrative`) |
+| `referenceNumber` | string | Референсный номер блокировки |
+| `reason` | string | Исходная причина блокировки |
+| `resolutionReason` | string | Причина разрешения (необязательно) |
+| `status` | string | Статус блокировки (`rejected`) |
+| `createdAt` | string | Дата и время создания в формате ISO 8601 |
+| `resolvedAt` | string | Дата и время разрешения в формате ISO 8601 |
+| `externalReference` | string | Внешняя референция исходной транзакции (необязательно) |
+| `e2eId` | string | Сквозной идентификатор (E2E) сети PIX исходной транзакции (необязательно) |
+
+## Лучшие практики
+
+<AccordionGroup>
+  <Accordion title="Отвечайте быстро">
+    Возвращайте статус `200 OK` как можно быстрее. При необходимости обрабатывайте вебхук асинхронно.
+  </Accordion>
+
+  <Accordion title="Реализуйте идемпотентность">
+    Используйте `eventId`, чтобы не обрабатывать одно и то же событие дважды. Вебхуки могут отправляться повторно в случае сбоя.
+  </Accordion>
+
+  <Accordion title="Используйте HTTPS">
+    Настраивайте ваш эндпоинт только с HTTPS, чтобы обеспечить безопасность данных.
+  </Accordion>
+</AccordionGroup>
+
+## Повторные попытки
+
+Если ваш эндпоинт не отвечает статусом `2xx`, мы попытаемся отправить вебхук повторно:
+
+- **5 попыток** с экспоненциальным backoff
+- Начальный интервал: 2 секунды
+- Максимальный интервал: ~30 секунд между попытками
+
+После 5 неуспешных попыток вебхук помечается как неуспешный.

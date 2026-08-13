@@ -1,0 +1,117 @@
+---
+title: 'Introduction'
+description: 'pague.dev API documentation'
+---
+
+## Welcome
+
+The pague.dev API lets you integrate payment processing into your applications. This documentation covers all the endpoints available to manage customers, projects, charges, transactions, and PIX payments.
+
+## Base URL
+
+All requests must be made to:
+
+```
+https://api-gateway.pague.dev/v2
+```
+
+## Authentication
+
+Authentication happens in two steps: you exchange your account credentials for a short-lived **access token** and send that token in the `Authorization` header of every request.
+
+### 1. Get your credentials
+
+Create an API credential in the Dashboard. It consists of a `client_id` and a `client_secret`:
+
+- `mp_live_*` — **production** credential
+- `mp_test_*` — **sandbox** credential
+
+<Warning>
+  The `client_secret` is shown **only once**, at creation time. Store it somewhere safe.
+</Warning>
+
+### 2. Generate an access token
+
+Exchange your credentials for a token at the [authentication](/en/api-reference/auth/token) endpoint:
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/auth \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "client_id": "mp_live_abc123...",
+    "client_secret": "your_client_secret"
+  }'
+```
+
+```json Response
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 300
+}
+```
+
+Invalid or revoked credentials return `401 {"error": "Unauthorized", "message": "Invalid credentials"}`.
+
+### 3. Use the token in your requests
+
+Send the token in the `Authorization` header:
+
+```bash
+curl https://api-gateway.pague.dev/v2/account \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...'
+```
+
+<Note>
+  The token expires in **300 seconds (5 minutes)**. Generate a new token at `/auth` when it expires — there is no refresh token.
+</Note>
+
+## Permissions
+
+Each credential has granular permissions that determine which endpoints it can access. Permissions are assigned when the credential is created.
+
+### Available permissions
+
+| Permission | Description |
+|---|---|
+| `FULL_ACCESS` | Full access to all API endpoints |
+| `PIX:WRITE` | Create PIX charges |
+| `PROJECT:WRITE` | Create projects |
+| `PROJECT:READ` | List and retrieve projects |
+| `TRANSACTION:READ` | Retrieve transactions |
+| `WITHDRAWAL:WRITE` | Create PIX withdrawals |
+| `METRICS:READ` | Get revenue metrics |
+| `ACCOUNT:READ` | View account details and balance |
+
+<Note>
+  The `FULL_ACCESS` permission grants access to all endpoints, equivalent to holding every permission listed above.
+</Note>
+
+### IP restriction
+
+Optionally, you can restrict a credential to a list of allowed IPs. When the list is configured, requests originating from IPs outside of it are rejected with a `403 Forbidden` error.
+
+We recommend configuring IP restriction on credentials with sensitive permissions, such as `FULL_ACCESS` and `WITHDRAWAL:WRITE`.
+
+## Available Resources
+
+<CardGroup cols={2}>
+  <Card title="PIX" icon="qrcode" href="/en/api-reference/pix/create">
+    Create PIX charges
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/en/api-reference/webhooks">
+    Receive event notifications
+  </Card>
+  <Card title="Projects" icon="folder" href="/en/api-reference/projects/create">
+    Organize payments by project
+  </Card>
+  <Card title="Withdrawals" icon="money-bill-transfer" href="/en/api-reference/withdrawals/create">
+    Create PIX withdrawals
+  </Card>
+  <Card title="Transactions" icon="receipt" href="/en/api-reference/transactions/get">
+    View transaction details
+  </Card>
+  <Card title="Account" icon="building" href="/en/api-reference/account/get">
+    Check account details and balance
+  </Card>
+</CardGroup>

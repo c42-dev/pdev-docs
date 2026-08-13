@@ -1,0 +1,534 @@
+---
+title: 'Webhooks'
+description: 'Receive real-time notifications about payment events'
+---
+
+## Overview
+
+Webhooks let you receive automatic HTTP notifications when important events happen on your account, such as confirmed payments, processed refunds, or completed withdrawals.
+
+## Available Events
+
+| Event | Description |
+|--------|-----------|
+| `payment_completed` | Payment was successfully confirmed |
+| `payment_expired` | Payment expired without confirmation |
+| `refund_completed` | Refund was processed |
+| `withdrawal_completed` | Withdrawal was successfully processed |
+| `withdrawal_failed` | Withdrawal was rejected or failed |
+| `withdrawal_reversed` | Withdrawal was reversed by the PSP |
+| `balance_block_created` | Balance block created (MED/judicial/administrative) |
+| `balance_block_approved` | Block approved — amount returned to the payer |
+| `balance_block_rejected` | Block rejected — amount returned to the merchant |
+
+## Payload Structure
+
+All webhooks follow the same base structure:
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "data": {
+    // Event-specific data
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `event` | string | Event type |
+| `eventId` | string | Unique event ID (usually the transaction ID) |
+| `timestamp` | string | Event date/time in ISO 8601 format |
+| `data` | object | Event-specific data |
+
+## Headers Sent
+
+Every webhook request includes the following headers:
+
+| Header | Description |
+|--------|-----------|
+| `Content-Type` | `application/json` |
+| `User-Agent` | `Pague-Webhook/1.0` |
+| `X-Pague-Event` | Event type (e.g. `payment_completed`) |
+| `X-Pague-Webhook-ID` | Unique ID of this delivery (UUID) |
+| `X-Pague-Signature` | Payload signature: `sha256=<hex-encoded HMAC-SHA256>` |
+| `X-Pague-Timestamp` | Delivery timestamp in milliseconds (Unix epoch) |
+
+## Validating the Signature
+
+Every webhook is signed with HMAC-SHA256 using your **endpoint's secret**
+(shown only once at creation). Follow these steps to validate it:
+
+1. Compute the **HMAC-SHA256** of the raw request body using your secret as the key
+2. Prefix the hex result with `sha256=`
+3. Compare it with the `X-Pague-Signature` header using a constant-time comparison
+
+```typescript Node.js (crypto)
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+app.post('/webhook', (req, res) => {
+  const signature = req.headers['x-pague.dev-signature'] as string; // "sha256=<hex>"
+  const rawBody = req.body; // raw string body
+
+  // 1. HMAC-SHA256 of the payload with YOUR secret (do not hash the secret)
+  // 2. Prefix with "sha256="
+  const expected = `sha256=${createHmac('sha256', 'your_webhook_secret')
+    .update(rawBody)
+    .digest('hex')}`;
+
+  // 3. Constant-time comparison
+  const isValid =
+    typeof signature === 'string' &&
+    signature.length === expected.length &&
+    timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+
+  if (!isValid) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Process the event...
+  res.status(200).send('OK');
+});
+```
+
+<Warning>
+  Always use a constant-time comparison (`timingSafeEqual`) to prevent timing attacks.
+  Never compare signatures with `===`.
+</Warning>
+
+## Payload Examples
+
+### payment_completed
+
+Sent when a PIX payment is confirmed.
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "data": {
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "sandbox",
+    "amount": 100.21,
+    "feeAmount": 0.5,
+    "netAmount": 99.71,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "completedAt": "2026-01-11T19:03:28.277Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "Maria Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `transactionId` | string | Unique transaction ID |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Total payment amount |
+| `feeAmount` | number | Fee charged |
+| `netAmount` | number | Net amount (amount - feeAmount) |
+| `currency` | string | Currency (BRL) |
+| `paymentMethod` | string | Payment method (pix) |
+| `status` | string | Payment status (completed) |
+| `completedAt` | string | Completion date/time in ISO 8601 |
+| `externalReference` | string | Your external reference (optional) |
+| `e2eId` | string | PIX network end-to-end ID (optional, present when available) |
+| `counterpartName` | string | Payer name as returned by the PSP (optional) |
+| `counterpartDocument` | string | Payer CPF/CNPJ as returned by the PSP (optional, unmasked) |
+| `metadata` | object | Custom metadata sent when the payment was created (optional) |
+
+### payment_expired
+
+Sent when a PIX payment expires without confirmation.
+
+```json
+{
+  "event": "payment_expired",
+  "eventId": "payment_expired_d5e6f7a8-1234-5678-9abc-def012345678",
+  "timestamp": "2026-01-11T19:30:00.000Z",
+  "data": {
+    "transactionId": "d5e6f7a8-1234-5678-9abc-def012345678",
+    "environment": "sandbox",
+    "amount": 75.50,
+    "feeAmount": 0,
+    "netAmount": 0,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "expired",
+    "expiredAt": "2026-01-11T19:30:00.000Z",
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `transactionId` | string | Unique transaction ID |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Payment amount |
+| `feeAmount` | number | Fee charged (always 0 for expired payments) |
+| `netAmount` | number | Net amount (always 0 for expired payments) |
+| `currency` | string | Currency (BRL) |
+| `paymentMethod` | string | Payment method (pix) |
+| `status` | string | Payment status (expired) |
+| `expiredAt` | string | Expiration date/time in ISO 8601 |
+| `externalReference` | string | Your external reference (optional) |
+| `metadata` | object | Custom metadata sent when the payment was created (optional) |
+
+### refund_completed
+
+Sent when a refund is processed.
+
+```json
+{
+  "event": "refund_completed",
+  "eventId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
+  "timestamp": "2026-01-11T19:22:15.456Z",
+  "data": {
+    "refundTransactionId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
+    "originalTransactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "sandbox",
+    "amount": 50.00,
+    "feeAmount": 0.25,
+    "netAmount": 50.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "refundedAt": "2026-01-11T19:22:15.400Z",
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+<Note>
+**`netAmount` convention for refunds**: it represents what the event's recipient (the end customer) actually receives — that is, the full refund amount. The refund fee is debited separately from the merchant's balance. The total cost of the refund to the merchant is `amount + feeAmount`.
+</Note>
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `refundTransactionId` | string | Unique ID of the refund transaction |
+| `originalTransactionId` | string | ID of the original transaction that was refunded |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Refund amount |
+| `feeAmount` | number | Refund fee charged to the merchant |
+| `netAmount` | number | Net amount received by the end customer (equal to `amount`) |
+| `currency` | string | Currency (BRL) |
+| `paymentMethod` | string | Payment method of the original transaction |
+| `status` | string | Refund status (completed) |
+| `refundedAt` | string | Refund date/time in ISO 8601 |
+| `externalReference` | string | Your external reference from the original payment (optional) |
+| `metadata` | object | Custom metadata from the original payment (optional) |
+
+### withdrawal_completed
+
+Sent when a withdrawal is successfully processed.
+
+```json
+{
+  "event": "withdrawal_completed",
+  "eventId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+  "timestamp": "2026-01-11T19:08:21.953Z",
+  "data": {
+    "withdrawalId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "projectId": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "environment": "sandbox",
+    "amount": 500.00,
+    "feeAmount": 2.50,
+    "netAmount": 497.50,
+    "currency": "BRL",
+    "status": "completed",
+    "completedAt": "2026-01-11T19:08:21.939Z",
+    "externalReference": "saque-empresa-001",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "João da Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `withdrawalId` | string | Unique withdrawal ID |
+| `projectId` | string | Project ID of the withdrawal (null when not provided at creation and the account has 2+ projects) |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Withdrawal amount |
+| `feeAmount` | number | Withdrawal fee |
+| `netAmount` | number | Net amount transferred |
+| `currency` | string | Currency (BRL) |
+| `status` | string | Withdrawal status (completed) |
+| `completedAt` | string | Completion date/time in ISO 8601 |
+| `externalReference` | string | Your external reference sent when the withdrawal was created (optional) |
+| `e2eId` | string | PIX network end-to-end ID (optional, present after PSP confirmation) |
+| `counterpartName` | string | Recipient name at the destination bank (optional) |
+| `counterpartDocument` | string | Recipient CPF/CNPJ (optional, unmasked) |
+| `metadata` | object | Custom withdrawal metadata (optional) |
+
+### withdrawal_failed
+
+Sent when a withdrawal is rejected or fails.
+
+```json
+{
+  "event": "withdrawal_failed",
+  "eventId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+  "timestamp": "2026-01-11T19:15:42.123Z",
+  "data": {
+    "withdrawalId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+    "projectId": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "environment": "sandbox",
+    "amount": 1000.00,
+    "feeAmount": 5.00,
+    "netAmount": 995.00,
+    "currency": "BRL",
+    "status": "failed",
+    "failedAt": "2026-01-11T19:15:42.100Z",
+    "failureReason": "insufficient_funds",
+    "externalReference": "saque-empresa-001",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "João da Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `withdrawalId` | string | Unique withdrawal ID |
+| `projectId` | string | Project ID of the withdrawal (null when not provided at creation and the account has 2+ projects) |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Withdrawal amount |
+| `feeAmount` | number | Withdrawal fee |
+| `netAmount` | number | Net amount that would have been transferred |
+| `currency` | string | Currency (BRL) |
+| `status` | string | Withdrawal status (failed) |
+| `failedAt` | string | Failure date/time in ISO 8601 |
+| `failureReason` | string | Failure reason (insufficient_funds, invalid_account, etc.) |
+| `externalReference` | string | Your external reference sent when the withdrawal was created (optional) |
+| `e2eId` | string | PIX network end-to-end ID (optional, present only if the withdrawal reached the PSP) |
+| `counterpartName` | string | Recipient name at the destination bank (optional) |
+| `counterpartDocument` | string | Recipient CPF/CNPJ (optional, unmasked) |
+| `metadata` | object | Custom withdrawal metadata (optional) |
+
+### withdrawal_reversed
+
+Sent when a withdrawal is reversed by the PSP.
+
+```json
+{
+  "event": "withdrawal_reversed",
+  "eventId": "f12a34b5-6c78-9d01-ef23-456789abcdef",
+  "timestamp": "2026-01-11T20:00:00.000Z",
+  "data": {
+    "reversalTransactionId": "f12a34b5-6c78-9d01-ef23-456789abcdef",
+    "originalTransactionId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "environment": "sandbox",
+    "amount": 500.00,
+    "feeAmount": 0,
+    "netAmount": 500.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "reversedAt": "2026-01-11T20:00:00.000Z",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `reversalTransactionId` | string | Unique ID of the reversal transaction |
+| `originalTransactionId` | string | ID of the original withdrawal that was reversed |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Reversal amount |
+| `feeAmount` | number | Reversal fee |
+| `netAmount` | number | Net reversal amount |
+| `currency` | string | Currency (BRL) |
+| `paymentMethod` | string | Payment method (pix) |
+| `status` | string | Reversal status (completed) |
+| `reversedAt` | string | Reversal date/time in ISO 8601 |
+| `externalReference` | string | Your external reference from the original withdrawal (optional) |
+| `metadata` | object | Custom metadata from the original withdrawal (optional) |
+
+### balance_block_created
+
+Sent when a balance block is created (MED, judicial, or administrative).
+
+```json
+{
+  "event": "balance_block_created",
+  "eventId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+  "timestamp": "2026-01-11T19:30:00.000Z",
+  "data": {
+    "blockId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "production",
+    "amount": 1500.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-001234",
+    "reason": "Notificação de infração Pix recebida",
+    "status": "awaiting_response",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `blockId` | string | Unique block ID |
+| `transactionId` | string | ID of the original blocked transaction |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Blocked amount in BRL |
+| `currency` | string | Currency (BRL) |
+| `blockType` | string | Block type (`med`, `judicial`, or `administrative`) |
+| `referenceNumber` | string | Block reference number |
+| `reason` | string | Block reason |
+| `status` | string | Initial status (`awaiting_response`) |
+| `createdAt` | string | Creation date/time in ISO 8601 |
+| `externalReference` | string | External reference of the original transaction (optional) |
+| `e2eId` | string | PIX network end-to-end ID of the original transaction (optional) |
+
+### balance_block_approved
+
+Sent when a balance block is approved and the amount is returned to the original payer.
+
+```json
+{
+  "event": "balance_block_approved",
+  "eventId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+  "timestamp": "2026-01-12T14:00:00.000Z",
+  "data": {
+    "blockId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "production",
+    "amount": 1500.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-001234",
+    "reason": "Notificação de infração Pix recebida",
+    "resolutionReason": "Devolução confirmada pelo BACEN",
+    "status": "approved",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "resolvedAt": "2026-01-12T14:00:00.000Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `blockId` | string | Unique block ID |
+| `transactionId` | string | ID of the original blocked transaction |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Blocked amount in BRL |
+| `currency` | string | Currency (BRL) |
+| `blockType` | string | Block type (`med`, `judicial`, or `administrative`) |
+| `referenceNumber` | string | Block reference number |
+| `reason` | string | Original block reason |
+| `resolutionReason` | string | Resolution reason (optional) |
+| `status` | string | Block status (`approved`) |
+| `createdAt` | string | Creation date/time in ISO 8601 |
+| `resolvedAt` | string | Resolution date/time in ISO 8601 |
+| `externalReference` | string | External reference of the original transaction (optional) |
+| `e2eId` | string | PIX network end-to-end ID of the original transaction (optional) |
+
+### balance_block_rejected
+
+Sent when a balance block is rejected and the amount returns to the merchant's available balance.
+
+```json
+{
+  "event": "balance_block_rejected",
+  "eventId": "e5f6a7b8-9c0d-1e2f-3a4b-567890abcdef",
+  "timestamp": "2026-01-12T14:00:00.000Z",
+  "data": {
+    "blockId": "e5f6a7b8-9c0d-1e2f-3a4b-567890abcdef",
+    "transactionId": "b1c89f20-d8e5-5f6a-99ee-4f47eafeb923",
+    "environment": "production",
+    "amount": 250.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-005678",
+    "reason": "Notificação de infração Pix recebida",
+    "resolutionReason": "Defesa aceita - transação legítima comprovada",
+    "status": "rejected",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "resolvedAt": "2026-01-12T14:00:00.000Z",
+    "externalReference": "pedido-67890",
+    "e2eId": "E4071059520260316020613919677838"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `blockId` | string | Unique block ID |
+| `transactionId` | string | ID of the original blocked transaction |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Blocked amount in BRL |
+| `currency` | string | Currency (BRL) |
+| `blockType` | string | Block type (`med`, `judicial`, or `administrative`) |
+| `referenceNumber` | string | Block reference number |
+| `reason` | string | Original block reason |
+| `resolutionReason` | string | Resolution reason (optional) |
+| `status` | string | Block status (`rejected`) |
+| `createdAt` | string | Creation date/time in ISO 8601 |
+| `resolvedAt` | string | Resolution date/time in ISO 8601 |
+| `externalReference` | string | External reference of the original transaction (optional) |
+| `e2eId` | string | PIX network end-to-end ID of the original transaction (optional) |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Respond quickly">
+    Return a `200 OK` status as fast as possible. Process the webhook asynchronously if needed.
+  </Accordion>
+
+  <Accordion title="Implement idempotency">
+    Use the `eventId` to avoid processing the same event twice. Webhooks may be redelivered on failure.
+  </Accordion>
+
+  <Accordion title="Use HTTPS">
+    Configure your endpoint with HTTPS only to keep the data secure.
+  </Accordion>
+</AccordionGroup>
+
+## Retries
+
+If your endpoint does not respond with a `2xx` status, we will retry the delivery:
+
+- **5 attempts** with exponential backoff
+- Initial interval: 2 seconds
+- Maximum interval: ~30 seconds between attempts
+
+After 5 unsuccessful attempts, the webhook is marked as failed.

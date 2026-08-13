@@ -18,58 +18,173 @@
   },
   "favicon": "/favicon.ico",
   "navigation": {
-    "groups": [
+    "languages": [
       {
-        "group": "Visão Geral",
-        "pages": [
-          "index",
-          "sdk",
-          "api-reference/webhooks"
+        "language": "pt-BR",
+        "groups": [
+          {
+            "group": "Visão Geral",
+            "pages": [
+              "index",
+              "api-reference/webhooks"
+            ]
+          },
+          {
+            "group": "Autenticação",
+            "pages": [
+              "api-reference/auth/token"
+            ]
+          },
+          {
+            "group": "Conta",
+            "pages": [
+              "api-reference/account/get"
+            ]
+          },
+          {
+            "group": "PIX",
+            "pages": [
+              "api-reference/pix/create"
+            ]
+          },
+          {
+            "group": "Saques",
+            "pages": [
+              "api-reference/withdrawals/create"
+            ]
+          },
+          {
+            "group": "Transações",
+            "pages": [
+              "api-reference/transactions/get",
+              "api-reference/transactions/refund"
+            ]
+          },
+          {
+            "group": "Bloqueios de Saldo",
+            "pages": [
+              "api-reference/balance-blocks/list"
+            ]
+          },
+          {
+            "group": "Projetos",
+            "pages": [
+              "api-reference/projects/create",
+              "api-reference/projects/list"
+            ]
+          }
         ]
       },
       {
-        "group": "Conta",
-        "pages": [
-          "api-reference/account/get"
+        "language": "en",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "en/index",
+              "en/api-reference/webhooks"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "pages": [
+              "en/api-reference/auth/token"
+            ]
+          },
+          {
+            "group": "Account",
+            "pages": [
+              "en/api-reference/account/get"
+            ]
+          },
+          {
+            "group": "PIX",
+            "pages": [
+              "en/api-reference/pix/create"
+            ]
+          },
+          {
+            "group": "Withdrawals",
+            "pages": [
+              "en/api-reference/withdrawals/create"
+            ]
+          },
+          {
+            "group": "Transactions",
+            "pages": [
+              "en/api-reference/transactions/get",
+              "en/api-reference/transactions/refund"
+            ]
+          },
+          {
+            "group": "Balance Blocks",
+            "pages": [
+              "en/api-reference/balance-blocks/list"
+            ]
+          },
+          {
+            "group": "Projects",
+            "pages": [
+              "en/api-reference/projects/create",
+              "en/api-reference/projects/list"
+            ]
+          }
         ]
       },
       {
-        "group": "PIX",
-        "pages": [
-          "api-reference/pix/create"
-        ]
-      },
-      {
-        "group": "Saques",
-        "pages": [
-          "api-reference/withdrawals/create"
-        ]
-      },
-      {
-        "group": "Transações",
-        "pages": [
-          "api-reference/transactions/get",
-          "api-reference/transactions/refund"
-        ]
-      },
-      {
-        "group": "Bloqueios de Saldo",
-        "pages": [
-          "api-reference/balance-blocks/list"
-        ]
-      },
-      {
-        "group": "Clientes",
-        "pages": [
-          "api-reference/customers/create",
-          "api-reference/customers/list"
-        ]
-      },
-      {
-        "group": "Projetos",
-        "pages": [
-          "api-reference/projects/create",
-          "api-reference/projects/list"
+        "language": "ru",
+        "groups": [
+          {
+            "group": "Обзор",
+            "pages": [
+              "ru/index",
+              "ru/api-reference/webhooks"
+            ]
+          },
+          {
+            "group": "Аутентификация",
+            "pages": [
+              "ru/api-reference/auth/token"
+            ]
+          },
+          {
+            "group": "Аккаунт",
+            "pages": [
+              "ru/api-reference/account/get"
+            ]
+          },
+          {
+            "group": "PIX",
+            "pages": [
+              "ru/api-reference/pix/create"
+            ]
+          },
+          {
+            "group": "Вывод средств",
+            "pages": [
+              "ru/api-reference/withdrawals/create"
+            ]
+          },
+          {
+            "group": "Транзакции",
+            "pages": [
+              "ru/api-reference/transactions/get",
+              "ru/api-reference/transactions/refund"
+            ]
+          },
+          {
+            "group": "Блокировки баланса",
+            "pages": [
+              "ru/api-reference/balance-blocks/list"
+            ]
+          },
+          {
+            "group": "Проекты",
+            "pages": [
+              "ru/api-reference/projects/create",
+              "ru/api-reference/projects/list"
+            ]
+          }
         ]
       }
     ],
@@ -77,20 +192,8 @@
       "anchors": [
         {
           "anchor": "Dashboard",
-          "href": "https://pague.dev",
+          "href": "https://banking.pague.dev",
           "icon": "gauge"
-        },
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/pague-dev",
-          "icon": "github"
-        }
-      ],
-      "languages": [
-        {
-          "language": "pt-BR",
-          "href": "https://docs.pague.dev",
-          "default": true
         }
       ]
     }
@@ -103,12 +206,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://pague.dev"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/pague-dev"
+      "href": "https://banking.pague.dev"
     }
   }
 }

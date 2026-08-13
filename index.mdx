@@ -12,22 +12,63 @@ A API pague.dev permite integrar o processamento de pagamentos em suas aplicaç�
 Todas as requisições devem ser feitas para:
 
 ```
-https://api.pague.dev/v1
+https://api-gateway.pague.dev/v2
 ```
 
 ## Autenticação
 
-Todos os endpoints requerem autenticação usando chaves de API. Inclua suas credenciais nos headers da requisição:
+A autenticação é feita em duas etapas: você troca as credenciais da sua conta por um **access token** de curta duração e envia esse token no header `Authorization` de cada requisição.
 
-```json
+### 1. Obtenha suas credenciais
+
+Crie uma credencial de API no Dashboard. Ela é composta por um `client_id` e um `client_secret`:
+
+- `mp_live_*` — credencial de **produção**
+- `mp_test_*` — credencial de **sandbox**
+
+<Warning>
+  O `client_secret` é exibido **uma única vez**, no momento da criação. Guarde-o em local seguro.
+</Warning>
+
+### 2. Gere um access token
+
+Troque suas credenciais por um token no endpoint de [autenticação](/api-reference/auth/token):
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/auth \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "client_id": "mp_live_abc123...",
+    "client_secret": "seu_client_secret"
+  }'
+```
+
+```json Resposta
 {
-  "X-API-Key": "sua-api-key"
+  "access_token": "eyJhbGciOiJSUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 300
 }
 ```
 
+Credenciais inválidas ou revogadas retornam `401 {"error": "Unauthorized", "message": "Invalid credentials"}`.
+
+### 3. Use o token nas requisições
+
+Envie o token no header `Authorization`:
+
+```bash
+curl https://api-gateway.pague.dev/v2/account \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...'
+```
+
+<Note>
+  O token expira em **300 segundos (5 minutos)**. Gere um novo token no `/auth` quando ele expirar — não há refresh token.
+</Note>
+
 ## Permissões
 
-Cada chave de API possui permissões granulares que determinam quais endpoints ela pode acessar. As permissões são atribuídas no momento da criação da chave.
+Cada credencial possui permissões granulares que determinam quais endpoints ela pode acessar. As permissões são atribuídas no momento da criação da credencial.
 
 ### Permissões disponíveis
 
@@ -35,12 +76,8 @@ Cada chave de API possui permissões granulares que determinam quais endpoints e
 |---|---|
 | `FULL_ACCESS` | Acesso completo a todos os endpoints da API |
 | `PIX:WRITE` | Criar cobranças PIX |
-| `CUSTOMER:WRITE` | Criar clientes |
-| `CUSTOMER:READ` | Listar e buscar clientes |
 | `PROJECT:WRITE` | Criar projetos |
 | `PROJECT:READ` | Listar e buscar projetos |
-| `CHARGE:WRITE` | Criar cobranças (links de pagamento) |
-| `CHARGE:READ` | Listar e buscar cobranças |
 | `TRANSACTION:READ` | Buscar transações |
 | `WITHDRAWAL:WRITE` | Criar saques via PIX |
 | `METRICS:READ` | Obter métricas de receita |
@@ -52,9 +89,9 @@ Cada chave de API possui permissões granulares que determinam quais endpoints e
 
 ### Restrição por IP
 
-Chaves com permissão `FULL_ACCESS` ou `WITHDRAWAL:WRITE` **exigem** a configuração de IPs permitidos. Requisições originadas de IPs não autorizados serão rejeitadas com erro `403 Forbidden`.
+Opcionalmente, você pode restringir uma credencial a uma lista de IPs permitidos. Quando a lista está configurada, requisições originadas de IPs fora dela são rejeitadas com erro `403 Forbidden`.
 
-Essa restrição existe para proteger operações sensíveis como saques e acesso irrestrito à API.
+Recomendamos configurar a restrição de IP em credenciais com permissões sensíveis, como `FULL_ACCESS` e `WITHDRAWAL:WRITE`.
 
 ## Recursos Disponíveis
 
@@ -65,30 +102,16 @@ Essa restrição existe para proteger operações sensíveis como saques e acess
   <Card title="Webhooks" icon="bell" href="/api-reference/webhooks">
     Receber notificações de eventos
   </Card>
-  <Card title="Clientes" icon="users" href="/api-reference/customers/create">
-    Gerenciar seus clientes
-  </Card>
   <Card title="Projetos" icon="folder" href="/api-reference/projects/create">
     Organizar pagamentos por projeto
   </Card>
-  <Card title="Cobranças" icon="credit-card" href="/api-reference/charges/create">
-    Criar e gerenciar cobranças
+  <Card title="Saques" icon="money-bill-transfer" href="/api-reference/withdrawals/create">
+    Criar saques via PIX
   </Card>
   <Card title="Transações" icon="receipt" href="/api-reference/transactions/get">
     Visualizar detalhes de transações
   </Card>
   <Card title="Conta" icon="building" href="/api-reference/account/get">
     Consultar dados da conta e saldo
-  </Card>
-</CardGroup>
-
-## SDKs e Ferramentas
-
-<CardGroup cols={2}>
-  <Card title="SDK" icon="code" href="/sdk">
-    SDKs oficiais para integração
-  </Card>
-  <Card title="Exemplo Completo" icon="code" href="https://github.com/pague-dev/sdk-example">
-    Aplicação React com integração completa
   </Card>
 </CardGroup>
