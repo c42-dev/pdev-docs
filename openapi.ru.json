@@ -469,9 +469,8 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "ID транзакции",
+            "description": "ID транзакции (UUID), ваш external_reference или Idempotency-Key, использованный при создании. Разрешаются в этом порядке. Вывод средств, ещё находящийся в обработке (без транзакции), также находится по любому из них.",
             "schema": {
-              "format": "uuid",
               "type": "string"
             }
           }
@@ -1351,6 +1350,21 @@
             "type": "string",
             "description": "Дата оплаты транзакции",
             "format": "date-time"
+          },
+          "e2eId": {
+            "type": "string",
+            "description": "Сквозной ID сети PIX (появляется после подтверждения PSP)",
+            "example": "E18189547202603160145ZYFfVx3jP8D"
+          },
+          "counterpartName": {
+            "type": "string",
+            "description": "Имя контрагента по данным PSP (плательщик при поступлении, получатель при выводе)",
+            "example": "Мария Силва"
+          },
+          "counterpartDocument": {
+            "type": "string",
+            "description": "CPF/CNPJ контрагента, без маски",
+            "example": "12345678900"
           },
           "createdAt": {
             "type": "string",
