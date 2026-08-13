@@ -50,61 +50,39 @@ Cada requisição de webhook inclui os seguintes headers:
 | Header | Descrição |
 |--------|-----------|
 | `Content-Type` | `application/json` |
-| `X-Webhook-Signature` | Assinatura HMAC-SHA256 do payload |
-| `X-Webhook-Timestamp` | Timestamp em milliseconds |
+| `User-Agent` | `Misespay-Webhook/1.0` |
+| `X-Misespay-Event` | Tipo do evento (ex.: `payment_completed`) |
+| `X-Misespay-Webhook-ID` | ID único desta entrega (UUID) |
+| `X-Misespay-Signature` | Assinatura do payload: `sha256=<HMAC-SHA256 em hex>` |
+| `X-Misespay-Timestamp` | Timestamp da entrega em milliseconds (Unix epoch) |
 
 ## Validando a Assinatura
 
-Cada webhook é assinado com HMAC-SHA256 para garantir autenticidade. Siga estes passos para validar:
+Cada webhook é assinado com HMAC-SHA256 usando o **secret do seu endpoint**
+(exibido uma única vez na criação). Siga estes passos para validar:
 
-1. Calcule a **signing key**: `SHA256(seu_webhook_secret)` em hex
-2. Calcule o **HMAC-SHA256** do body da requisição usando a signing key
-3. Compare o resultado com o header `X-Webhook-Signature` usando comparação em tempo constante
-
-<CodeGroup>
-```typescript SDK (@pague-dev/sdk-node)
-import { verifyWebhookSignature, parseWebhook } from '@pague-dev/sdk-node';
-
-app.post('/webhook', (req, res) => {
-  const signature = req.headers['x-webhook-signature'] as string;
-  const rawBody = req.body; // raw string body
-
-  if (!verifyWebhookSignature(rawBody, signature, 'seu_webhook_secret')) {
-    return res.status(401).send('Assinatura inválida');
-  }
-
-  const event = parseWebhook(rawBody);
-  if (!event) {
-    return res.status(400).send('Payload inválido');
-  }
-
-  // Processar o evento...
-  res.status(200).send('OK');
-});
-```
+1. Calcule o **HMAC-SHA256** do body cru da requisição usando o seu secret como chave
+2. Prefixe o resultado em hex com `sha256=`
+3. Compare com o header `X-Misespay-Signature` usando comparação em tempo constante
 
 ```typescript Node.js (crypto)
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 app.post('/webhook', (req, res) => {
-  const signature = req.headers['x-webhook-signature'] as string;
+  const signature = req.headers['x-pague.dev-signature'] as string; // "sha256=<hex>"
   const rawBody = req.body; // raw string body
 
-  // 1. Calcular signing key (SHA256 do seu secret)
-  const signingKey = createHash('sha256')
-    .update('seu_webhook_secret')
-    .digest('hex');
-
-  // 2. Calcular HMAC-SHA256 do payload
-  const expected = createHmac('sha256', signingKey)
+  // 1. HMAC-SHA256 do payload com o SEU secret (não hasheie o secret)
+  // 2. Prefixar com "sha256="
+  const expected = `sha256=${createHmac('sha256', 'seu_webhook_secret')
     .update(rawBody)
-    .digest('hex');
+    .digest('hex')}`;
 
   // 3. Comparar em tempo constante
-  const isValid = timingSafeEqual(
-    Buffer.from(expected, 'hex'),
-    Buffer.from(signature, 'hex'),
-  );
+  const isValid =
+    typeof signature === 'string' &&
+    signature.length === expected.length &&
+    timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
 
   if (!isValid) {
     return res.status(401).send('Assinatura inválida');
@@ -114,7 +92,6 @@ app.post('/webhook', (req, res) => {
   res.status(200).send('OK');
 });
 ```
-</CodeGroup>
 
 <Warning>
   Sempre use comparação em tempo constante (`timingSafeEqual`) para evitar ataques de timing.
@@ -272,6 +249,7 @@ Enviado quando um saque é processado com sucesso.
   "timestamp": "2026-01-11T19:08:21.953Z",
   "data": {
     "withdrawalId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "projectId": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
     "environment": "sandbox",
     "amount": 500.00,
     "feeAmount": 2.50,
@@ -293,6 +271,7 @@ Enviado quando um saque é processado com sucesso.
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `withdrawalId` | string | ID único do saque |
+| `projectId` | string | ID do projeto do saque (null quando não informado na criação e a conta tem 2+ projetos) |
 | `environment` | string | Ambiente (`production` ou `sandbox`) |
 | `amount` | number | Valor do saque |
 | `feeAmount` | number | Taxa do saque |
@@ -317,6 +296,7 @@ Enviado quando um saque é rejeitado ou falha.
   "timestamp": "2026-01-11T19:15:42.123Z",
   "data": {
     "withdrawalId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+    "projectId": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
     "environment": "sandbox",
     "amount": 1000.00,
     "feeAmount": 5.00,
@@ -339,6 +319,7 @@ Enviado quando um saque é rejeitado ou falha.
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `withdrawalId` | string | ID único do saque |
+| `projectId` | string | ID do projeto do saque (null quando não informado na criação e a conta tem 2+ projetos) |
 | `environment` | string | Ambiente (`production` ou `sandbox`) |
 | `amount` | number | Valor do saque |
 | `feeAmount` | number | Taxa do saque |

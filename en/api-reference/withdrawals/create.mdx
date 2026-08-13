@@ -1,0 +1,10 @@
+---
+title: 'Create PIX Withdrawal'
+openapi: '/openapi.en.json POST /withdrawals'
+---
+
+<Note>
+**Asynchronous processing.** Withdrawal creation returns a non-terminal status (`pending` or `processing`) — the definitive outcome is always delivered via webhook (`withdrawal.completed` or `withdrawal.failed`). Treat the webhook as the source of truth; do not treat the creation response as the final result.
+
+Validation errors (insufficient balance, limit exceeded, invalid data) return an error in the call itself.
+</Note>
