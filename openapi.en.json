@@ -469,9 +469,8 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Transaction ID",
+            "description": "Transaction ID (UUID), your external_reference, or the Idempotency-Key used on creation. Resolved in that order. A withdrawal still processing (no transaction yet) is also resolved by any of these.",
             "schema": {
-              "format": "uuid",
               "type": "string"
             }
           }
@@ -1351,6 +1350,21 @@
             "type": "string",
             "description": "Date the transaction was paid",
             "format": "date-time"
+          },
+          "e2eId": {
+            "type": "string",
+            "description": "PIX network end-to-end ID (present once the PSP has confirmed)",
+            "example": "E18189547202603160145ZYFfVx3jP8D"
+          },
+          "counterpartName": {
+            "type": "string",
+            "description": "Counterpart name as returned by the PSP (payer on cash-in, recipient on withdrawal)",
+            "example": "Maria Silva"
+          },
+          "counterpartDocument": {
+            "type": "string",
+            "description": "Counterpart CPF/CNPJ, unmasked",
+            "example": "12345678900"
           },
           "createdAt": {
             "type": "string",
