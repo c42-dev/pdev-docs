@@ -30,6 +30,7 @@ All webhooks follow the same base structure:
   "event": "payment_completed",
   "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
   "timestamp": "2026-01-11T19:03:28.280Z",
+  "subAccount": null,
   "data": {
     // Event-specific data
   }
@@ -41,7 +42,32 @@ All webhooks follow the same base structure:
 | `event` | string | Event type |
 | `eventId` | string | Unique event ID (usually the transaction ID) |
 | `timestamp` | string | Event date/time in ISO 8601 format |
+| `subAccount` | string or null | `reference` of the sub-account the event came from; `null` when the event belongs to the main account |
 | `data` | object | Event-specific data |
+
+## Sub-accounts
+
+When the event belongs to a [sub-account](/en#sub-accounts), the `subAccount` field carries its `reference`:
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "subAccount": "loja-centro",
+  "data": {
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "amount": 100.21,
+    "status": "completed"
+  }
+}
+```
+
+<Warning>
+  **If the sub-account has no webhook endpoint of its own, its events are delivered to the main account's endpoints.** That is why `subAccount` is essential: it is the field that tells you which wallet the event belongs to.
+
+  Always use it to credit the event to the right wallet — never assume that every event received on the main account's endpoint belongs to the main account.
+</Warning>
 
 ## Headers Sent
 

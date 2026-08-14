@@ -82,6 +82,8 @@ Cada credencial possui permissões granulares que determinam quais endpoints ela
 | `WITHDRAWAL:WRITE` | Criar saques via PIX |
 | `METRICS:READ` | Obter métricas de receita |
 | `ACCOUNT:READ` | Visualizar dados da conta e saldo |
+| `SUBACCOUNT:WRITE` | Criar subcontas |
+| `SUBACCOUNT:READ` | Listar subcontas |
 
 <Note>
   A permissão `FULL_ACCESS` concede acesso a todos os endpoints, equivalente a possuir todas as permissões listadas acima.
@@ -92,6 +94,36 @@ Cada credencial possui permissões granulares que determinam quais endpoints ela
 Opcionalmente, você pode restringir uma credencial a uma lista de IPs permitidos. Quando a lista está configurada, requisições originadas de IPs fora dela são rejeitadas com erro `403 Forbidden`.
 
 Recomendamos configurar a restrição de IP em credenciais com permissões sensíveis, como `FULL_ACCESS` e `WITHDRAWAL:WRITE`.
+
+## Subcontas
+
+Uma conta pode ter subcontas: carteiras filhas com **saldo totalmente independente** do saldo da conta principal. Cada subconta é identificada por um `reference` escolhido por você.
+
+Para operar em uma subconta, envie o header `X-Sub-Account` com o `reference` dela:
+
+```bash
+curl https://api-gateway.pague.dev/v2/account \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro'
+```
+
+O header é **opcional** e é aceito em todos os endpoints, exceto `/auth` e os próprios endpoints de `/sub-accounts` — criar e listar subcontas acontece sempre na conta principal. Quando presente, a operação inteira acontece na subconta — criar cobrança, consultar transação, criar saque, consultar saldo. Quando ausente, a operação acontece na conta principal.
+
+<Note>
+  O `reference` é definido por você na criação da subconta e é **imutável**. Ele precisa casar com `^[a-z0-9][a-z0-9_-]{1,31}$`: de 2 a 32 caracteres, apenas letras minúsculas, números, `-` e `_`, começando por letra minúscula ou número.
+</Note>
+
+### Erros de subconta
+
+| HTTP | Código | Quando acontece |
+|---|---|---|
+| 404 | `SUB_ACCOUNT_NOT_FOUND` | O `reference` informado não existe nesta conta |
+| 403 | `SUB_ACCOUNT_FORBIDDEN` | A credencial não está autorizada a operar essa subconta |
+| 403 | `SUB_ACCOUNT_SUSPENDED` | A subconta está suspensa |
+| 409 | `SUB_ACCOUNT_QUOTA_EXCEEDED` | O limite de subcontas da conta foi atingido |
+| 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | O `reference` já está em uso nesta conta |
+
+Subcontas são criadas em [Criar Subconta](/api-reference/sub-accounts/create) e listadas em [Listar Subcontas](/api-reference/sub-accounts/list). Nos webhooks, o campo `subAccount` indica de qual carteira é o evento — veja [Webhooks](/api-reference/webhooks).
 
 ## Recursos Disponíveis
 
@@ -113,5 +145,8 @@ Recomendamos configurar a restrição de IP em credenciais com permissões sens�
   </Card>
   <Card title="Conta" icon="building" href="/api-reference/account/get">
     Consultar dados da conta e saldo
+  </Card>
+  <Card title="Subcontas" icon="sitemap" href="/api-reference/sub-accounts/create">
+    Carteiras filhas com saldo próprio
   </Card>
 </CardGroup>

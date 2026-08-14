@@ -131,6 +131,9 @@
               "minLength": 8,
               "maxLength": 255
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -208,6 +211,11 @@
       "post": {
         "description": "Cria um novo projeto.\n\n**Permissão requerida:** `PROJECT:WRITE` ou `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_createProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SubAccount"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -326,6 +334,9 @@
               "type": "string",
               "enum": ["asc", "desc"]
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -383,6 +394,9 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -449,6 +463,9 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -516,6 +533,9 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -603,6 +623,9 @@
               "type": "string",
               "enum": ["awaiting_response", "defended", "approved", "rejected"]
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -661,6 +684,9 @@
               "minLength": 8,
               "maxLength": 255
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -748,6 +774,11 @@
       "get": {
         "description": "Retorna os dados da conta, informações da empresa e saldo disponível.\n\n**Permissão requerida:** `ACCOUNT:READ` ou `FULL_ACCESS`",
         "operationId": "ExternalAccountController_getAccountInfo",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SubAccount"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Dados da conta e saldo",
@@ -808,6 +839,144 @@
           }
         ]
       }
+    },
+    "/sub-accounts": {
+      "post": {
+        "description": "Cria uma subconta com saldo próprio, totalmente independente do saldo da conta principal.\n\n**Permissão requerida:** `SUBACCOUNT:WRITE` ou `FULL_ACCESS`",
+        "operationId": "ExternalSubAccountsController_createSubAccount",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubAccountInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Subconta criada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSubAccountOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Permission denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - `reference` já usado nesta conta (`SUB_ACCOUNT_REFERENCE_TAKEN`) ou limite de subcontas atingido (`SUB_ACCOUNT_QUOTA_EXCEEDED`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Criar uma subconta",
+        "tags": ["External API - Sub-accounts (Subcontas)"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "description": "Retorna as subcontas da conta.\n\n**Permissão requerida:** `SUBACCOUNT:READ` ou `FULL_ACCESS`",
+        "operationId": "ExternalSubAccountsController_getAllSubAccounts",
+        "responses": {
+          "200": {
+            "description": "Lista de subcontas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllSubAccountsOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Permission denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Listar subcontas",
+        "tags": ["External API - Sub-accounts (Subcontas)"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -817,6 +986,19 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "description": "Access token obtido no POST /auth (client_id + client_secret). Válido por 300 segundos."
+      }
+    },
+    "parameters": {
+      "SubAccount": {
+        "name": "X-Sub-Account",
+        "in": "header",
+        "required": false,
+        "description": "Reference da subconta em que a operação deve ser executada. Quando omitido, a operação acontece na conta principal. Aceito em todos os endpoints, exceto `POST /auth` e os próprios endpoints de `/sub-accounts`, que sempre operam na conta principal.\n\nErros possíveis: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+          "example": "loja-centro"
+        }
       }
     },
     "schemas": {
@@ -8989,6 +9171,96 @@
           }
         },
         "required": ["account", "balance"]
+      },
+      "ForbiddenErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 403
+          },
+          "error": {
+            "type": "string",
+            "example": "Forbidden"
+          },
+          "message": {
+            "type": "string",
+            "example": "You do not have permission to access this resource"
+          },
+          "details": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2025-12-15T22:00:00.000Z"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "required": ["statusCode", "error", "message", "timestamp"]
+      },
+      "CreateSubAccountInput": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string",
+            "description": "Identificador da subconta definido por você. Único dentro da conta e imutável depois da criação.",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+            "example": "loja-centro"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome de exibição da subconta",
+            "maxLength": 255,
+            "example": "Loja Centro"
+          }
+        },
+        "required": ["reference", "name"]
+      },
+      "CreateSubAccountOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID da subconta",
+            "format": "uuid"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Reference da subconta",
+            "example": "loja-centro"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome da subconta",
+            "example": "Loja Centro"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status da subconta",
+            "example": "approved"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Data de criação",
+            "format": "date-time"
+          }
+        },
+        "required": ["id", "reference", "name", "status", "createdAt"]
+      },
+      "GetAllSubAccountsOutput": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Lista de subcontas da conta",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateSubAccountOutput"
+            }
+          }
+        },
+        "required": ["data"]
       }
     }
   }

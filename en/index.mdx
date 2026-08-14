@@ -82,6 +82,8 @@ Each credential has granular permissions that determine which endpoints it can a
 | `WITHDRAWAL:WRITE` | Create PIX withdrawals |
 | `METRICS:READ` | Get revenue metrics |
 | `ACCOUNT:READ` | View account details and balance |
+| `SUBACCOUNT:WRITE` | Create sub-accounts |
+| `SUBACCOUNT:READ` | List sub-accounts |
 
 <Note>
   The `FULL_ACCESS` permission grants access to all endpoints, equivalent to holding every permission listed above.
@@ -92,6 +94,36 @@ Each credential has granular permissions that determine which endpoints it can a
 Optionally, you can restrict a credential to a list of allowed IPs. When the list is configured, requests originating from IPs outside of it are rejected with a `403 Forbidden` error.
 
 We recommend configuring IP restriction on credentials with sensitive permissions, such as `FULL_ACCESS` and `WITHDRAWAL:WRITE`.
+
+## Sub-accounts
+
+An account can have sub-accounts: child wallets whose balance is **fully independent** from the main account balance. Each sub-account is identified by a `reference` you choose.
+
+To operate on a sub-account, send the `X-Sub-Account` header with its `reference`:
+
+```bash
+curl https://api-gateway.pague.dev/v2/account \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro'
+```
+
+The header is **optional** and is accepted on every endpoint except `/auth` and the `/sub-accounts` endpoints themselves — creating and listing sub-accounts always happens on the main account. When present, the whole operation happens on the sub-account — creating a charge, retrieving a transaction, creating a withdrawal, checking the balance. When omitted, the operation happens on the main account.
+
+<Note>
+  The `reference` is defined by you when the sub-account is created and is **immutable**. It must match `^[a-z0-9][a-z0-9_-]{1,31}$`: 2 to 32 characters, only lowercase letters, digits, `-` and `_`, starting with a lowercase letter or a digit.
+</Note>
+
+### Sub-account errors
+
+| HTTP | Code | When it happens |
+|---|---|---|
+| 404 | `SUB_ACCOUNT_NOT_FOUND` | The given `reference` does not exist in this account |
+| 403 | `SUB_ACCOUNT_FORBIDDEN` | The credential is not allowed to operate on that sub-account |
+| 403 | `SUB_ACCOUNT_SUSPENDED` | The sub-account is suspended |
+| 409 | `SUB_ACCOUNT_QUOTA_EXCEEDED` | The account's sub-account limit was reached |
+| 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | The `reference` is already in use in this account |
+
+Sub-accounts are created at [Create Sub-account](/en/api-reference/sub-accounts/create) and listed at [List Sub-accounts](/en/api-reference/sub-accounts/list). In webhooks, the `subAccount` field tells which wallet the event belongs to — see [Webhooks](/en/api-reference/webhooks).
 
 ## Available Resources
 
@@ -113,5 +145,8 @@ We recommend configuring IP restriction on credentials with sensitive permission
   </Card>
   <Card title="Account" icon="building" href="/en/api-reference/account/get">
     Check account details and balance
+  </Card>
+  <Card title="Sub-accounts" icon="sitemap" href="/en/api-reference/sub-accounts/create">
+    Child wallets with their own balance
   </Card>
 </CardGroup>
