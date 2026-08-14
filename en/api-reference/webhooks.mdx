@@ -69,7 +69,7 @@ Every webhook is signed with HMAC-SHA256 using your **endpoint's secret**
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 app.post('/webhook', (req, res) => {
-  const signature = req.headers['x-pague.dev-signature'] as string; // "sha256=<hex>"
+  const signature = req.headers['x-pague-signature'] as string; // "sha256=<hex>"
   const rawBody = req.body; // raw string body
 
   // 1. HMAC-SHA256 of the payload with YOUR secret (do not hash the secret)

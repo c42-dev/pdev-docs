@@ -69,7 +69,7 @@ description: 'Получайте уведомления о платёжных с
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 app.post('/webhook', (req, res) => {
-  const signature = req.headers['x-pague.dev-signature'] as string; // "sha256=<hex>"
+  const signature = req.headers['x-pague-signature'] as string; // "sha256=<hex>"
   const rawBody = req.body; // сырое тело запроса в виде строки
 
   // 1. HMAC-SHA256 полезной нагрузки с ВАШИМ secret (не хешируйте сам secret)
