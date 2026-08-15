@@ -30,6 +30,7 @@ Todos os webhooks seguem a mesma estrutura base:
   "event": "payment_completed",
   "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
   "timestamp": "2026-01-11T19:03:28.280Z",
+  "subAccount": null,
   "data": {
     // Dados específicos do evento
   }
@@ -41,7 +42,32 @@ Todos os webhooks seguem a mesma estrutura base:
 | `event` | string | Tipo do evento |
 | `eventId` | string | ID único do evento (geralmente o ID da transação) |
 | `timestamp` | string | Data/hora do evento em formato ISO 8601 |
+| `subAccount` | string ou null | `reference` da subconta que originou o evento; `null` quando o evento é da conta principal |
 | `data` | object | Dados específicos do evento |
+
+## Subcontas
+
+Quando o evento pertence a uma [subconta](/#subcontas), o campo `subAccount` traz o `reference` dela:
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "subAccount": "loja-centro",
+  "data": {
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "amount": 100.21,
+    "status": "completed"
+  }
+}
+```
+
+<Warning>
+  **Se a subconta não tiver um endpoint de webhook próprio cadastrado, os eventos dela são entregues nos endpoints da conta principal.** É por isso que o `subAccount` é essencial: é ele que diz de qual carteira é o evento.
+
+  Sempre use esse campo para creditar o evento na carteira certa — nunca assuma que todo evento recebido no endpoint da conta principal pertence à conta principal.
+</Warning>
 
 ## Headers Enviados
 
@@ -115,6 +141,9 @@ Enviado quando um pagamento PIX é confirmado.
     "amount": 100.21,
     "feeAmount": 0.5,
     "netAmount": 99.71,
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ],
     "currency": "BRL",
     "paymentMethod": "pix",
     "status": "completed",
@@ -131,6 +160,12 @@ Enviado quando um pagamento PIX é confirmado.
 }
 ```
 
+<Note>
+**O `split` do webhook é o que foi efetivamente distribuído**, não o que você pediu na criação da cobrança. Os dois divergem quando a taxa da conta muda entre a cobrança e o pagamento: o líquido encolhe e as pernas são reduzidas na ordem em que foram enviadas, em vez de a liquidação falhar.
+
+Para conciliar com o extrato da carteira, use sempre o valor que vem no webhook — nunca o que você mandou no request. O campo só aparece quando houve rateio; cobrança sem split não ganha a chave.
+</Note>
+
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `transactionId` | string | ID único da transação |
@@ -138,6 +173,7 @@ Enviado quando um pagamento PIX é confirmado.
 | `amount` | number | Valor total do pagamento |
 | `feeAmount` | number | Taxa cobrada |
 | `netAmount` | number | Valor líquido (amount - feeAmount) |
+| `split` | array | Rateio efetivado entre as carteiras, em reais; `subAccount` traz o `reference` de destino, ou `principal` para a conta principal (opcional — presente apenas quando houve [split](/#split-de-pagamento)) |
 | `currency` | string | Moeda (BRL) |
 | `paymentMethod` | string | Método de pagamento (pix) |
 | `status` | string | Status do pagamento (completed) |
