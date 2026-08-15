@@ -99,6 +99,8 @@ We recommend configuring IP restriction on credentials with sensitive permission
 
 An account can have sub-accounts: child wallets whose balance is **fully independent** from the main account balance. Each sub-account is identified by a `reference` you choose.
 
+Sub-accounts and [split](/en#payment-split) work in **both environments**: an `mp_test_*` credential creates and operates wallets in the sandbox just like an `mp_live_*` one does in production.
+
 To operate on a sub-account, send the `X-Sub-Account` header with its `reference`:
 
 ```bash
@@ -114,6 +116,22 @@ The header is **optional** and is accepted on every endpoint except `/auth` and 
 
   `principal` is a **reserved word**: it identifies the main account in the `split` and in the `X-Sub-Account` header, so no sub-account can be created with that `reference`.
 </Note>
+
+### Sub-accounts in the sandbox
+
+The `X-Sub-Account` header, the `split`, the `principal` keyword and the internal transfer work in the sandbox exactly as they do in production.
+
+**The same `reference` can exist in both environments.** The sandbox account and the production account are distinct accounts, so `loja-centro` in the sandbox and `loja-centro` in production coexist without colliding. That is what lets the **same payload run in both**: you test with `mp_test_*`, swap the key for an `mp_live_*` one and go to production without changing a line.
+
+<Note>
+  **The two trees are isolated.** An `mp_test_*` credential only sees the wallets of the sandbox tree; an `mp_live_*` one, only those of production.
+
+  This applies to the `split`: sharing from a sandbox wallet to a production wallet is refused, because the production one does not exist in that context. The error is the same `Subconta 'X' não existe nesta conta ou não está ativa`.
+</Note>
+
+**The wallet has to be created in each environment.** Creating `loja-centro` in production does not make it appear in the sandbox — they are two separate registrations, on purpose.
+
+**The fee is the same in both environments**, and that is deliberate: the sandbox wallet inherits the fee of the production account precisely so that the split cap, which is the net amount and not the gross, behaves the same. A split that passes in the sandbox passes in production. A sandbox wallet originating R$ 20.00 and sharing R$ 1.00 ends at **+R$ 18.80** on the originator and **+R$ 1.00** on the destination, with a R$ 0.20 fee — the same numbers as production.
 
 ### Internal transfer
 
@@ -142,6 +160,8 @@ By default, **a wallet shares the limit budget of the main account**. That is th
 </Warning>
 
 The platform can, case by case, give a wallet its **own** budget, separating its usage from the rest of the account. That is a platform decision: it is not configurable by the merchant, it has no endpoint and it is not self-service — if your operation needs it, talk to support.
+
+There is **no limit in the sandbox**: the shared ceiling described here only shows up in production. That is not specific to wallets — it applies to any sandbox operation — so do not conclude from your tests that the sharing is gone.
 
 Do not confuse it with the `SUB_ACCOUNT_QUOTA_EXCEEDED` in the table below: that one is the ceiling on **how many** wallets the account can have, and has nothing to do with transacted amounts.
 
@@ -278,7 +298,7 @@ All of them return `400`. The messages are returned by the API exactly as shown:
 
 | Message | When it happens |
 |---|---|
-| `Subconta 'X' não existe nesta conta ou não está ativa` | The `reference` is not an active sub-account of this account. It is also the error you get when addressing the main account or a sub-account of another owner |
+| `Subconta 'X' não existe nesta conta ou não está ativa` | The `reference` is not an active sub-account of this account. It is also the error you get when addressing a sub-account of another owner or a wallet from the other environment — to address the main account, use `principal` |
 | `Subconta 'X' aparece duas vezes no split` | The same `reference` was sent in two items — merge the amounts into a single item |
 | `A soma do split (R$ Y) excede o líquido da cobrança (R$ Z — bruto R$ A menos taxa de R$ B)` | The split does not fit in the net amount of the charge |
 | `A conta que origina a cobrança não pode receber rateio de si mesma` | The sub-account in the `X-Sub-Account` header also appears in the `split` |

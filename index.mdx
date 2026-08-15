@@ -99,6 +99,8 @@ Recomendamos configurar a restrição de IP em credenciais com permissões sens�
 
 Uma conta pode ter subcontas: carteiras filhas com **saldo totalmente independente** do saldo da conta principal. Cada subconta é identificada por um `reference` escolhido por você.
 
+Subcontas e [split](/#split-de-pagamento) funcionam nos **dois ambientes**: uma credencial `mp_test_*` cria e opera carteiras no sandbox como uma `mp_live_*` faz em produção.
+
 Para operar em uma subconta, envie o header `X-Sub-Account` com o `reference` dela:
 
 ```bash
@@ -114,6 +116,22 @@ O header é **opcional** e é aceito em todos os endpoints, exceto `/auth` e os 
 
   `principal` é **palavra reservada**: ela identifica a conta principal no `split` e no header `X-Sub-Account`, então nenhuma subconta pode ser criada com esse `reference`.
 </Note>
+
+### Subcontas no sandbox
+
+O header `X-Sub-Account`, o `split`, a palavra `principal` e a transferência interna funcionam no sandbox exatamente como em produção.
+
+**O mesmo `reference` pode existir nos dois ambientes.** A conta sandbox e a de produção são contas distintas, então `loja-centro` no sandbox e `loja-centro` em produção convivem sem colidir. É isso que permite o **mesmo payload rodar nos dois**: você testa com `mp_test_*`, troca a chave por uma `mp_live_*` e vai para produção sem mudar uma linha.
+
+<Note>
+  **As duas árvores são isoladas.** Uma credencial `mp_test_*` só enxerga as carteiras da árvore sandbox; uma `mp_live_*`, só as de produção.
+
+  Isso vale para o `split`: ratear de uma carteira sandbox para uma carteira de produção é recusado, porque a de produção não existe naquele contexto. O erro é o mesmo `Subconta 'X' não existe nesta conta ou não está ativa`.
+</Note>
+
+**A carteira precisa ser criada em cada ambiente.** Criar `loja-centro` em produção não a faz aparecer no sandbox — são dois cadastros, de propósito.
+
+**A taxa é a mesma nos dois ambientes**, e isso é deliberado: a carteira sandbox herda a taxa da conta de produção justamente para que o teto do rateio, que é o líquido e não o bruto, se comporte igual. Um split que passa no sandbox passa em produção. Uma carteira sandbox originando R$ 20,00 e rateando R$ 1,00 fecha em **+R$ 18,80** na originadora e **+R$ 1,00** no destino, com taxa de R$ 0,20 — os mesmos números de produção.
 
 ### Transferência interna
 
@@ -142,6 +160,8 @@ Por padrão, **a carteira compartilha o orçamento de limite da conta principal*
 </Warning>
 
 A plataforma pode, caso a caso, dar orçamento **próprio** a uma carteira, separando o consumo dela do resto da conta. É decisão da plataforma: não é configurável pelo lojista, não tem endpoint e não é autoatendimento — se a sua operação precisa disso, fale com o suporte.
+
+No **sandbox não há limite**: o teto compartilhado descrito aqui só se manifesta em produção. Isso não é específico de carteiras — vale para qualquer operação sandbox —, então não conclua dos seus testes que o compartilhamento sumiu.
 
 Não confunda com o `SUB_ACCOUNT_QUOTA_EXCEEDED` da tabela abaixo: aquele é o teto de **quantas** carteiras a conta pode ter, e não tem relação com valor transacionado.
 
@@ -278,7 +298,7 @@ Todos retornam `400`:
 
 | Mensagem | Quando acontece |
 |---|---|
-| `Subconta 'X' não existe nesta conta ou não está ativa` | O `reference` não é de uma subconta ativa desta conta. É também o erro de quem tenta endereçar a conta principal ou uma subconta de outra titularidade |
+| `Subconta 'X' não existe nesta conta ou não está ativa` | O `reference` não é de uma subconta ativa desta conta. É também o erro de quem endereça uma subconta de outra titularidade ou uma carteira do outro ambiente — para endereçar a conta principal, use `principal` |
 | `Subconta 'X' aparece duas vezes no split` | O mesmo `reference` foi enviado em dois itens — junte os valores em um item só |
 | `A soma do split (R$ Y) excede o líquido da cobrança (R$ Z — bruto R$ A menos taxa de R$ B)` | O rateio não cabe no líquido da cobrança |
 | `A conta que origina a cobrança não pode receber rateio de si mesma` | A subconta do header `X-Sub-Account` também aparece no `split` |
