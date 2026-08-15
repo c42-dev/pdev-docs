@@ -141,6 +141,9 @@ Enviado quando um pagamento PIX é confirmado.
     "amount": 100.21,
     "feeAmount": 0.5,
     "netAmount": 99.71,
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ],
     "currency": "BRL",
     "paymentMethod": "pix",
     "status": "completed",
@@ -157,6 +160,12 @@ Enviado quando um pagamento PIX é confirmado.
 }
 ```
 
+<Note>
+**O `split` do webhook é o que foi efetivamente distribuído**, não o que você pediu na criação da cobrança. Os dois divergem quando a taxa da conta muda entre a cobrança e o pagamento: o líquido encolhe e as pernas são reduzidas na ordem em que foram enviadas, em vez de a liquidação falhar.
+
+Para conciliar com o extrato da carteira, use sempre o valor que vem no webhook — nunca o que você mandou no request. O campo só aparece quando houve rateio; cobrança sem split não ganha a chave.
+</Note>
+
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `transactionId` | string | ID único da transação |
@@ -164,6 +173,7 @@ Enviado quando um pagamento PIX é confirmado.
 | `amount` | number | Valor total do pagamento |
 | `feeAmount` | number | Taxa cobrada |
 | `netAmount` | number | Valor líquido (amount - feeAmount) |
+| `split` | array | Rateio efetivado entre subcontas, em reais (opcional — presente apenas quando houve [split](/#split-de-pagamento)) |
 | `currency` | string | Moeda (BRL) |
 | `paymentMethod` | string | Método de pagamento (pix) |
 | `status` | string | Status do pagamento (completed) |

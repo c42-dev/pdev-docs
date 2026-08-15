@@ -9545,6 +9545,14 @@
               "orderId": "12345",
               "source": "website"
             }
+          },
+          "split": {
+            "type": "array",
+            "description": "Shares part of the amount with other sub-accounts of the same account, at settlement. Whoever creates the charge is the originator: it receives the gross amount, pays the full fee and only then splits — the fee is not shared with the recipients. The split sum cannot exceed the net amount (charge amount minus the fee). Refunds and MED debit the originator only; whoever received a share is never debited.",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationInput"
+            }
           }
         },
         "required": [
@@ -9608,6 +9616,13 @@
             "type": "string",
             "description": "Creation date",
             "format": "date-time"
+          },
+          "split": {
+            "type": "array",
+            "description": "Accepted split, in BRL. Present only when the charge was created with a split — if it came back in the response, the sub-accounts existed and the sum fit in the net amount. What was actually distributed arrives in the payment_completed webhook.",
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationOutput"
+            }
           }
         },
         "required": [
@@ -9618,6 +9633,46 @@
           "pixCopyPaste",
           "expiresAt",
           "createdAt"
+        ]
+      },
+      "PixSplitAllocationInput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference of the sub-account that receives the share. It must be an active sub-account of the same account; the main account is not addressable as a destination.",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL allocated to this sub-account. Fixed amount — percentages are not accepted. At most 2 decimal places.",
+            "minimum": 0.01,
+            "example": 30
+          }
+        },
+        "required": [
+          "subAccount",
+          "amount"
+        ]
+      },
+      "PixSplitAllocationOutput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference of the sub-account that receives the share",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL allocated to this sub-account",
+            "example": 30
+          }
+        },
+        "required": [
+          "subAccount",
+          "amount"
         ]
       },
       "ExternalBalanceBlockOutput": {

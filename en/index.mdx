@@ -125,6 +125,114 @@ The header is **optional** and is accepted on every endpoint except `/auth` and 
 
 Sub-accounts are created at [Create Sub-account](/en/api-reference/sub-accounts/create) and listed at [List Sub-accounts](/en/api-reference/sub-accounts/list). In webhooks, the `subAccount` field tells which wallet the event belongs to — see [Webhooks](/en/api-reference/webhooks).
 
+## Payment Split
+
+A PIX charge can split part of the amount it receives with other sub-accounts of the same account. Send the optional `split` field when [creating the charge](/en/api-reference/pix/create):
+
+```json
+{
+  "amount": 100.00,
+  "description": "Pedido 4821",
+  "split": [
+    { "subAccount": "loja-centro", "amount": 30.00 },
+    { "subAccount": "loja-sul", "amount": 20.00 }
+  ]
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `split` | array | Optional. At most **10** items |
+| `split[].subAccount` | string | `reference` of the sub-account that receives the share |
+| `split[].amount` | number | Amount in BRL allocated to that sub-account — minimum `0.01`, at most 2 decimal places |
+
+Amounts are **fixed, in BRL**: there is no percentage split. The creation response echoes the accepted `split` back, in the same format and also in BRL — if it came back in the response, the sub-accounts existed and the sum fit. Validation happens **before** the charge is generated: an invalid `split` returns `400` and no charge is created.
+
+### Whoever creates the charge is the originator
+
+The originator is the account — or the sub-account in the `X-Sub-Account` header — that created the charge. It is the one that receives the **gross amount**, pays the **full fee**, and only then splits what is left.
+
+The fee is **not** split across the recipients. Each sub-account in the `split` receives exactly the `amount` you asked for, with nothing deducted.
+
+### The cap is the net amount, not the gross
+
+The most that can be split is the charge amount **minus the fee**.
+
+On a **R$ 100.00** charge with a **R$ 1.49** fee, the net is **R$ 98.51** — and that is the cap. A `split` adding up to R$ 98.51 is accepted (the originator keeps zero). A `split` adding up to **R$ 99.00** is rejected, even though it is less than the R$ 100.00 of the charge:
+
+```json 400 response
+{
+  "statusCode": 400,
+  "error": "DomainError",
+  "message": "A soma do split (R$ 99.00) excede o líquido da cobrança (R$ 98.51 — bruto R$ 100.00 menos taxa de R$ 1.49)",
+  "timestamp": "2026-01-11T19:03:28.280Z"
+}
+```
+
+The fee taken into account is the one of the account originating the charge, for the PIX method.
+
+<Warning>
+  **Refunds and MED hit the originator only.** Whoever received a share is **never** debited: there is no cascading refund and no clawback of money already passed on. A refund, a chargeback or a MED block on the charge debits exclusively the account that originated it.
+
+  The consequence is yours to manage: if you split 100% of the net amount and the transaction is refunded, the originator absorbs the entire loss — and the debit may leave its balance negative. Keeping a margin in the originator is the integrator's decision, not the system's.
+</Warning>
+
+### The split happens at settlement
+
+Creating the charge **moves no money at all**. The `split` is recorded on the charge and is only executed when the payment is confirmed — that is when the amounts leave the originator's balance and enter the destination wallets. A charge that expires or is never paid produces no split.
+
+<Note>
+  The account's fee can change between the creation of the charge and the payment. If, at settlement, the `split` sum no longer fits in the net amount, the legs are honored **in the order you sent them**, until the net runs out: the last one may be reduced, or may not happen at all. Settlement never fails because of this — order the array by priority and reconcile using the `split` of the [`payment_completed`](/en/api-reference/webhooks) webhook, which carries what was actually distributed.
+</Note>
+
+### Only sub-accounts of the same account
+
+`subAccount` only accepts the `reference` of an **active sub-account of the same account**. Splitting outside the ownership does not exist in this API.
+
+The main account is **not addressable as a destination**: `reference` is a property of a sub-account, and the main account does not have one. A wallet that needs to return balance to the main account uses an internal transfer — an explicit operation, done in the Dashboard, that is not attached to the settlement of a payment.
+
+### Splitting from a sub-account
+
+The `X-Sub-Account` header and the `split` field answer different questions and work **together**: the header says **who originates** the charge, the `split` says **who gets part of the net amount**.
+
+A sub-account can originate a charge and split it with a sibling. In that case the main account is not touched — it receives nothing and pays no fee:
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 100.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ]
+  }'
+```
+
+`loja-centro` is the originator: it receives the R$ 100.00, pays the fee and passes R$ 20.00 on to `loja-sul`. A sub-account cannot split with itself.
+
+### Split errors
+
+All of them return `400`. The messages are returned by the API exactly as shown:
+
+| Message | When it happens |
+|---|---|
+| `Subconta 'X' não existe nesta conta ou não está ativa` | The `reference` is not an active sub-account of this account. It is also the error you get when addressing the main account or a sub-account of another owner |
+| `Subconta 'X' aparece duas vezes no split` | The same `reference` was sent in two items — merge the amounts into a single item |
+| `A soma do split (R$ Y) excede o líquido da cobrança (R$ Z — bruto R$ A menos taxa de R$ B)` | The split does not fit in the net amount of the charge |
+| `A conta que origina a cobrança não pode receber rateio de si mesma` | The sub-account in the `X-Sub-Account` header also appears in the `split` |
+| `split must contain no more than 10 elements` | The array has more than 10 items |
+| `split.0.amount must not be less than 0.01` | Some item has an `amount` below `0.01` — the index tells which one |
+
+### In the statement
+
+At settlement, each split leg produces **two lines** of type `internal_transfer`, both tied to the charge by `parentTransactionId`:
+
+- an **outgoing** line on the originator — `Split enviado para loja-centro`
+- an **incoming** line on the receiving wallet — `Split recebido do pagamento {charge id}`
+
 ## Available Resources
 
 <CardGroup cols={2}>

@@ -2,3 +2,11 @@
 title: 'Create PIX Charge'
 openapi: '/openapi.en.json POST /pix'
 ---
+
+<Note>
+**Split across sub-accounts.** The optional `split` field shares part of the amount with other sub-accounts of yours — at most 10 items, fixed amounts in BRL.
+
+Whoever creates the charge is the **originator**: it receives the gross amount, pays the full fee and only then splits, so the cap is the **net** amount (charge amount minus the fee), not the gross. The split happens at settlement, not at creation. Refunds and MED debit **the originator only** — whoever received a share is never debited.
+
+See [Payment Split](/en#payment-split) for the full rules, the examples and the error table.
+</Note>

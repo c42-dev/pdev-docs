@@ -141,6 +141,9 @@ Sent when a PIX payment is confirmed.
     "amount": 100.21,
     "feeAmount": 0.5,
     "netAmount": 99.71,
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ],
     "currency": "BRL",
     "paymentMethod": "pix",
     "status": "completed",
@@ -157,6 +160,12 @@ Sent when a PIX payment is confirmed.
 }
 ```
 
+<Note>
+**The `split` in the webhook is what was actually distributed**, not what you asked for when creating the charge. The two diverge when the account's fee changes between the charge and the payment: the net amount shrinks and the legs are reduced in the order they were sent, instead of the settlement failing.
+
+To reconcile against the wallet statement, always use the value that comes in the webhook — never the one you sent in the request. The field only appears when there was a split; a charge without one does not get the key.
+</Note>
+
 | Field | Type | Description |
 |-------|------|-----------|
 | `transactionId` | string | Unique transaction ID |
@@ -164,6 +173,7 @@ Sent when a PIX payment is confirmed.
 | `amount` | number | Total payment amount |
 | `feeAmount` | number | Fee charged |
 | `netAmount` | number | Net amount (amount - feeAmount) |
+| `split` | array | Split actually applied across sub-accounts, in BRL (optional — present only when there was a [split](/en#payment-split)) |
 | `currency` | string | Currency (BRL) |
 | `paymentMethod` | string | Payment method (pix) |
 | `status` | string | Payment status (completed) |

@@ -125,6 +125,114 @@ O header é **opcional** e é aceito em todos os endpoints, exceto `/auth` e os 
 
 Subcontas são criadas em [Criar Subconta](/api-reference/sub-accounts/create) e listadas em [Listar Subcontas](/api-reference/sub-accounts/list). Nos webhooks, o campo `subAccount` indica de qual carteira é o evento — veja [Webhooks](/api-reference/webhooks).
 
+## Split de Pagamento
+
+Uma cobrança PIX pode repartir parte do valor recebido com outras subcontas da mesma conta. Envie o campo opcional `split` na [criação da cobrança](/api-reference/pix/create):
+
+```json
+{
+  "amount": 100.00,
+  "description": "Pedido 4821",
+  "split": [
+    { "subAccount": "loja-centro", "amount": 30.00 },
+    { "subAccount": "loja-sul", "amount": 20.00 }
+  ]
+}
+```
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `split` | array | Opcional. No máximo **10** itens |
+| `split[].subAccount` | string | `reference` da subconta que recebe o rateio |
+| `split[].amount` | number | Valor em reais destinado a essa subconta — mínimo `0.01`, no máximo 2 casas decimais |
+
+Os valores são **fixos, em reais**: não existe rateio por percentual. A resposta da criação ecoa o `split` aceito, no mesmo formato e também em reais — se ele veio na resposta, as subcontas existiam e a soma cabia. A validação acontece **antes** de a cobrança ser gerada: um `split` inválido devolve `400` e nenhuma cobrança é criada.
+
+### Quem cria a cobrança é o originador
+
+O originador é a conta — ou a subconta do header `X-Sub-Account` — que criou a cobrança. É ele que recebe o **valor bruto**, paga a **taxa cheia** e só então reparte o que sobrou.
+
+A taxa **não é rateada** entre os destinatários. Cada subconta do `split` recebe exatamente o `amount` que você pediu, sem desconto nenhum.
+
+### O teto do rateio é o líquido, não o bruto
+
+O máximo que pode ser repartido é o valor da cobrança **menos a taxa**.
+
+Numa cobrança de **R$ 100,00** com taxa de **R$ 1,49**, o líquido é **R$ 98,51** — e é esse o teto. Um `split` somando R$ 98,51 é aceito (o originador fica com zero). Um `split` somando **R$ 99,00** é recusado, mesmo sendo menor que os R$ 100,00 da cobrança:
+
+```json Resposta 400
+{
+  "statusCode": 400,
+  "error": "DomainError",
+  "message": "A soma do split (R$ 99.00) excede o líquido da cobrança (R$ 98.51 — bruto R$ 100.00 menos taxa de R$ 1.49)",
+  "timestamp": "2026-01-11T19:03:28.280Z"
+}
+```
+
+A taxa considerada é a da conta que origina a cobrança, para o método PIX.
+
+<Warning>
+  **Estorno e MED atingem só o originador.** Quem recebeu rateio **nunca** é debitado: não existe estorno em cadeia nem recolhimento do valor já repassado. Um reembolso, um chargeback ou um bloqueio MED sobre a cobrança debita exclusivamente a conta que a originou.
+
+  A consequência é sua para administrar: se você repartir 100% do líquido e a transação for estornada, o originador arca com o prejuízo inteiro — e o débito pode deixar o saldo dele negativo. Guardar uma margem no originador é decisão do integrador, não do sistema.
+</Warning>
+
+### O rateio acontece na liquidação
+
+Criar a cobrança **não move dinheiro nenhum**. O `split` fica registrado na cobrança e só é executado quando o pagamento é confirmado — é nesse momento que os valores saem do saldo do originador e entram nas carteiras de destino. Cobrança expirada ou nunca paga não gera rateio.
+
+<Note>
+  A taxa da conta pode mudar entre a criação da cobrança e o pagamento. Se, na liquidação, a soma do `split` não couber mais no líquido, as pernas são atendidas **na ordem em que você as enviou**, até o líquido acabar: a última pode ser reduzida, ou não acontecer. A liquidação nunca falha por causa disso — ordene o array por prioridade e concilie pelo `split` do webhook [`payment_completed`](/api-reference/webhooks), que traz o que foi efetivamente distribuído.
+</Note>
+
+### Só subcontas da mesma conta
+
+`subAccount` só aceita o `reference` de uma subconta **ativa da mesma conta**. Split para fora da titularidade não existe nesta API.
+
+A conta principal **não é endereçável como destino**: `reference` é uma propriedade de subconta, e a conta principal não tem um. Uma carteira que precisa devolver saldo para a principal usa a transferência interna — operação explícita, feita no Dashboard, que não fica pendurada na liquidação de um pagamento.
+
+### Split a partir de uma subconta
+
+O header `X-Sub-Account` e o campo `split` respondem a perguntas diferentes e funcionam **juntos**: o header diz **quem origina** a cobrança, o `split` diz **para quem vai parte do líquido**.
+
+Uma subconta pode originar uma cobrança e repartir com uma irmã. Nesse caso a conta principal não é tocada — não recebe nada e não paga taxa nenhuma:
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 100.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ]
+  }'
+```
+
+`loja-centro` é a originadora: recebe os R$ 100,00, paga a taxa e repassa R$ 20,00 para `loja-sul`. Uma subconta não pode repartir consigo mesma.
+
+### Erros do split
+
+Todos retornam `400`:
+
+| Mensagem | Quando acontece |
+|---|---|
+| `Subconta 'X' não existe nesta conta ou não está ativa` | O `reference` não é de uma subconta ativa desta conta. É também o erro de quem tenta endereçar a conta principal ou uma subconta de outra titularidade |
+| `Subconta 'X' aparece duas vezes no split` | O mesmo `reference` foi enviado em dois itens — junte os valores em um item só |
+| `A soma do split (R$ Y) excede o líquido da cobrança (R$ Z — bruto R$ A menos taxa de R$ B)` | O rateio não cabe no líquido da cobrança |
+| `A conta que origina a cobrança não pode receber rateio de si mesma` | A subconta do header `X-Sub-Account` também aparece no `split` |
+| `split must contain no more than 10 elements` | O array tem mais de 10 itens |
+| `split.0.amount must not be less than 0.01` | Algum item tem `amount` abaixo de `0.01` — o índice indica qual |
+
+### No extrato
+
+Na liquidação, cada perna do split gera **duas linhas** de tipo `internal_transfer`, ambas amarradas à cobrança pelo `parentTransactionId`:
+
+- uma **saída** no originador — `Split enviado para loja-centro`
+- uma **entrada** na carteira que recebeu — `Split recebido do pagamento {id da cobrança}`
+
 ## Recursos Disponíveis
 
 <CardGroup cols={2}>

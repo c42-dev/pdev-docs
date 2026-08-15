@@ -9545,6 +9545,14 @@
               "orderId": "12345",
               "source": "website"
             }
+          },
+          "split": {
+            "type": "array",
+            "description": "Делит часть суммы с другими субсчетами того же аккаунта при зачислении. Инициатор — тот, кто создал платёж: он получает сумму брутто, платит полную комиссию и только потом делит остаток — комиссия между получателями не делится. Сумма split не может превышать чистую сумму (сумма платежа за вычетом комиссии). Возврат и MED списываются только с инициатора; с того, кто получил свою часть, средства никогда не списываются.",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationInput"
+            }
           }
         },
         "required": [
@@ -9608,6 +9616,13 @@
             "type": "string",
             "description": "Дата создания",
             "format": "date-time"
+          },
+          "split": {
+            "type": "array",
+            "description": "Принятое разделение, в BRL. Присутствует, только если платёж был создан с разделением — если оно пришло в ответе, значит субсчета существовали и сумма поместилась в чистую сумму. Фактически распределённое приходит в вебхуке payment_completed.",
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationOutput"
+            }
           }
         },
         "required": [
@@ -9618,6 +9633,46 @@
           "pixCopyPaste",
           "expiresAt",
           "createdAt"
+        ]
+      },
+      "PixSplitAllocationInput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference субсчёта, который получает свою часть. Это должен быть активный субсчёт того же аккаунта; основной аккаунт нельзя указать как получателя.",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Сумма в BRL для этого субсчёта. Фиксированная сумма — проценты не принимаются. Не более 2 знаков после запятой.",
+            "minimum": 0.01,
+            "example": 30
+          }
+        },
+        "required": [
+          "subAccount",
+          "amount"
+        ]
+      },
+      "PixSplitAllocationOutput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference субсчёта, который получает свою часть",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Сумма в BRL для этого субсчёта",
+            "example": 30
+          }
+        },
+        "required": [
+          "subAccount",
+          "amount"
         ]
       },
       "ExternalBalanceBlockOutput": {

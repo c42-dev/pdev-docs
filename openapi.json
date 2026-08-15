@@ -8710,6 +8710,14 @@
               "orderId": "12345",
               "source": "website"
             }
+          },
+          "split": {
+            "type": "array",
+            "description": "Reparte parte do valor com outras subcontas da mesma conta, na liquidação. Quem cria a cobrança é o originador: recebe o valor bruto, paga a taxa cheia e só então reparte — a taxa não é rateada entre os destinatários. A soma do split não pode exceder o líquido (valor da cobrança menos a taxa). Estorno e MED debitam apenas o originador; quem recebeu rateio nunca é debitado.",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationInput"
+            }
           }
         },
         "required": ["amount", "description"]
@@ -8765,6 +8773,13 @@
             "type": "string",
             "description": "Data de criação",
             "format": "date-time"
+          },
+          "split": {
+            "type": "array",
+            "description": "Rateio aceito, em reais. Presente apenas quando a cobrança foi criada com split — se veio na resposta, as subcontas existiam e a soma cabia no líquido. O que foi efetivamente distribuído chega no webhook payment_completed.",
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationOutput"
+            }
           }
         },
         "required": [
@@ -8776,6 +8791,40 @@
           "expiresAt",
           "createdAt"
         ]
+      },
+      "PixSplitAllocationInput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference da subconta que recebe o rateio. Precisa ser uma subconta ativa da mesma conta; a conta principal não é endereçável como destino.",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Valor em BRL destinado a essa subconta. Valor fixo — percentual não é aceito. No máximo 2 casas decimais.",
+            "minimum": 0.01,
+            "example": 30
+          }
+        },
+        "required": ["subAccount", "amount"]
+      },
+      "PixSplitAllocationOutput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference da subconta que recebe o rateio",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Valor em BRL destinado a essa subconta",
+            "example": 30
+          }
+        },
+        "required": ["subAccount", "amount"]
       },
       "ExternalBalanceBlockOutput": {
         "type": "object",
