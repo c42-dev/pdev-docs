@@ -1,0 +1,12 @@
+---
+title: 'Create Sub-account'
+openapi: '/openapi.en.json POST /sub-accounts'
+---
+
+<Note>
+**The `reference` is immutable.** It is the identifier you send in the `X-Sub-Account` header to operate on the sub-account, and the value that arrives in the `subAccount` field of webhooks — choose it carefully, because it cannot be changed after creation.
+
+Format: `^[a-z0-9][a-z0-9_-]{1,31}$` — 2 to 32 characters, only lowercase letters, digits, `-` and `_`, starting with a lowercase letter or a digit. The `reference` must be unique within the account: reusing an existing one returns `409 SUB_ACCOUNT_REFERENCE_TAKEN`.
+
+The sub-account starts with its own balance, at zero and fully independent from the main account balance. See [Sub-accounts](/en#sub-accounts) for the behavior of the `X-Sub-Account` header and the full error table.
+</Note>

@@ -1,0 +1,12 @@
+---
+title: 'Criar Subconta'
+openapi: '/openapi.json POST /sub-accounts'
+---
+
+<Note>
+**O `reference` é imutável.** Ele é o identificador que você envia no header `X-Sub-Account` para operar na subconta e o valor que chega no campo `subAccount` dos webhooks — escolha com cuidado, porque não é possível alterá-lo depois da criação.
+
+Formato: `^[a-z0-9][a-z0-9_-]{1,31}$` — de 2 a 32 caracteres, apenas letras minúsculas, números, `-` e `_`, começando por letra minúscula ou número. O `reference` precisa ser único dentro da conta: repetir um já existente retorna `409 SUB_ACCOUNT_REFERENCE_TAKEN`.
+
+A subconta nasce com saldo próprio, zerado e totalmente independente do saldo da conta principal. Veja [Subcontas](/#subcontas) para o comportamento do header `X-Sub-Account` e a tabela completa de erros.
+</Note>

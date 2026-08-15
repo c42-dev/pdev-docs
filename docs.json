@@ -72,6 +72,13 @@
               "api-reference/projects/create",
               "api-reference/projects/list"
             ]
+          },
+          {
+            "group": "Subcontas",
+            "pages": [
+              "api-reference/sub-accounts/create",
+              "api-reference/sub-accounts/list"
+            ]
           }
         ]
       },
@@ -128,6 +135,13 @@
               "en/api-reference/projects/create",
               "en/api-reference/projects/list"
             ]
+          },
+          {
+            "group": "Sub-accounts",
+            "pages": [
+              "en/api-reference/sub-accounts/create",
+              "en/api-reference/sub-accounts/list"
+            ]
           }
         ]
       },
@@ -183,6 +197,13 @@
             "pages": [
               "ru/api-reference/projects/create",
               "ru/api-reference/projects/list"
+            ]
+          },
+          {
+            "group": "Субсчета",
+            "pages": [
+              "ru/api-reference/sub-accounts/create",
+              "ru/api-reference/sub-accounts/list"
             ]
           }
         ]

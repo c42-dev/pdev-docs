@@ -140,6 +140,9 @@
               "minLength": 8,
               "maxLength": 255
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -219,6 +222,11 @@
       "post": {
         "description": "Creates a new project.\n\n**Required permission:** `PROJECT:WRITE` or `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_createProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SubAccount"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -346,6 +354,9 @@
                 "desc"
               ]
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -405,6 +416,9 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -473,6 +487,9 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -542,6 +559,9 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -636,6 +656,9 @@
                 "rejected"
               ]
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -696,6 +719,9 @@
               "minLength": 8,
               "maxLength": 255
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -785,6 +811,11 @@
       "get": {
         "description": "Returns the account details, company information, and available balance.\n\n**Required permission:** `ACCOUNT:READ` or `FULL_ACCESS`",
         "operationId": "ExternalAccountController_getAccountInfo",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SubAccount"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Account details and balance",
@@ -847,6 +878,148 @@
           }
         ]
       }
+    },
+    "/sub-accounts": {
+      "post": {
+        "description": "Creates a sub-account with its own balance, fully independent from the main account balance.\n\n**Required permission:** `SUBACCOUNT:WRITE` or `FULL_ACCESS`",
+        "operationId": "ExternalSubAccountsController_createSubAccount",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubAccountInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sub-account created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSubAccountOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Permission denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - `reference` already used in this account (`SUB_ACCOUNT_REFERENCE_TAKEN`) or sub-account limit reached (`SUB_ACCOUNT_QUOTA_EXCEEDED`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a sub-account",
+        "tags": [
+          "External API - Sub-accounts (Subcontas)"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "description": "Returns the sub-accounts of the account.\n\n**Required permission:** `SUBACCOUNT:READ` or `FULL_ACCESS`",
+        "operationId": "ExternalSubAccountsController_getAllSubAccounts",
+        "responses": {
+          "200": {
+            "description": "List of sub-accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllSubAccountsOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Permission denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List sub-accounts",
+        "tags": [
+          "External API - Sub-accounts (Subcontas)"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -856,6 +1029,19 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "description": "Access token obtained from POST /auth (client_id + client_secret). Valid for 300 seconds."
+      }
+    },
+    "parameters": {
+      "SubAccount": {
+        "name": "X-Sub-Account",
+        "in": "header",
+        "required": false,
+        "description": "Reference of the sub-account the operation runs against. When omitted, the operation happens on the main account; the reserved value `principal` also resolves to the main account and is equivalent to omitting the header. Accepted on every endpoint except `POST /auth` and the `/sub-accounts` endpoints themselves, which always operate on the main account.\n\nPossible errors: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+          "example": "loja-centro"
+        }
       }
     },
     "schemas": {
@@ -1279,14 +1465,16 @@
           },
           "type": {
             "type": "string",
-            "description": "Transaction type",
+            "description": "Transaction type. `internal_transfer` is a movement between accounts under the same ownership — an internal transfer or a split leg — and does not travel over PIX.",
             "enum": [
               "payment",
               "fee",
               "refund",
               "chargeback",
               "withdrawal",
-              "adjustment"
+              "adjustment",
+              "referral_commission",
+              "internal_transfer"
             ]
           },
           "paymentMethod": {
@@ -9359,6 +9547,14 @@
               "orderId": "12345",
               "source": "website"
             }
+          },
+          "split": {
+            "type": "array",
+            "description": "Shares part of the amount with other sub-accounts of the same account, at settlement. Whoever creates the charge is the originator: it receives the gross amount, pays the full fee and only then splits — the fee is not shared with the recipients. The split sum cannot exceed the net amount (charge amount minus the fee). Refunds and MED debit the originator only; whoever received a share is never debited.",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationInput"
+            }
           }
         },
         "required": [
@@ -9422,6 +9618,13 @@
             "type": "string",
             "description": "Creation date",
             "format": "date-time"
+          },
+          "split": {
+            "type": "array",
+            "description": "Accepted split, in BRL. Present only when the charge was created with a split — if it came back in the response, the sub-accounts existed and the sum fit in the net amount. What was actually distributed arrives in the payment_completed webhook.",
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationOutput"
+            }
           }
         },
         "required": [
@@ -9432,6 +9635,46 @@
           "pixCopyPaste",
           "expiresAt",
           "createdAt"
+        ]
+      },
+      "PixSplitAllocationInput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference of an active sub-account of the same account that receives the share. The reserved word `principal` addresses the main account — use it when the charge is originated by a sub-account (`X-Sub-Account` header); a charge created by the main account itself cannot split to `principal`.",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL allocated to this wallet. Fixed amount — percentages are not accepted. At most 2 decimal places.",
+            "minimum": 0.01,
+            "example": 30
+          }
+        },
+        "required": [
+          "subAccount",
+          "amount"
+        ]
+      },
+      "PixSplitAllocationOutput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference of the sub-account that receives the share, or `principal` when the destination is the main account",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in BRL allocated to this wallet",
+            "example": 30
+          }
+        },
+        "required": [
+          "subAccount",
+          "amount"
         ]
       },
       "ExternalBalanceBlockOutput": {
@@ -9872,6 +10115,112 @@
         "required": [
           "account",
           "balance"
+        ]
+      },
+      "ForbiddenErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 403
+          },
+          "error": {
+            "type": "string",
+            "example": "Forbidden"
+          },
+          "message": {
+            "type": "string",
+            "example": "You do not have permission to access this resource"
+          },
+          "details": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2025-12-15T22:00:00.000Z"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
+      },
+      "CreateSubAccountInput": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string",
+            "description": "Sub-account identifier defined by you. Unique within the account and immutable after creation. `principal` is a reserved word for the main account and cannot be used: it returns `400 SUB_ACCOUNT_INVALID_REFERENCE`.",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+            "example": "loja-centro"
+          },
+          "name": {
+            "type": "string",
+            "description": "Sub-account display name",
+            "maxLength": 255,
+            "example": "Loja Centro"
+          }
+        },
+        "required": [
+          "reference",
+          "name"
+        ]
+      },
+      "CreateSubAccountOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Sub-account ID",
+            "format": "uuid"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Sub-account reference",
+            "example": "loja-centro"
+          },
+          "name": {
+            "type": "string",
+            "description": "Sub-account name",
+            "example": "Loja Centro"
+          },
+          "status": {
+            "type": "string",
+            "description": "Sub-account status",
+            "example": "approved"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Creation date",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "name",
+          "status",
+          "createdAt"
+        ]
+      },
+      "GetAllSubAccountsOutput": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Sub-accounts of the account",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateSubAccountOutput"
+            }
+          }
+        },
+        "required": [
+          "data"
         ]
       }
     }

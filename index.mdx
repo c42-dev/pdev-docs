@@ -82,6 +82,8 @@ Cada credencial possui permissões granulares que determinam quais endpoints ela
 | `WITHDRAWAL:WRITE` | Criar saques via PIX |
 | `METRICS:READ` | Obter métricas de receita |
 | `ACCOUNT:READ` | Visualizar dados da conta e saldo |
+| `SUBACCOUNT:WRITE` | Criar subcontas |
+| `SUBACCOUNT:READ` | Listar subcontas |
 
 <Note>
   A permissão `FULL_ACCESS` concede acesso a todos os endpoints, equivalente a possuir todas as permissões listadas acima.
@@ -92,6 +94,233 @@ Cada credencial possui permissões granulares que determinam quais endpoints ela
 Opcionalmente, você pode restringir uma credencial a uma lista de IPs permitidos. Quando a lista está configurada, requisições originadas de IPs fora dela são rejeitadas com erro `403 Forbidden`.
 
 Recomendamos configurar a restrição de IP em credenciais com permissões sensíveis, como `FULL_ACCESS` e `WITHDRAWAL:WRITE`.
+
+## Subcontas
+
+Uma conta pode ter subcontas: carteiras filhas com **saldo totalmente independente** do saldo da conta principal. Cada subconta é identificada por um `reference` escolhido por você.
+
+Subcontas e [split](/#split-de-pagamento) funcionam nos **dois ambientes**: uma credencial `mp_test_*` cria e opera carteiras no sandbox como uma `mp_live_*` faz em produção.
+
+Para operar em uma subconta, envie o header `X-Sub-Account` com o `reference` dela:
+
+```bash
+curl https://api-gateway.pague.dev/v2/account \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro'
+```
+
+O header é **opcional** e é aceito em todos os endpoints, exceto `/auth` e os próprios endpoints de `/sub-accounts` — criar e listar subcontas acontece sempre na conta principal. Quando presente, a operação inteira acontece na subconta — criar cobrança, consultar transação, criar saque, consultar saldo. Quando ausente, a operação acontece na conta principal. `X-Sub-Account: principal` também resolve para a conta principal, e é equivalente a omitir o header.
+
+<Note>
+  O `reference` é definido por você na criação da subconta e é **imutável**. Ele precisa casar com `^[a-z0-9][a-z0-9_-]{1,31}$`: de 2 a 32 caracteres, apenas letras minúsculas, números, `-` e `_`, começando por letra minúscula ou número.
+
+  `principal` é **palavra reservada**: ela identifica a conta principal no `split` e no header `X-Sub-Account`, então nenhuma subconta pode ser criada com esse `reference`.
+</Note>
+
+### Subcontas no sandbox
+
+O header `X-Sub-Account`, o `split`, a palavra `principal` e a transferência interna funcionam no sandbox exatamente como em produção.
+
+**O mesmo `reference` pode existir nos dois ambientes.** A conta sandbox e a de produção são contas distintas, então `loja-centro` no sandbox e `loja-centro` em produção convivem sem colidir. É isso que permite o **mesmo payload rodar nos dois**: você testa com `mp_test_*`, troca a chave por uma `mp_live_*` e vai para produção sem mudar uma linha.
+
+<Note>
+  **As duas árvores são isoladas.** Uma credencial `mp_test_*` só enxerga as carteiras da árvore sandbox; uma `mp_live_*`, só as de produção.
+
+  Isso vale para o `split`: ratear de uma carteira sandbox para uma carteira de produção é recusado, porque a de produção não existe naquele contexto. O erro é o mesmo `Subconta 'X' não existe nesta conta ou não está ativa`.
+</Note>
+
+**A carteira precisa ser criada em cada ambiente.** Criar `loja-centro` em produção não a faz aparecer no sandbox — são dois cadastros, de propósito.
+
+**A taxa é a mesma nos dois ambientes**, e isso é deliberado: a carteira sandbox herda a taxa da conta de produção justamente para que o teto do rateio, que é o líquido e não o bruto, se comporte igual. Um split que passa no sandbox passa em produção. Uma carteira sandbox originando R$ 20,00 e rateando R$ 1,00 fecha em **+R$ 18,80** na originadora e **+R$ 1,00** no destino, com taxa de R$ 0,20 — os mesmos números de produção.
+
+### Transferência interna
+
+Uma subconta nasce com **saldo zero**. A transferência interna é como você abastece uma carteira nova — e como devolve saldo para a conta principal depois.
+
+Ela move saldo entre contas da **mesma titularidade**: da conta principal para uma carteira, de uma carteira para a conta principal, ou entre carteiras irmãs. Não é PIX e não é saque — é troca de bolso. O dinheiro sai de uma conta e entra na outra, aparece nos **dois** extratos, e o saldo total da conta não muda.
+
+<Note>
+  **Não existe endpoint de transferência interna na API pública.** A operação é feita no Dashboard, na tela de carteiras. Não adianta procurar uma rota: ela não faz parte deste contrato.
+</Note>
+
+O que vale saber antes de transferir:
+
+- **Só dentro da titularidade.** Transferir para conta de terceiro não existe aqui — isso é PIX, e o caminho é [Criar Saque PIX](/api-reference/withdrawals/create).
+- **O teto é o saldo gastável da origem**, não o disponível bruto: é o disponível menos a dívida de estorno em aberto, o mesmo critério que vale para o saque.
+- **Não tem desfazer.** Uma transferência errada se corrige transferindo no sentido inverso.
+
+No extrato, cada transferência gera **duas linhas** de tipo `internal_transfer` — uma saída (valor negativo) na origem e uma entrada (positiva) no destino. É o mesmo tipo das pernas de [split](/#split-de-pagamento): nos dois casos, `GET /transactions/{id}` devolve `type: internal_transfer`.
+
+### Limites da subconta
+
+Por padrão, **a carteira compartilha o orçamento de limite da conta principal**. Esse é o comportamento de toda subconta criada pela API ou pelo painel: o consumo de todas as carteiras soma contra o mesmo teto do titular.
+
+<Warning>
+  **Criar carteiras não multiplica o seu limite.** Como o orçamento é um só, uma cobrança em uma carteira pode ser recusada por limite **por causa do movimento de outra carteira** da mesma conta — inclusive de uma carteira que o seu código nem tocou naquela requisição. Isso é o comportamento esperado, não uma falha de isolamento.
+</Warning>
+
+A plataforma pode, caso a caso, dar orçamento **próprio** a uma carteira, separando o consumo dela do resto da conta. É decisão da plataforma: não é configurável pelo lojista, não tem endpoint e não é autoatendimento — se a sua operação precisa disso, fale com o suporte.
+
+No **sandbox não há limite**: o teto compartilhado descrito aqui só se manifesta em produção. Isso não é específico de carteiras — vale para qualquer operação sandbox —, então não conclua dos seus testes que o compartilhamento sumiu.
+
+Não confunda com o `SUB_ACCOUNT_QUOTA_EXCEEDED` da tabela abaixo: aquele é o teto de **quantas** carteiras a conta pode ter, e não tem relação com valor transacionado.
+
+### Erros de subconta
+
+| HTTP | Código | Quando acontece |
+|---|---|---|
+| 404 | `SUB_ACCOUNT_NOT_FOUND` | O `reference` informado não existe nesta conta |
+| 403 | `SUB_ACCOUNT_FORBIDDEN` | A credencial não está autorizada a operar essa subconta |
+| 403 | `SUB_ACCOUNT_SUSPENDED` | A subconta está suspensa |
+| 409 | `SUB_ACCOUNT_QUOTA_EXCEEDED` | O limite de subcontas da conta foi atingido |
+| 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | O `reference` já está em uso nesta conta |
+| 400 | `SUB_ACCOUNT_INVALID_REFERENCE` | O `reference` pedido na criação é `principal`, palavra reservada da conta principal |
+
+Duas coisas diferentes controlam o acesso a carteiras, e elas falham de formas diferentes:
+
+- **A permissão da credencial** vale para os endpoints de `/sub-accounts`: listar exige `SUBACCOUNT:READ`, criar exige `SUBACCOUNT:WRITE`. Sem ela, a resposta é `403 Insufficient permissions. Required: SUBACCOUNT:READ`.
+- **O escopo da credencial** vale para operar *dentro* de uma carteira: é ele que decide quais carteiras aquela credencial alcança pelo header `X-Sub-Account` e pelo `split`, e é ele que devolve `SUB_ACCOUNT_FORBIDDEN`.
+
+Por isso criar uma cobrança com `X-Sub-Account` e `split` exige só `PIX:WRITE`: as permissões `SUBACCOUNT:*` governam o cadastro de carteiras, não o uso delas.
+
+Subcontas são criadas em [Criar Subconta](/api-reference/sub-accounts/create) e listadas em [Listar Subcontas](/api-reference/sub-accounts/list). Nos webhooks, o campo `subAccount` indica de qual carteira é o evento — veja [Webhooks](/api-reference/webhooks).
+
+## Split de Pagamento
+
+Uma cobrança PIX pode repartir parte do valor recebido com outras carteiras da mesma conta — subcontas ou a própria conta principal. Envie o campo opcional `split` na [criação da cobrança](/api-reference/pix/create):
+
+```json
+{
+  "amount": 100.00,
+  "description": "Pedido 4821",
+  "split": [
+    { "subAccount": "loja-centro", "amount": 30.00 },
+    { "subAccount": "loja-sul", "amount": 20.00 }
+  ]
+}
+```
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `split` | array | Opcional. No máximo **10** itens |
+| `split[].subAccount` | string | `reference` da subconta que recebe o rateio, ou `principal` para a conta principal |
+| `split[].amount` | number | Valor em reais destinado a essa carteira — mínimo `0.01`, no máximo 2 casas decimais |
+
+Os valores são **fixos, em reais**: não existe rateio por percentual. A resposta da criação ecoa o `split` aceito, no mesmo formato e também em reais — se ele veio na resposta, as subcontas existiam e a soma cabia. A validação acontece **antes** de a cobrança ser gerada: um `split` inválido devolve `400` e nenhuma cobrança é criada.
+
+### Quem cria a cobrança é o originador
+
+O originador é a conta — ou a subconta do header `X-Sub-Account` — que criou a cobrança. É ele que recebe o **valor bruto**, paga a **taxa cheia** e só então reparte o que sobrou.
+
+A taxa **não é rateada** entre os destinatários. Cada subconta do `split` recebe exatamente o `amount` que você pediu, sem desconto nenhum.
+
+### O teto do rateio é o líquido, não o bruto
+
+O máximo que pode ser repartido é o valor da cobrança **menos a taxa**.
+
+Numa cobrança de **R$ 100,00** com taxa de **R$ 1,49**, o líquido é **R$ 98,51** — e é esse o teto. Um `split` somando R$ 98,51 é aceito (o originador fica com zero). Um `split` somando **R$ 99,00** é recusado, mesmo sendo menor que os R$ 100,00 da cobrança:
+
+```json Resposta 400
+{
+  "statusCode": 400,
+  "error": "DomainError",
+  "message": "A soma do split (R$ 99.00) excede o líquido da cobrança (R$ 98.51 — bruto R$ 100.00 menos taxa de R$ 1.49)",
+  "timestamp": "2026-01-11T19:03:28.280Z"
+}
+```
+
+A taxa considerada é a da conta que origina a cobrança, para o método PIX.
+
+<Warning>
+  **Estorno e MED atingem só o originador.** Quem recebeu rateio **nunca** é debitado: não existe estorno em cadeia nem recolhimento do valor já repassado. Um reembolso, um chargeback ou um bloqueio MED sobre a cobrança debita exclusivamente a conta que a originou.
+
+  A consequência é sua para administrar: se você repartir 100% do líquido e a transação for estornada, o originador arca com o prejuízo inteiro — e o débito pode deixar o saldo dele negativo. Guardar uma margem no originador é decisão do integrador, não do sistema.
+</Warning>
+
+### O rateio acontece na liquidação
+
+Criar a cobrança **não move dinheiro nenhum**. O `split` fica registrado na cobrança e só é executado quando o pagamento é confirmado — é nesse momento que os valores saem do saldo do originador e entram nas carteiras de destino. Cobrança expirada ou nunca paga não gera rateio.
+
+<Note>
+  A taxa da conta pode mudar entre a criação da cobrança e o pagamento. Se, na liquidação, a soma do `split` não couber mais no líquido, as pernas são atendidas **na ordem em que você as enviou**, até o líquido acabar: a última pode ser reduzida, ou não acontecer. A liquidação nunca falha por causa disso — ordene o array por prioridade e concilie pelo `split` do webhook [`payment_completed`](/api-reference/webhooks), que traz o que foi efetivamente distribuído.
+</Note>
+
+### Só carteiras da mesma conta
+
+`subAccount` aceita o `reference` de uma subconta **ativa da mesma conta**, ou a palavra reservada `principal`. Split para fora da titularidade não existe nesta API.
+
+### Rateio de volta para a conta principal
+
+`principal` é a única palavra que não é `reference` de ninguém: ela endereça a **conta principal** como destino do rateio. Serve para o caminho inverso do resto desta seção — a cobrança nasce em uma subconta e parte do líquido volta para a conta principal:
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 20.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "principal", "amount": 5.00 }
+    ]
+  }'
+```
+
+Com uma taxa de R$ 0,20, o resultado é: `loja-centro` fica com **R$ 14,80** (R$ 20,00 menos R$ 0,20 de taxa menos R$ 5,00 de rateio) e a conta principal recebe **R$ 5,00**. Quem origina continua sendo `loja-centro` — é ela que paga a taxa cheia, e a conta principal recebe o rateio limpo, como qualquer outro destinatário.
+
+O eco na resposta e o `split` do webhook trazem `"subAccount": "principal"`, igual às demais carteiras.
+
+<Note>
+  Uma cobrança **originada pela conta principal** não pode ratear para `principal` — seria rateio para si mesma, e o que não é repartido já fica nela de qualquer forma. Esse caso devolve `400`.
+</Note>
+
+Para mover saldo entre carteiras fora de um pagamento, use a [transferência interna](/#transferência-interna) — operação explícita, que não fica pendurada na liquidação de uma cobrança.
+
+### Split a partir de uma subconta
+
+O header `X-Sub-Account` e o campo `split` respondem a perguntas diferentes e funcionam **juntos**: o header diz **quem origina** a cobrança, o `split` diz **para quem vai parte do líquido**.
+
+Uma subconta pode originar uma cobrança e repartir com uma irmã. Nesse caso a conta principal não é tocada — não recebe nada e não paga taxa nenhuma:
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 100.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ]
+  }'
+```
+
+`loja-centro` é a originadora: recebe os R$ 100,00, paga a taxa e repassa R$ 20,00 para `loja-sul`. Uma subconta não pode repartir consigo mesma.
+
+### Erros do split
+
+Todos retornam `400`:
+
+| Mensagem | Quando acontece |
+|---|---|
+| `Subconta 'X' não existe nesta conta ou não está ativa` | O `reference` não é de uma subconta ativa desta conta. É também o erro de quem endereça uma subconta de outra titularidade ou uma carteira do outro ambiente — para endereçar a conta principal, use `principal` |
+| `Subconta 'X' aparece duas vezes no split` | O mesmo `reference` foi enviado em dois itens — junte os valores em um item só |
+| `A soma do split (R$ Y) excede o líquido da cobrança (R$ Z — bruto R$ A menos taxa de R$ B)` | O rateio não cabe no líquido da cobrança |
+| `A conta que origina a cobrança não pode receber rateio de si mesma` | A subconta do header `X-Sub-Account` também aparece no `split` |
+| `Esta cobrança já foi criada pela conta principal — o que não for rateado fica nela. Use 'principal' no split apenas quando a cobrança for originada por uma subconta (header X-Sub-Account)` | A cobrança foi criada pela conta principal e o `split` inclui `principal` |
+| `split must contain no more than 10 elements` | O array tem mais de 10 itens |
+| `split.0.amount must not be less than 0.01` | Algum item tem `amount` abaixo de `0.01` — o índice indica qual |
+
+### No extrato
+
+Na liquidação, cada perna do split gera **duas linhas** de tipo `internal_transfer`, ambas amarradas à cobrança pelo `parentTransactionId`:
+
+- uma **saída** no originador — `Split enviado para loja-centro`, ou `Split enviado para a conta principal` quando o destino é `principal`
+- uma **entrada** na carteira que recebeu — `Split recebido do pagamento {id da cobrança}`
+
+As duas são transações de verdade: [Buscar Transação](/api-reference/transactions/get) devolve `type: internal_transfer` para cada uma. O `parentTransactionId` é vínculo de extrato e não faz parte da resposta pública.
 
 ## Recursos Disponíveis
 
@@ -113,5 +342,8 @@ Recomendamos configurar a restrição de IP em credenciais com permissões sens�
   </Card>
   <Card title="Conta" icon="building" href="/api-reference/account/get">
     Consultar dados da conta e saldo
+  </Card>
+  <Card title="Subcontas" icon="sitemap" href="/api-reference/sub-accounts/create">
+    Carteiras filhas com saldo próprio
   </Card>
 </CardGroup>

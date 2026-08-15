@@ -140,6 +140,9 @@
               "minLength": 8,
               "maxLength": 255
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -219,6 +222,11 @@
       "post": {
         "description": "Создаёт новый проект.\n\n**Требуемое разрешение:** `PROJECT:WRITE` или `FULL_ACCESS`",
         "operationId": "ExternalProjectsController_createProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SubAccount"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -346,6 +354,9 @@
                 "desc"
               ]
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -405,6 +416,9 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -473,6 +487,9 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -542,6 +559,9 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -636,6 +656,9 @@
                 "rejected"
               ]
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "responses": {
@@ -696,6 +719,9 @@
               "minLength": 8,
               "maxLength": 255
             }
+          },
+          {
+            "$ref": "#/components/parameters/SubAccount"
           }
         ],
         "requestBody": {
@@ -785,6 +811,11 @@
       "get": {
         "description": "Возвращает данные аккаунта, информацию о компании и доступный баланс.\n\n**Требуемое разрешение:** `ACCOUNT:READ` или `FULL_ACCESS`",
         "operationId": "ExternalAccountController_getAccountInfo",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SubAccount"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Данные аккаунта и баланс",
@@ -847,6 +878,148 @@
           }
         ]
       }
+    },
+    "/sub-accounts": {
+      "post": {
+        "description": "Создаёт субсчёт с собственным балансом, полностью независимым от баланса основного аккаунта.\n\n**Требуемое разрешение:** `SUBACCOUNT:WRITE` или `FULL_ACCESS`",
+        "operationId": "ExternalSubAccountsController_createSubAccount",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubAccountInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Субсчёт успешно создан",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSubAccountOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request — ошибка валидации",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — требуется аутентификация",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — доступ запрещён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict — `reference` уже используется в этом аккаунте (`SUB_ACCOUNT_REFERENCE_TAKEN`) либо достигнут лимит субсчетов (`SUB_ACCOUNT_QUOTA_EXCEEDED`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error — внутренняя ошибка сервера",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Создать субсчёт",
+        "tags": [
+          "External API - Sub-accounts (Subcontas)"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "description": "Возвращает список субсчетов аккаунта.\n\n**Требуемое разрешение:** `SUBACCOUNT:READ` или `FULL_ACCESS`",
+        "operationId": "ExternalSubAccountsController_getAllSubAccounts",
+        "responses": {
+          "200": {
+            "description": "Список субсчетов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllSubAccountsOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — требуется аутентификация",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — доступ запрещён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error — внутренняя ошибка сервера",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Получить список субсчетов",
+        "tags": [
+          "External API - Sub-accounts (Subcontas)"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -856,6 +1029,19 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "description": "Токен доступа, полученный через POST /auth (client_id + client_secret). Действителен в течение 300 секунд."
+      }
+    },
+    "parameters": {
+      "SubAccount": {
+        "name": "X-Sub-Account",
+        "in": "header",
+        "required": false,
+        "description": "Reference субсчёта, в котором должна выполняться операция. Если заголовок не передан, операция выполняется в основном аккаунте; зарезервированное значение `principal` также указывает на основной аккаунт и равнозначно отсутствию заголовка. Принимается всеми эндпоинтами, кроме `POST /auth` и самих эндпоинтов `/sub-accounts`, которые всегда работают с основным аккаунтом.\n\nВозможные ошибки: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+          "example": "loja-centro"
+        }
       }
     },
     "schemas": {
@@ -1279,14 +1465,16 @@
           },
           "type": {
             "type": "string",
-            "description": "Тип транзакции",
+            "description": "Тип транзакции. `internal_transfer` — движение между счетами одного владельца: внутренний перевод или часть разделения платежа; по сети PIX он не проходит.",
             "enum": [
               "payment",
               "fee",
               "refund",
               "chargeback",
               "withdrawal",
-              "adjustment"
+              "adjustment",
+              "referral_commission",
+              "internal_transfer"
             ]
           },
           "paymentMethod": {
@@ -9359,6 +9547,14 @@
               "orderId": "12345",
               "source": "website"
             }
+          },
+          "split": {
+            "type": "array",
+            "description": "Делит часть суммы с другими субсчетами того же аккаунта при зачислении. Инициатор — тот, кто создал платёж: он получает сумму брутто, платит полную комиссию и только потом делит остаток — комиссия между получателями не делится. Сумма split не может превышать чистую сумму (сумма платежа за вычетом комиссии). Возврат и MED списываются только с инициатора; с того, кто получил свою часть, средства никогда не списываются.",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationInput"
+            }
           }
         },
         "required": [
@@ -9422,6 +9618,13 @@
             "type": "string",
             "description": "Дата создания",
             "format": "date-time"
+          },
+          "split": {
+            "type": "array",
+            "description": "Принятое разделение, в BRL. Присутствует, только если платёж был создан с разделением — если оно пришло в ответе, значит субсчета существовали и сумма поместилась в чистую сумму. Фактически распределённое приходит в вебхуке payment_completed.",
+            "items": {
+              "$ref": "#/components/schemas/PixSplitAllocationOutput"
+            }
           }
         },
         "required": [
@@ -9432,6 +9635,46 @@
           "pixCopyPaste",
           "expiresAt",
           "createdAt"
+        ]
+      },
+      "PixSplitAllocationInput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference активного субсчёта того же аккаунта, который получает свою часть. Зарезервированное слово `principal` указывает на основной аккаунт — используйте его, когда платёж создан субсчётом (заголовок `X-Sub-Account`); платёж, созданный самим основным аккаунтом, не может делиться с `principal`.",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Сумма в BRL для этого кошелька. Фиксированная сумма — проценты не принимаются. Не более 2 знаков после запятой.",
+            "minimum": 0.01,
+            "example": 30
+          }
+        },
+        "required": [
+          "subAccount",
+          "amount"
+        ]
+      },
+      "PixSplitAllocationOutput": {
+        "type": "object",
+        "properties": {
+          "subAccount": {
+            "type": "string",
+            "description": "Reference субсчёта, который получает свою часть, либо `principal`, когда получатель — основной аккаунт",
+            "example": "loja-centro"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Сумма в BRL для этого кошелька",
+            "example": 30
+          }
+        },
+        "required": [
+          "subAccount",
+          "amount"
         ]
       },
       "ExternalBalanceBlockOutput": {
@@ -9872,6 +10115,112 @@
         "required": [
           "account",
           "balance"
+        ]
+      },
+      "ForbiddenErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 403
+          },
+          "error": {
+            "type": "string",
+            "example": "Forbidden"
+          },
+          "message": {
+            "type": "string",
+            "example": "You do not have permission to access this resource"
+          },
+          "details": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2025-12-15T22:00:00.000Z"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "timestamp"
+        ]
+      },
+      "CreateSubAccountInput": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string",
+            "description": "Идентификатор субсчёта, задаваемый вами. Уникален в пределах аккаунта и неизменяем после создания. `principal` — зарезервированное слово основного аккаунта, использовать его нельзя: возвращается `400 SUB_ACCOUNT_INVALID_REFERENCE`.",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
+            "example": "loja-centro"
+          },
+          "name": {
+            "type": "string",
+            "description": "Отображаемое имя субсчёта",
+            "maxLength": 255,
+            "example": "Loja Centro"
+          }
+        },
+        "required": [
+          "reference",
+          "name"
+        ]
+      },
+      "CreateSubAccountOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID субсчёта",
+            "format": "uuid"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Reference субсчёта",
+            "example": "loja-centro"
+          },
+          "name": {
+            "type": "string",
+            "description": "Название субсчёта",
+            "example": "Loja Centro"
+          },
+          "status": {
+            "type": "string",
+            "description": "Статус субсчёта",
+            "example": "approved"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Дата создания",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "name",
+          "status",
+          "createdAt"
+        ]
+      },
+      "GetAllSubAccountsOutput": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Список субсчетов аккаунта",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateSubAccountOutput"
+            }
+          }
+        },
+        "required": [
+          "data"
         ]
       }
     }

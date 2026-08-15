@@ -30,6 +30,7 @@ All webhooks follow the same base structure:
   "event": "payment_completed",
   "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
   "timestamp": "2026-01-11T19:03:28.280Z",
+  "subAccount": null,
   "data": {
     // Event-specific data
   }
@@ -41,7 +42,32 @@ All webhooks follow the same base structure:
 | `event` | string | Event type |
 | `eventId` | string | Unique event ID (usually the transaction ID) |
 | `timestamp` | string | Event date/time in ISO 8601 format |
+| `subAccount` | string or null | `reference` of the sub-account the event came from; `null` when the event belongs to the main account |
 | `data` | object | Event-specific data |
+
+## Sub-accounts
+
+When the event belongs to a [sub-account](/en#sub-accounts), the `subAccount` field carries its `reference`:
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "subAccount": "loja-centro",
+  "data": {
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "amount": 100.21,
+    "status": "completed"
+  }
+}
+```
+
+<Warning>
+  **If the sub-account has no webhook endpoint of its own, its events are delivered to the main account's endpoints.** That is why `subAccount` is essential: it is the field that tells you which wallet the event belongs to.
+
+  Always use it to credit the event to the right wallet — never assume that every event received on the main account's endpoint belongs to the main account.
+</Warning>
 
 ## Headers Sent
 
@@ -115,6 +141,9 @@ Sent when a PIX payment is confirmed.
     "amount": 100.21,
     "feeAmount": 0.5,
     "netAmount": 99.71,
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ],
     "currency": "BRL",
     "paymentMethod": "pix",
     "status": "completed",
@@ -131,6 +160,12 @@ Sent when a PIX payment is confirmed.
 }
 ```
 
+<Note>
+**The `split` in the webhook is what was actually distributed**, not what you asked for when creating the charge. The two diverge when the account's fee changes between the charge and the payment: the net amount shrinks and the legs are reduced in the order they were sent, instead of the settlement failing.
+
+To reconcile against the wallet statement, always use the value that comes in the webhook — never the one you sent in the request. The field only appears when there was a split; a charge without one does not get the key.
+</Note>
+
 | Field | Type | Description |
 |-------|------|-----------|
 | `transactionId` | string | Unique transaction ID |
@@ -138,6 +173,7 @@ Sent when a PIX payment is confirmed.
 | `amount` | number | Total payment amount |
 | `feeAmount` | number | Fee charged |
 | `netAmount` | number | Net amount (amount - feeAmount) |
+| `split` | array | Split actually applied across the wallets, in BRL; `subAccount` carries the destination `reference`, or `principal` for the main account (optional — present only when there was a [split](/en#payment-split)) |
 | `currency` | string | Currency (BRL) |
 | `paymentMethod` | string | Payment method (pix) |
 | `status` | string | Payment status (completed) |

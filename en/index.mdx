@@ -82,6 +82,8 @@ Each credential has granular permissions that determine which endpoints it can a
 | `WITHDRAWAL:WRITE` | Create PIX withdrawals |
 | `METRICS:READ` | Get revenue metrics |
 | `ACCOUNT:READ` | View account details and balance |
+| `SUBACCOUNT:WRITE` | Create sub-accounts |
+| `SUBACCOUNT:READ` | List sub-accounts |
 
 <Note>
   The `FULL_ACCESS` permission grants access to all endpoints, equivalent to holding every permission listed above.
@@ -92,6 +94,233 @@ Each credential has granular permissions that determine which endpoints it can a
 Optionally, you can restrict a credential to a list of allowed IPs. When the list is configured, requests originating from IPs outside of it are rejected with a `403 Forbidden` error.
 
 We recommend configuring IP restriction on credentials with sensitive permissions, such as `FULL_ACCESS` and `WITHDRAWAL:WRITE`.
+
+## Sub-accounts
+
+An account can have sub-accounts: child wallets whose balance is **fully independent** from the main account balance. Each sub-account is identified by a `reference` you choose.
+
+Sub-accounts and [split](/en#payment-split) work in **both environments**: an `mp_test_*` credential creates and operates wallets in the sandbox just like an `mp_live_*` one does in production.
+
+To operate on a sub-account, send the `X-Sub-Account` header with its `reference`:
+
+```bash
+curl https://api-gateway.pague.dev/v2/account \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro'
+```
+
+The header is **optional** and is accepted on every endpoint except `/auth` and the `/sub-accounts` endpoints themselves — creating and listing sub-accounts always happens on the main account. When present, the whole operation happens on the sub-account — creating a charge, retrieving a transaction, creating a withdrawal, checking the balance. When omitted, the operation happens on the main account. `X-Sub-Account: principal` also resolves to the main account, and is equivalent to omitting the header.
+
+<Note>
+  The `reference` is defined by you when the sub-account is created and is **immutable**. It must match `^[a-z0-9][a-z0-9_-]{1,31}$`: 2 to 32 characters, only lowercase letters, digits, `-` and `_`, starting with a lowercase letter or a digit.
+
+  `principal` is a **reserved word**: it identifies the main account in the `split` and in the `X-Sub-Account` header, so no sub-account can be created with that `reference`.
+</Note>
+
+### Sub-accounts in the sandbox
+
+The `X-Sub-Account` header, the `split`, the `principal` keyword and the internal transfer work in the sandbox exactly as they do in production.
+
+**The same `reference` can exist in both environments.** The sandbox account and the production account are distinct accounts, so `loja-centro` in the sandbox and `loja-centro` in production coexist without colliding. That is what lets the **same payload run in both**: you test with `mp_test_*`, swap the key for an `mp_live_*` one and go to production without changing a line.
+
+<Note>
+  **The two trees are isolated.** An `mp_test_*` credential only sees the wallets of the sandbox tree; an `mp_live_*` one, only those of production.
+
+  This applies to the `split`: sharing from a sandbox wallet to a production wallet is refused, because the production one does not exist in that context. The error is the same `Subconta 'X' não existe nesta conta ou não está ativa`.
+</Note>
+
+**The wallet has to be created in each environment.** Creating `loja-centro` in production does not make it appear in the sandbox — they are two separate registrations, on purpose.
+
+**The fee is the same in both environments**, and that is deliberate: the sandbox wallet inherits the fee of the production account precisely so that the split cap, which is the net amount and not the gross, behaves the same. A split that passes in the sandbox passes in production. A sandbox wallet originating R$ 20.00 and sharing R$ 1.00 ends at **+R$ 18.80** on the originator and **+R$ 1.00** on the destination, with a R$ 0.20 fee — the same numbers as production.
+
+### Internal transfer
+
+A sub-account starts with a **zero balance**. The internal transfer is how you fund a new wallet — and how you send balance back to the main account later.
+
+It moves balance between accounts under the **same ownership**: from the main account to a wallet, from a wallet to the main account, or between sibling wallets. It is not PIX and it is not a withdrawal — it is moving money between your own pockets. The money leaves one account and enters the other, shows up in **both** statements, and the total balance of the account does not change.
+
+<Note>
+  **There is no internal transfer endpoint in the public API.** The operation is done in the Dashboard, on the wallets screen. There is no route to look for: it is not part of this contract.
+</Note>
+
+What to know before transferring:
+
+- **Same ownership only.** Transferring to someone else's account does not exist here — that is PIX, and the path is [Create PIX Withdrawal](/en/api-reference/withdrawals/create).
+- **The cap is the spendable balance of the source**, not the raw available balance: it is the available balance minus any open refund debt, the same criterion used for withdrawals.
+- **There is no undo.** A wrong transfer is corrected by transferring back in the opposite direction.
+
+In the statement, each transfer produces **two lines** of type `internal_transfer` — an outgoing one (negative amount) on the source and an incoming one (positive) on the destination. It is the same type as the [split](/en#payment-split) legs: in both cases, `GET /transactions/{id}` returns `type: internal_transfer`.
+
+### Sub-account limits
+
+By default, **a wallet shares the limit budget of the main account**. That is the behavior of every sub-account created through the API or the panel: the usage of all wallets adds up against the same ceiling of the account holder.
+
+<Warning>
+  **Creating wallets does not multiply your limit.** Since there is a single budget, a charge on one wallet can be refused for limit **because of the movement of another wallet** in the same account — including a wallet your code did not touch in that request. That is the expected behavior, not a broken isolation.
+</Warning>
+
+The platform can, case by case, give a wallet its **own** budget, separating its usage from the rest of the account. That is a platform decision: it is not configurable by the merchant, it has no endpoint and it is not self-service — if your operation needs it, talk to support.
+
+There is **no limit in the sandbox**: the shared ceiling described here only shows up in production. That is not specific to wallets — it applies to any sandbox operation — so do not conclude from your tests that the sharing is gone.
+
+Do not confuse it with the `SUB_ACCOUNT_QUOTA_EXCEEDED` in the table below: that one is the ceiling on **how many** wallets the account can have, and has nothing to do with transacted amounts.
+
+### Sub-account errors
+
+| HTTP | Code | When it happens |
+|---|---|---|
+| 404 | `SUB_ACCOUNT_NOT_FOUND` | The given `reference` does not exist in this account |
+| 403 | `SUB_ACCOUNT_FORBIDDEN` | The credential is not allowed to operate on that sub-account |
+| 403 | `SUB_ACCOUNT_SUSPENDED` | The sub-account is suspended |
+| 409 | `SUB_ACCOUNT_QUOTA_EXCEEDED` | The account's sub-account limit was reached |
+| 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | The `reference` is already in use in this account |
+| 400 | `SUB_ACCOUNT_INVALID_REFERENCE` | The `reference` requested at creation is `principal`, the reserved word for the main account |
+
+Two different things control access to wallets, and they fail in different ways:
+
+- **The credential's permission** applies to the `/sub-accounts` endpoints: listing requires `SUBACCOUNT:READ`, creating requires `SUBACCOUNT:WRITE`. Without it, the response is `403 Insufficient permissions. Required: SUBACCOUNT:READ`.
+- **The credential's scope** applies to operating *inside* a wallet: it decides which wallets that credential can reach through the `X-Sub-Account` header and the `split`, and it is what returns `SUB_ACCOUNT_FORBIDDEN`.
+
+That is why creating a charge with `X-Sub-Account` and `split` only requires `PIX:WRITE`: the `SUBACCOUNT:*` permissions govern the registry of wallets, not their use.
+
+Sub-accounts are created at [Create Sub-account](/en/api-reference/sub-accounts/create) and listed at [List Sub-accounts](/en/api-reference/sub-accounts/list). In webhooks, the `subAccount` field tells which wallet the event belongs to — see [Webhooks](/en/api-reference/webhooks).
+
+## Payment Split
+
+A PIX charge can split part of the amount it receives with other wallets of the same account — sub-accounts or the main account itself. Send the optional `split` field when [creating the charge](/en/api-reference/pix/create):
+
+```json
+{
+  "amount": 100.00,
+  "description": "Pedido 4821",
+  "split": [
+    { "subAccount": "loja-centro", "amount": 30.00 },
+    { "subAccount": "loja-sul", "amount": 20.00 }
+  ]
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `split` | array | Optional. At most **10** items |
+| `split[].subAccount` | string | `reference` of the sub-account that receives the share, or `principal` for the main account |
+| `split[].amount` | number | Amount in BRL allocated to that wallet — minimum `0.01`, at most 2 decimal places |
+
+Amounts are **fixed, in BRL**: there is no percentage split. The creation response echoes the accepted `split` back, in the same format and also in BRL — if it came back in the response, the sub-accounts existed and the sum fit. Validation happens **before** the charge is generated: an invalid `split` returns `400` and no charge is created.
+
+### Whoever creates the charge is the originator
+
+The originator is the account — or the sub-account in the `X-Sub-Account` header — that created the charge. It is the one that receives the **gross amount**, pays the **full fee**, and only then splits what is left.
+
+The fee is **not** split across the recipients. Each sub-account in the `split` receives exactly the `amount` you asked for, with nothing deducted.
+
+### The cap is the net amount, not the gross
+
+The most that can be split is the charge amount **minus the fee**.
+
+On a **R$ 100.00** charge with a **R$ 1.49** fee, the net is **R$ 98.51** — and that is the cap. A `split` adding up to R$ 98.51 is accepted (the originator keeps zero). A `split` adding up to **R$ 99.00** is rejected, even though it is less than the R$ 100.00 of the charge:
+
+```json 400 response
+{
+  "statusCode": 400,
+  "error": "DomainError",
+  "message": "A soma do split (R$ 99.00) excede o líquido da cobrança (R$ 98.51 — bruto R$ 100.00 menos taxa de R$ 1.49)",
+  "timestamp": "2026-01-11T19:03:28.280Z"
+}
+```
+
+The fee taken into account is the one of the account originating the charge, for the PIX method.
+
+<Warning>
+  **Refunds and MED hit the originator only.** Whoever received a share is **never** debited: there is no cascading refund and no clawback of money already passed on. A refund, a chargeback or a MED block on the charge debits exclusively the account that originated it.
+
+  The consequence is yours to manage: if you split 100% of the net amount and the transaction is refunded, the originator absorbs the entire loss — and the debit may leave its balance negative. Keeping a margin in the originator is the integrator's decision, not the system's.
+</Warning>
+
+### The split happens at settlement
+
+Creating the charge **moves no money at all**. The `split` is recorded on the charge and is only executed when the payment is confirmed — that is when the amounts leave the originator's balance and enter the destination wallets. A charge that expires or is never paid produces no split.
+
+<Note>
+  The account's fee can change between the creation of the charge and the payment. If, at settlement, the `split` sum no longer fits in the net amount, the legs are honored **in the order you sent them**, until the net runs out: the last one may be reduced, or may not happen at all. Settlement never fails because of this — order the array by priority and reconcile using the `split` of the [`payment_completed`](/en/api-reference/webhooks) webhook, which carries what was actually distributed.
+</Note>
+
+### Only wallets of the same account
+
+`subAccount` accepts the `reference` of an **active sub-account of the same account**, or the reserved word `principal`. Splitting outside the ownership does not exist in this API.
+
+### Splitting back to the main account
+
+`principal` is the one word that is nobody's `reference`: it addresses the **main account** as the destination of the share. It covers the reverse path from the rest of this section — the charge is born in a sub-account and part of the net amount goes back to the main account:
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 20.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "principal", "amount": 5.00 }
+    ]
+  }'
+```
+
+With a R$ 0.20 fee, the result is: `loja-centro` keeps **R$ 14.80** (R$ 20.00 minus the R$ 0.20 fee minus the R$ 5.00 share) and the main account receives **R$ 5.00**. The originator is still `loja-centro` — it is the one paying the full fee, and the main account receives a clean share, like any other recipient.
+
+The echo in the response and the `split` in the webhook carry `"subAccount": "principal"`, just like the other wallets.
+
+<Note>
+  A charge **originated by the main account** cannot split to `principal` — that would be splitting with itself, and whatever is not split already stays there anyway. That case returns `400`.
+</Note>
+
+To move balance between wallets outside of a payment, use the [internal transfer](/en#internal-transfer) — an explicit operation, not attached to the settlement of a charge.
+
+### Splitting from a sub-account
+
+The `X-Sub-Account` header and the `split` field answer different questions and work **together**: the header says **who originates** the charge, the `split` says **who gets part of the net amount**.
+
+A sub-account can originate a charge and split it with a sibling. In that case the main account is not touched — it receives nothing and pays no fee:
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 100.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ]
+  }'
+```
+
+`loja-centro` is the originator: it receives the R$ 100.00, pays the fee and passes R$ 20.00 on to `loja-sul`. A sub-account cannot split with itself.
+
+### Split errors
+
+All of them return `400`. The messages are returned by the API exactly as shown:
+
+| Message | When it happens |
+|---|---|
+| `Subconta 'X' não existe nesta conta ou não está ativa` | The `reference` is not an active sub-account of this account. It is also the error you get when addressing a sub-account of another owner or a wallet from the other environment — to address the main account, use `principal` |
+| `Subconta 'X' aparece duas vezes no split` | The same `reference` was sent in two items — merge the amounts into a single item |
+| `A soma do split (R$ Y) excede o líquido da cobrança (R$ Z — bruto R$ A menos taxa de R$ B)` | The split does not fit in the net amount of the charge |
+| `A conta que origina a cobrança não pode receber rateio de si mesma` | The sub-account in the `X-Sub-Account` header also appears in the `split` |
+| `Esta cobrança já foi criada pela conta principal — o que não for rateado fica nela. Use 'principal' no split apenas quando a cobrança for originada por uma subconta (header X-Sub-Account)` | The charge was created by the main account and the `split` includes `principal` |
+| `split must contain no more than 10 elements` | The array has more than 10 items |
+| `split.0.amount must not be less than 0.01` | Some item has an `amount` below `0.01` — the index tells which one |
+
+### In the statement
+
+At settlement, each split leg produces **two lines** of type `internal_transfer`, both tied to the charge by `parentTransactionId`:
+
+- an **outgoing** line on the originator — `Split enviado para loja-centro`, or `Split enviado para a conta principal` when the destination is `principal`
+- an **incoming** line on the receiving wallet — `Split recebido do pagamento {charge id}`
+
+Both are real transactions: [Get Transaction](/en/api-reference/transactions/get) returns `type: internal_transfer` for each of them. The `parentTransactionId` is a statement-level link and is not part of the public response.
 
 ## Available Resources
 
@@ -113,5 +342,8 @@ We recommend configuring IP restriction on credentials with sensitive permission
   </Card>
   <Card title="Account" icon="building" href="/en/api-reference/account/get">
     Check account details and balance
+  </Card>
+  <Card title="Sub-accounts" icon="sitemap" href="/en/api-reference/sub-accounts/create">
+    Child wallets with their own balance
   </Card>
 </CardGroup>
