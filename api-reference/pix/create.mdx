@@ -4,7 +4,7 @@ openapi: '/openapi.json POST /pix'
 ---
 
 <Note>
-**Split entre subcontas.** O campo opcional `split` reparte parte do valor com outras subcontas suas — no máximo 10 itens, valores fixos em reais.
+**Split entre subcontas.** O campo opcional `split` reparte parte do valor com outras carteiras suas — subcontas ou a conta principal, pela palavra reservada `principal`. No máximo 10 itens, valores fixos em reais.
 
 Quem cria a cobrança é o **originador**: recebe o bruto, paga a taxa cheia e só então reparte, então o teto do rateio é o **líquido** (valor da cobrança menos a taxa), não o bruto. O rateio acontece na liquidação, não na criação. Estorno e MED debitam **só o originador** — quem recebeu rateio nunca é debitado.
 

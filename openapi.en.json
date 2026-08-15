@@ -1036,7 +1036,7 @@
         "name": "X-Sub-Account",
         "in": "header",
         "required": false,
-        "description": "Reference of the sub-account the operation runs against. When omitted, the operation happens on the main account. Accepted on every endpoint except `POST /auth` and the `/sub-accounts` endpoints themselves, which always operate on the main account.\n\nPossible errors: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
+        "description": "Reference of the sub-account the operation runs against. When omitted, the operation happens on the main account; the reserved value `principal` also resolves to the main account and is equivalent to omitting the header. Accepted on every endpoint except `POST /auth` and the `/sub-accounts` endpoints themselves, which always operate on the main account.\n\nPossible errors: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
         "schema": {
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
@@ -9640,13 +9640,13 @@
         "properties": {
           "subAccount": {
             "type": "string",
-            "description": "Reference of the sub-account that receives the share. It must be an active sub-account of the same account; the main account is not addressable as a destination.",
+            "description": "Reference of an active sub-account of the same account that receives the share. The reserved word `principal` addresses the main account — use it when the charge is originated by a sub-account (`X-Sub-Account` header); a charge created by the main account itself cannot split to `principal`.",
             "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
             "example": "loja-centro"
           },
           "amount": {
             "type": "number",
-            "description": "Amount in BRL allocated to this sub-account. Fixed amount — percentages are not accepted. At most 2 decimal places.",
+            "description": "Amount in BRL allocated to this wallet. Fixed amount — percentages are not accepted. At most 2 decimal places.",
             "minimum": 0.01,
             "example": 30
           }
@@ -9661,12 +9661,12 @@
         "properties": {
           "subAccount": {
             "type": "string",
-            "description": "Reference of the sub-account that receives the share",
+            "description": "Reference of the sub-account that receives the share, or `principal` when the destination is the main account",
             "example": "loja-centro"
           },
           "amount": {
             "type": "number",
-            "description": "Amount in BRL allocated to this sub-account",
+            "description": "Amount in BRL allocated to this wallet",
             "example": 30
           }
         },
@@ -10153,7 +10153,7 @@
         "properties": {
           "reference": {
             "type": "string",
-            "description": "Sub-account identifier defined by you. Unique within the account and immutable after creation.",
+            "description": "Sub-account identifier defined by you. Unique within the account and immutable after creation. `principal` is a reserved word for the main account and cannot be used: it returns `400 SUB_ACCOUNT_INVALID_REFERENCE`.",
             "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
             "example": "loja-centro"
           },

@@ -993,7 +993,7 @@
         "name": "X-Sub-Account",
         "in": "header",
         "required": false,
-        "description": "Reference da subconta em que a operação deve ser executada. Quando omitido, a operação acontece na conta principal. Aceito em todos os endpoints, exceto `POST /auth` e os próprios endpoints de `/sub-accounts`, que sempre operam na conta principal.\n\nErros possíveis: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
+        "description": "Reference da subconta em que a operação deve ser executada. Quando omitido, a operação acontece na conta principal; o valor reservado `principal` também resolve para a conta principal e é equivalente a omitir o header. Aceito em todos os endpoints, exceto `POST /auth` e os próprios endpoints de `/sub-accounts`, que sempre operam na conta principal.\n\nErros possíveis: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
         "schema": {
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
@@ -8797,13 +8797,13 @@
         "properties": {
           "subAccount": {
             "type": "string",
-            "description": "Reference da subconta que recebe o rateio. Precisa ser uma subconta ativa da mesma conta; a conta principal não é endereçável como destino.",
+            "description": "Reference de uma subconta ativa da mesma conta que recebe o rateio. A palavra reservada `principal` endereça a conta principal — use quando a cobrança for originada por uma subconta (header `X-Sub-Account`); uma cobrança criada pela própria conta principal não pode ratear para `principal`.",
             "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
             "example": "loja-centro"
           },
           "amount": {
             "type": "number",
-            "description": "Valor em BRL destinado a essa subconta. Valor fixo — percentual não é aceito. No máximo 2 casas decimais.",
+            "description": "Valor em BRL destinado a essa carteira. Valor fixo — percentual não é aceito. No máximo 2 casas decimais.",
             "minimum": 0.01,
             "example": 30
           }
@@ -8815,12 +8815,12 @@
         "properties": {
           "subAccount": {
             "type": "string",
-            "description": "Reference da subconta que recebe o rateio",
+            "description": "Reference da subconta que recebe o rateio, ou `principal` quando o destino é a conta principal",
             "example": "loja-centro"
           },
           "amount": {
             "type": "number",
-            "description": "Valor em BRL destinado a essa subconta",
+            "description": "Valor em BRL destinado a essa carteira",
             "example": 30
           }
         },
@@ -9254,7 +9254,7 @@
         "properties": {
           "reference": {
             "type": "string",
-            "description": "Identificador da subconta definido por você. Único dentro da conta e imutável depois da criação.",
+            "description": "Identificador da subconta definido por você. Único dentro da conta e imutável depois da criação. `principal` é palavra reservada da conta principal e não pode ser usada: devolve `400 SUB_ACCOUNT_INVALID_REFERENCE`.",
             "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
             "example": "loja-centro"
           },

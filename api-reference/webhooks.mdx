@@ -173,7 +173,7 @@ Para conciliar com o extrato da carteira, use sempre o valor que vem no webhook 
 | `amount` | number | Valor total do pagamento |
 | `feeAmount` | number | Taxa cobrada |
 | `netAmount` | number | Valor líquido (amount - feeAmount) |
-| `split` | array | Rateio efetivado entre subcontas, em reais (opcional — presente apenas quando houve [split](/#split-de-pagamento)) |
+| `split` | array | Rateio efetivado entre as carteiras, em reais; `subAccount` traz o `reference` de destino, ou `principal` para a conta principal (opcional — presente apenas quando houve [split](/#split-de-pagamento)) |
 | `currency` | string | Moeda (BRL) |
 | `paymentMethod` | string | Método de pagamento (pix) |
 | `status` | string | Status do pagamento (completed) |

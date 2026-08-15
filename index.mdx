@@ -107,10 +107,12 @@ curl https://api-gateway.pague.dev/v2/account \
   -H 'X-Sub-Account: loja-centro'
 ```
 
-O header é **opcional** e é aceito em todos os endpoints, exceto `/auth` e os próprios endpoints de `/sub-accounts` — criar e listar subcontas acontece sempre na conta principal. Quando presente, a operação inteira acontece na subconta — criar cobrança, consultar transação, criar saque, consultar saldo. Quando ausente, a operação acontece na conta principal.
+O header é **opcional** e é aceito em todos os endpoints, exceto `/auth` e os próprios endpoints de `/sub-accounts` — criar e listar subcontas acontece sempre na conta principal. Quando presente, a operação inteira acontece na subconta — criar cobrança, consultar transação, criar saque, consultar saldo. Quando ausente, a operação acontece na conta principal. `X-Sub-Account: principal` também resolve para a conta principal, e é equivalente a omitir o header.
 
 <Note>
   O `reference` é definido por você na criação da subconta e é **imutável**. Ele precisa casar com `^[a-z0-9][a-z0-9_-]{1,31}$`: de 2 a 32 caracteres, apenas letras minúsculas, números, `-` e `_`, começando por letra minúscula ou número.
+
+  `principal` é **palavra reservada**: ela identifica a conta principal no `split` e no header `X-Sub-Account`, então nenhuma subconta pode ser criada com esse `reference`.
 </Note>
 
 ### Erros de subconta
@@ -122,12 +124,13 @@ O header é **opcional** e é aceito em todos os endpoints, exceto `/auth` e os 
 | 403 | `SUB_ACCOUNT_SUSPENDED` | A subconta está suspensa |
 | 409 | `SUB_ACCOUNT_QUOTA_EXCEEDED` | O limite de subcontas da conta foi atingido |
 | 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | O `reference` já está em uso nesta conta |
+| 400 | `SUB_ACCOUNT_INVALID_REFERENCE` | O `reference` pedido na criação é `principal`, palavra reservada da conta principal |
 
 Subcontas são criadas em [Criar Subconta](/api-reference/sub-accounts/create) e listadas em [Listar Subcontas](/api-reference/sub-accounts/list). Nos webhooks, o campo `subAccount` indica de qual carteira é o evento — veja [Webhooks](/api-reference/webhooks).
 
 ## Split de Pagamento
 
-Uma cobrança PIX pode repartir parte do valor recebido com outras subcontas da mesma conta. Envie o campo opcional `split` na [criação da cobrança](/api-reference/pix/create):
+Uma cobrança PIX pode repartir parte do valor recebido com outras carteiras da mesma conta — subcontas ou a própria conta principal. Envie o campo opcional `split` na [criação da cobrança](/api-reference/pix/create):
 
 ```json
 {
@@ -143,8 +146,8 @@ Uma cobrança PIX pode repartir parte do valor recebido com outras subcontas da 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `split` | array | Opcional. No máximo **10** itens |
-| `split[].subAccount` | string | `reference` da subconta que recebe o rateio |
-| `split[].amount` | number | Valor em reais destinado a essa subconta — mínimo `0.01`, no máximo 2 casas decimais |
+| `split[].subAccount` | string | `reference` da subconta que recebe o rateio, ou `principal` para a conta principal |
+| `split[].amount` | number | Valor em reais destinado a essa carteira — mínimo `0.01`, no máximo 2 casas decimais |
 
 Os valores são **fixos, em reais**: não existe rateio por percentual. A resposta da criação ecoa o `split` aceito, no mesmo formato e também em reais — se ele veio na resposta, as subcontas existiam e a soma cabia. A validação acontece **antes** de a cobrança ser gerada: um `split` inválido devolve `400` e nenhuma cobrança é criada.
 
@@ -185,11 +188,37 @@ Criar a cobrança **não move dinheiro nenhum**. O `split` fica registrado na co
   A taxa da conta pode mudar entre a criação da cobrança e o pagamento. Se, na liquidação, a soma do `split` não couber mais no líquido, as pernas são atendidas **na ordem em que você as enviou**, até o líquido acabar: a última pode ser reduzida, ou não acontecer. A liquidação nunca falha por causa disso — ordene o array por prioridade e concilie pelo `split` do webhook [`payment_completed`](/api-reference/webhooks), que traz o que foi efetivamente distribuído.
 </Note>
 
-### Só subcontas da mesma conta
+### Só carteiras da mesma conta
 
-`subAccount` só aceita o `reference` de uma subconta **ativa da mesma conta**. Split para fora da titularidade não existe nesta API.
+`subAccount` aceita o `reference` de uma subconta **ativa da mesma conta**, ou a palavra reservada `principal`. Split para fora da titularidade não existe nesta API.
 
-A conta principal **não é endereçável como destino**: `reference` é uma propriedade de subconta, e a conta principal não tem um. Uma carteira que precisa devolver saldo para a principal usa a transferência interna — operação explícita, feita no Dashboard, que não fica pendurada na liquidação de um pagamento.
+### Rateio de volta para a conta principal
+
+`principal` é a única palavra que não é `reference` de ninguém: ela endereça a **conta principal** como destino do rateio. Serve para o caminho inverso do resto desta seção — a cobrança nasce em uma subconta e parte do líquido volta para a conta principal:
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 20.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "principal", "amount": 5.00 }
+    ]
+  }'
+```
+
+Com uma taxa de R$ 0,20, o resultado é: `loja-centro` fica com **R$ 14,80** (R$ 20,00 menos R$ 0,20 de taxa menos R$ 5,00 de rateio) e a conta principal recebe **R$ 5,00**. Quem origina continua sendo `loja-centro` — é ela que paga a taxa cheia, e a conta principal recebe o rateio limpo, como qualquer outro destinatário.
+
+O eco na resposta e o `split` do webhook trazem `"subAccount": "principal"`, igual às demais carteiras.
+
+<Note>
+  Uma cobrança **originada pela conta principal** não pode ratear para `principal` — seria rateio para si mesma, e o que não é repartido já fica nela de qualquer forma. Esse caso devolve `400`.
+</Note>
+
+Para mover saldo entre carteiras fora de um pagamento, continua existindo a transferência interna — operação explícita, feita no Dashboard, que não fica pendurada na liquidação de uma cobrança.
 
 ### Split a partir de uma subconta
 
@@ -223,6 +252,7 @@ Todos retornam `400`:
 | `Subconta 'X' aparece duas vezes no split` | O mesmo `reference` foi enviado em dois itens — junte os valores em um item só |
 | `A soma do split (R$ Y) excede o líquido da cobrança (R$ Z — bruto R$ A menos taxa de R$ B)` | O rateio não cabe no líquido da cobrança |
 | `A conta que origina a cobrança não pode receber rateio de si mesma` | A subconta do header `X-Sub-Account` também aparece no `split` |
+| `Esta cobrança já foi criada pela conta principal — o que não for rateado fica nela. Use 'principal' no split apenas quando a cobrança for originada por uma subconta (header X-Sub-Account)` | A cobrança foi criada pela conta principal e o `split` inclui `principal` |
 | `split must contain no more than 10 elements` | O array tem mais de 10 itens |
 | `split.0.amount must not be less than 0.01` | Algum item tem `amount` abaixo de `0.01` — o índice indica qual |
 
@@ -230,7 +260,7 @@ Todos retornam `400`:
 
 Na liquidação, cada perna do split gera **duas linhas** de tipo `internal_transfer`, ambas amarradas à cobrança pelo `parentTransactionId`:
 
-- uma **saída** no originador — `Split enviado para loja-centro`
+- uma **saída** no originador — `Split enviado para loja-centro`, ou `Split enviado para a conta principal` quando o destino é `principal`
 - uma **entrada** na carteira que recebeu — `Split recebido do pagamento {id da cobrança}`
 
 ## Recursos Disponíveis

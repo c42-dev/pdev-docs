@@ -173,7 +173,7 @@ To reconcile against the wallet statement, always use the value that comes in th
 | `amount` | number | Total payment amount |
 | `feeAmount` | number | Fee charged |
 | `netAmount` | number | Net amount (amount - feeAmount) |
-| `split` | array | Split actually applied across sub-accounts, in BRL (optional — present only when there was a [split](/en#payment-split)) |
+| `split` | array | Split actually applied across the wallets, in BRL; `subAccount` carries the destination `reference`, or `principal` for the main account (optional — present only when there was a [split](/en#payment-split)) |
 | `currency` | string | Currency (BRL) |
 | `paymentMethod` | string | Payment method (pix) |
 | `status` | string | Payment status (completed) |
