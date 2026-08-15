@@ -176,6 +176,13 @@ Do not confuse it with the `SUB_ACCOUNT_QUOTA_EXCEEDED` in the table below: that
 | 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | The `reference` is already in use in this account |
 | 400 | `SUB_ACCOUNT_INVALID_REFERENCE` | The `reference` requested at creation is `principal`, the reserved word for the main account |
 
+Two different things control access to wallets, and they fail in different ways:
+
+- **The credential's permission** applies to the `/sub-accounts` endpoints: listing requires `SUBACCOUNT:READ`, creating requires `SUBACCOUNT:WRITE`. Without it, the response is `403 Insufficient permissions. Required: SUBACCOUNT:READ`.
+- **The credential's scope** applies to operating *inside* a wallet: it decides which wallets that credential can reach through the `X-Sub-Account` header and the `split`, and it is what returns `SUB_ACCOUNT_FORBIDDEN`.
+
+That is why creating a charge with `X-Sub-Account` and `split` only requires `PIX:WRITE`: the `SUBACCOUNT:*` permissions govern the registry of wallets, not their use.
+
 Sub-accounts are created at [Create Sub-account](/en/api-reference/sub-accounts/create) and listed at [List Sub-accounts](/en/api-reference/sub-accounts/list). In webhooks, the `subAccount` field tells which wallet the event belongs to — see [Webhooks](/en/api-reference/webhooks).
 
 ## Payment Split

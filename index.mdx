@@ -176,6 +176,13 @@ Não confunda com o `SUB_ACCOUNT_QUOTA_EXCEEDED` da tabela abaixo: aquele é o t
 | 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | O `reference` já está em uso nesta conta |
 | 400 | `SUB_ACCOUNT_INVALID_REFERENCE` | O `reference` pedido na criação é `principal`, palavra reservada da conta principal |
 
+Duas coisas diferentes controlam o acesso a carteiras, e elas falham de formas diferentes:
+
+- **A permissão da credencial** vale para os endpoints de `/sub-accounts`: listar exige `SUBACCOUNT:READ`, criar exige `SUBACCOUNT:WRITE`. Sem ela, a resposta é `403 Insufficient permissions. Required: SUBACCOUNT:READ`.
+- **O escopo da credencial** vale para operar *dentro* de uma carteira: é ele que decide quais carteiras aquela credencial alcança pelo header `X-Sub-Account` e pelo `split`, e é ele que devolve `SUB_ACCOUNT_FORBIDDEN`.
+
+Por isso criar uma cobrança com `X-Sub-Account` e `split` exige só `PIX:WRITE`: as permissões `SUBACCOUNT:*` governam o cadastro de carteiras, não o uso delas.
+
 Subcontas são criadas em [Criar Subconta](/api-reference/sub-accounts/create) e listadas em [Listar Subcontas](/api-reference/sub-accounts/list). Nos webhooks, o campo `subAccount` indica de qual carteira é o evento — veja [Webhooks](/api-reference/webhooks).
 
 ## Split de Pagamento

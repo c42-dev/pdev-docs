@@ -176,6 +176,13 @@ curl https://api-gateway.pague.dev/v2/account \
 | 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | Такой `reference` уже используется в этом аккаунте |
 | 400 | `SUB_ACCOUNT_INVALID_REFERENCE` | При создании запрошен `reference` `principal` — зарезервированное слово для основного аккаунта |
 
+Доступом к кошелькам управляют две разные вещи, и отказывают они по-разному:
+
+- **Разрешение учётных данных** относится к эндпоинтам `/sub-accounts`: для списка нужен `SUBACCOUNT:READ`, для создания — `SUBACCOUNT:WRITE`. Без него ответ — `403 Insufficient permissions. Required: SUBACCOUNT:READ`.
+- **Область действия учётных данных** относится к работе *внутри* кошелька: она определяет, до каких кошельков эти учётные данные дотягиваются через заголовок `X-Sub-Account` и через `split`, и именно она возвращает `SUB_ACCOUNT_FORBIDDEN`.
+
+Поэтому для создания платежа с `X-Sub-Account` и `split` достаточно `PIX:WRITE`: разрешения `SUBACCOUNT:*` управляют реестром кошельков, а не их использованием.
+
 Субсчета создаются через [Создать субсчёт](/ru/api-reference/sub-accounts/create), а их список доступен в [Списке субсчетов](/ru/api-reference/sub-accounts/list). В вебхуках поле `subAccount` указывает, какому кошельку принадлежит событие — см. [Вебхуки](/ru/api-reference/webhooks).
 
 ## Разделение платежа
