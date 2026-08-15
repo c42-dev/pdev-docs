@@ -115,6 +115,36 @@ The header is **optional** and is accepted on every endpoint except `/auth` and 
   `principal` is a **reserved word**: it identifies the main account in the `split` and in the `X-Sub-Account` header, so no sub-account can be created with that `reference`.
 </Note>
 
+### Internal transfer
+
+A sub-account starts with a **zero balance**. The internal transfer is how you fund a new wallet — and how you send balance back to the main account later.
+
+It moves balance between accounts under the **same ownership**: from the main account to a wallet, from a wallet to the main account, or between sibling wallets. It is not PIX and it is not a withdrawal — it is moving money between your own pockets. The money leaves one account and enters the other, shows up in **both** statements, and the total balance of the account does not change.
+
+<Note>
+  **There is no internal transfer endpoint in the public API.** The operation is done in the Dashboard, on the wallets screen. There is no route to look for: it is not part of this contract.
+</Note>
+
+What to know before transferring:
+
+- **Same ownership only.** Transferring to someone else's account does not exist here — that is PIX, and the path is [Create PIX Withdrawal](/en/api-reference/withdrawals/create).
+- **The cap is the spendable balance of the source**, not the raw available balance: it is the available balance minus any open refund debt, the same criterion used for withdrawals.
+- **There is no undo.** A wrong transfer is corrected by transferring back in the opposite direction.
+
+In the statement, each transfer produces **two lines** of type `internal_transfer` — an outgoing one (negative amount) on the source and an incoming one (positive) on the destination. It is the same type as the [split](/en#payment-split) legs: in both cases, `GET /transactions/{id}` returns `type: internal_transfer`.
+
+### Sub-account limits
+
+By default, **a wallet shares the limit budget of the main account**. That is the behavior of every sub-account created through the API or the panel: the usage of all wallets adds up against the same ceiling of the account holder.
+
+<Warning>
+  **Creating wallets does not multiply your limit.** Since there is a single budget, a charge on one wallet can be refused for limit **because of the movement of another wallet** in the same account — including a wallet your code did not touch in that request. That is the expected behavior, not a broken isolation.
+</Warning>
+
+The platform can, case by case, give a wallet its **own** budget, separating its usage from the rest of the account. That is a platform decision: it is not configurable by the merchant, it has no endpoint and it is not self-service — if your operation needs it, talk to support.
+
+Do not confuse it with the `SUB_ACCOUNT_QUOTA_EXCEEDED` in the table below: that one is the ceiling on **how many** wallets the account can have, and has nothing to do with transacted amounts.
+
 ### Sub-account errors
 
 | HTTP | Code | When it happens |
@@ -218,7 +248,7 @@ The echo in the response and the `split` in the webhook carry `"subAccount": "pr
   A charge **originated by the main account** cannot split to `principal` — that would be splitting with itself, and whatever is not split already stays there anyway. That case returns `400`.
 </Note>
 
-To move balance between wallets outside of a payment, the internal transfer still exists — an explicit operation, done in the Dashboard, that is not attached to the settlement of a charge.
+To move balance between wallets outside of a payment, use the [internal transfer](/en#internal-transfer) — an explicit operation, not attached to the settlement of a charge.
 
 ### Splitting from a sub-account
 

@@ -115,6 +115,36 @@ O header é **opcional** e é aceito em todos os endpoints, exceto `/auth` e os 
   `principal` é **palavra reservada**: ela identifica a conta principal no `split` e no header `X-Sub-Account`, então nenhuma subconta pode ser criada com esse `reference`.
 </Note>
 
+### Transferência interna
+
+Uma subconta nasce com **saldo zero**. A transferência interna é como você abastece uma carteira nova — e como devolve saldo para a conta principal depois.
+
+Ela move saldo entre contas da **mesma titularidade**: da conta principal para uma carteira, de uma carteira para a conta principal, ou entre carteiras irmãs. Não é PIX e não é saque — é troca de bolso. O dinheiro sai de uma conta e entra na outra, aparece nos **dois** extratos, e o saldo total da conta não muda.
+
+<Note>
+  **Não existe endpoint de transferência interna na API pública.** A operação é feita no Dashboard, na tela de carteiras. Não adianta procurar uma rota: ela não faz parte deste contrato.
+</Note>
+
+O que vale saber antes de transferir:
+
+- **Só dentro da titularidade.** Transferir para conta de terceiro não existe aqui — isso é PIX, e o caminho é [Criar Saque PIX](/api-reference/withdrawals/create).
+- **O teto é o saldo gastável da origem**, não o disponível bruto: é o disponível menos a dívida de estorno em aberto, o mesmo critério que vale para o saque.
+- **Não tem desfazer.** Uma transferência errada se corrige transferindo no sentido inverso.
+
+No extrato, cada transferência gera **duas linhas** de tipo `internal_transfer` — uma saída (valor negativo) na origem e uma entrada (positiva) no destino. É o mesmo tipo das pernas de [split](/#split-de-pagamento): nos dois casos, `GET /transactions/{id}` devolve `type: internal_transfer`.
+
+### Limites da subconta
+
+Por padrão, **a carteira compartilha o orçamento de limite da conta principal**. Esse é o comportamento de toda subconta criada pela API ou pelo painel: o consumo de todas as carteiras soma contra o mesmo teto do titular.
+
+<Warning>
+  **Criar carteiras não multiplica o seu limite.** Como o orçamento é um só, uma cobrança em uma carteira pode ser recusada por limite **por causa do movimento de outra carteira** da mesma conta — inclusive de uma carteira que o seu código nem tocou naquela requisição. Isso é o comportamento esperado, não uma falha de isolamento.
+</Warning>
+
+A plataforma pode, caso a caso, dar orçamento **próprio** a uma carteira, separando o consumo dela do resto da conta. É decisão da plataforma: não é configurável pelo lojista, não tem endpoint e não é autoatendimento — se a sua operação precisa disso, fale com o suporte.
+
+Não confunda com o `SUB_ACCOUNT_QUOTA_EXCEEDED` da tabela abaixo: aquele é o teto de **quantas** carteiras a conta pode ter, e não tem relação com valor transacionado.
+
 ### Erros de subconta
 
 | HTTP | Código | Quando acontece |
@@ -218,7 +248,7 @@ O eco na resposta e o `split` do webhook trazem `"subAccount": "principal"`, igu
   Uma cobrança **originada pela conta principal** não pode ratear para `principal` — seria rateio para si mesma, e o que não é repartido já fica nela de qualquer forma. Esse caso devolve `400`.
 </Note>
 
-Para mover saldo entre carteiras fora de um pagamento, continua existindo a transferência interna — operação explícita, feita no Dashboard, que não fica pendurada na liquidação de uma cobrança.
+Para mover saldo entre carteiras fora de um pagamento, use a [transferência interna](/#transferência-interna) — operação explícita, que não fica pendurada na liquidação de uma cobrança.
 
 ### Split a partir de uma subconta
 
