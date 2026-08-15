@@ -1465,14 +1465,16 @@
           },
           "type": {
             "type": "string",
-            "description": "Тип транзакции",
+            "description": "Тип транзакции. `internal_transfer` — движение между счетами одного владельца: внутренний перевод или часть разделения платежа; по сети PIX он не проходит.",
             "enum": [
               "payment",
               "fee",
               "refund",
               "chargeback",
               "withdrawal",
-              "adjustment"
+              "adjustment",
+              "referral_commission",
+              "internal_transfer"
             ]
           },
           "paymentMethod": {

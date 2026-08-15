@@ -263,6 +263,8 @@ At settlement, each split leg produces **two lines** of type `internal_transfer`
 - an **outgoing** line on the originator — `Split enviado para loja-centro`, or `Split enviado para a conta principal` when the destination is `principal`
 - an **incoming** line on the receiving wallet — `Split recebido do pagamento {charge id}`
 
+Both are real transactions: [Get Transaction](/en/api-reference/transactions/get) returns `type: internal_transfer` for each of them. The `parentTransactionId` is a statement-level link and is not part of the public response.
+
 ## Available Resources
 
 <CardGroup cols={2}>

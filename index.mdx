@@ -263,6 +263,8 @@ Na liquidação, cada perna do split gera **duas linhas** de tipo `internal_tran
 - uma **saída** no originador — `Split enviado para loja-centro`, ou `Split enviado para a conta principal` quando o destino é `principal`
 - uma **entrada** na carteira que recebeu — `Split recebido do pagamento {id da cobrança}`
 
+As duas são transações de verdade: [Buscar Transação](/api-reference/transactions/get) devolve `type: internal_transfer` para cada uma. O `parentTransactionId` é vínculo de extrato e não faz parte da resposta pública.
+
 ## Recursos Disponíveis
 
 <CardGroup cols={2}>

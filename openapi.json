@@ -1380,14 +1380,16 @@
           },
           "type": {
             "type": "string",
-            "description": "Tipo da transação",
+            "description": "Tipo da transação. `internal_transfer` é movimento entre contas da mesma titularidade — transferência interna ou perna de split — e não trafega no PIX.",
             "enum": [
               "payment",
               "fee",
               "refund",
               "chargeback",
               "withdrawal",
-              "adjustment"
+              "adjustment",
+              "referral_commission",
+              "internal_transfer"
             ]
           },
           "paymentMethod": {

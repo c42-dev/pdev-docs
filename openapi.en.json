@@ -1465,14 +1465,16 @@
           },
           "type": {
             "type": "string",
-            "description": "Transaction type",
+            "description": "Transaction type. `internal_transfer` is a movement between accounts under the same ownership — an internal transfer or a split leg — and does not travel over PIX.",
             "enum": [
               "payment",
               "fee",
               "refund",
               "chargeback",
               "withdrawal",
-              "adjustment"
+              "adjustment",
+              "referral_commission",
+              "internal_transfer"
             ]
           },
           "paymentMethod": {

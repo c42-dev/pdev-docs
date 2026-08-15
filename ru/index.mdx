@@ -263,6 +263,8 @@ curl -X POST https://api-gateway.pague.dev/v2/pix \
 - **списание** у инициатора — `Split enviado para loja-centro`, либо `Split enviado para a conta principal`, когда получатель — `principal`
 - **зачисление** на кошелёк получателя — `Split recebido do pagamento {ID платежа}`
 
+Обе — настоящие транзакции: [Получить транзакцию](/ru/api-reference/transactions/get) возвращает для каждой `type: internal_transfer`. `parentTransactionId` — связь на уровне выписки, в публичный ответ он не входит.
+
 ## Доступные ресурсы
 
 <CardGroup cols={2}>
