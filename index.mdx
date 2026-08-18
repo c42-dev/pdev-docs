@@ -183,6 +183,10 @@ Duas coisas diferentes controlam o acesso a carteiras, e elas falham de formas d
 
 Por isso criar uma cobrança com `X-Sub-Account` e `split` exige só `PIX:WRITE`: as permissões `SUBACCOUNT:*` governam o cadastro de carteiras, não o uso delas.
 
+<Warning>
+**O escopo nasce desligado, e nenhuma permissão o substitui.** Uma credencial recém-criada — inclusive uma com acesso total — recebe `403 SUB_ACCOUNT_FORBIDDEN` no primeiro request com `X-Sub-Account` enquanto o escopo estiver em "sem acesso". Ligue em **Configurações → Integração → Credenciais de API**, no campo **Acesso a subcontas** (vale na hora, inclusive para tokens já emitidos). É proposital: sem isso, toda credencial que já existia passaria a alcançar a árvore inteira no dia em que a primeira carteira fosse criada.
+</Warning>
+
 Subcontas são criadas em [Criar Subconta](/api-reference/sub-accounts/create) e listadas em [Listar Subcontas](/api-reference/sub-accounts/list). Nos webhooks, o campo `subAccount` indica de qual carteira é o evento — veja [Webhooks](/api-reference/webhooks).
 
 ## Split de Pagamento
