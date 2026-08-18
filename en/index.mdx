@@ -87,6 +87,8 @@ Each credential has granular permissions that determine which endpoints it can a
 
 <Note>
   The `FULL_ACCESS` permission grants access to all endpoints, equivalent to holding every permission listed above.
+
+  **Exception: sub-account access is not a permission.** `FULL_ACCESS` covers the `/sub-accounts` endpoints (creating and listing wallets), but it does **not** enable the `X-Sub-Account` header — that is a separate field on the credential. See [Sub-accounts](/en#sub-accounts).
 </Note>
 
 ### IP restriction
@@ -182,6 +184,10 @@ Two different things control access to wallets, and they fail in different ways:
 - **The credential's scope** applies to operating *inside* a wallet: it decides which wallets that credential can reach through the `X-Sub-Account` header and the `split`, and it is what returns `SUB_ACCOUNT_FORBIDDEN`.
 
 That is why creating a charge with `X-Sub-Account` and `split` only requires `PIX:WRITE`: the `SUBACCOUNT:*` permissions govern the registry of wallets, not their use.
+
+<Warning>
+**The scope starts turned off, and no permission replaces it.** A newly created credential — even one with full access — gets `403 SUB_ACCOUNT_FORBIDDEN` on its first request carrying `X-Sub-Account` while the scope is set to "no access". Turn it on under **Settings → Integration → API Credentials**, in the **Sub-account access** field (it takes effect immediately, including for tokens already issued). This is deliberate: without it, every credential that already existed would reach the whole tree the day the first wallet was created.
+</Warning>
 
 Sub-accounts are created at [Create Sub-account](/en/api-reference/sub-accounts/create) and listed at [List Sub-accounts](/en/api-reference/sub-accounts/list). In webhooks, the `subAccount` field tells which wallet the event belongs to — see [Webhooks](/en/api-reference/webhooks).
 

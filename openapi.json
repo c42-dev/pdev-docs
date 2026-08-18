@@ -993,7 +993,7 @@
         "name": "X-Sub-Account",
         "in": "header",
         "required": false,
-        "description": "Reference da subconta em que a operação deve ser executada. Quando omitido, a operação acontece na conta principal; o valor reservado `principal` também resolve para a conta principal e é equivalente a omitir o header. Aceito em todos os endpoints, exceto `POST /auth` e os próprios endpoints de `/sub-accounts`, que sempre operam na conta principal.\n\nErros possíveis: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
+        "description": "Reference da subconta em que a operação deve ser executada. Quando omitido, a operação acontece na conta principal; o valor reservado `principal` também resolve para a conta principal e é equivalente a omitir o header. Aceito em todos os endpoints, exceto `POST /auth` e os próprios endpoints de `/sub-accounts`, que sempre operam na conta principal.\n\nErros possíveis: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.\n\nExige que a credencial tenha o **acesso a subcontas** habilitado (Configurações → Integração → Credenciais de API). Ele nasce desligado e não é substituído por nenhuma permissão, nem por `FULL_ACCESS`: sem ele a resposta é `403 SUB_ACCOUNT_FORBIDDEN`.",
         "schema": {
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",
