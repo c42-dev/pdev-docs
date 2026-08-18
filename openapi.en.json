@@ -1036,7 +1036,7 @@
         "name": "X-Sub-Account",
         "in": "header",
         "required": false,
-        "description": "Reference of the sub-account the operation runs against. When omitted, the operation happens on the main account; the reserved value `principal` also resolves to the main account and is equivalent to omitting the header. Accepted on every endpoint except `POST /auth` and the `/sub-accounts` endpoints themselves, which always operate on the main account.\n\nPossible errors: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.",
+        "description": "Reference of the sub-account the operation runs against. When omitted, the operation happens on the main account; the reserved value `principal` also resolves to the main account and is equivalent to omitting the header. Accepted on every endpoint except `POST /auth` and the `/sub-accounts` endpoints themselves, which always operate on the main account.\n\nPossible errors: `404 SUB_ACCOUNT_NOT_FOUND`, `403 SUB_ACCOUNT_FORBIDDEN`, `403 SUB_ACCOUNT_SUSPENDED`.\n\nRequires the credential to have **sub-account access** enabled (Settings → Integration → API Credentials). It starts turned off and is not replaced by any permission, not even `FULL_ACCESS`: without it the response is `403 SUB_ACCOUNT_FORBIDDEN`.",
         "schema": {
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9_-]{1,31}$",

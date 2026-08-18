@@ -87,6 +87,8 @@ Cada credencial possui permissões granulares que determinam quais endpoints ela
 
 <Note>
   A permissão `FULL_ACCESS` concede acesso a todos os endpoints, equivalente a possuir todas as permissões listadas acima.
+
+  **Exceção: o acesso a subcontas não é permissão.** `FULL_ACCESS` cobre os endpoints de `/sub-accounts` (criar e listar carteiras), mas **não** libera o header `X-Sub-Account` — esse é um campo separado da credencial. Veja [Subcontas](/#subcontas).
 </Note>
 
 ### Restrição por IP
@@ -182,6 +184,10 @@ Duas coisas diferentes controlam o acesso a carteiras, e elas falham de formas d
 - **O escopo da credencial** vale para operar *dentro* de uma carteira: é ele que decide quais carteiras aquela credencial alcança pelo header `X-Sub-Account` e pelo `split`, e é ele que devolve `SUB_ACCOUNT_FORBIDDEN`.
 
 Por isso criar uma cobrança com `X-Sub-Account` e `split` exige só `PIX:WRITE`: as permissões `SUBACCOUNT:*` governam o cadastro de carteiras, não o uso delas.
+
+<Warning>
+**O escopo nasce desligado, e nenhuma permissão o substitui.** Uma credencial recém-criada — inclusive uma com acesso total — recebe `403 SUB_ACCOUNT_FORBIDDEN` no primeiro request com `X-Sub-Account` enquanto o escopo estiver em "sem acesso". Ligue em **Configurações → Integração → Credenciais de API**, no campo **Acesso a subcontas** (vale na hora, inclusive para tokens já emitidos). É proposital: sem isso, toda credencial que já existia passaria a alcançar a árvore inteira no dia em que a primeira carteira fosse criada.
+</Warning>
 
 Subcontas são criadas em [Criar Subconta](/api-reference/sub-accounts/create) e listadas em [Listar Subcontas](/api-reference/sub-accounts/list). Nos webhooks, o campo `subAccount` indica de qual carteira é o evento — veja [Webhooks](/api-reference/webhooks).
 
