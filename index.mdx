@@ -87,6 +87,8 @@ Cada credencial possui permissões granulares que determinam quais endpoints ela
 
 <Note>
   A permissão `FULL_ACCESS` concede acesso a todos os endpoints, equivalente a possuir todas as permissões listadas acima.
+
+  **Exceção: o acesso a subcontas não é permissão.** `FULL_ACCESS` cobre os endpoints de `/sub-accounts` (criar e listar carteiras), mas **não** libera o header `X-Sub-Account` — esse é um campo separado da credencial. Veja [Subcontas](/#subcontas).
 </Note>
 
 ### Restrição por IP

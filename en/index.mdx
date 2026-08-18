@@ -87,6 +87,8 @@ Each credential has granular permissions that determine which endpoints it can a
 
 <Note>
   The `FULL_ACCESS` permission grants access to all endpoints, equivalent to holding every permission listed above.
+
+  **Exception: sub-account access is not a permission.** `FULL_ACCESS` covers the `/sub-accounts` endpoints (creating and listing wallets), but it does **not** enable the `X-Sub-Account` header — that is a separate field on the credential. See [Sub-accounts](/en#sub-accounts).
 </Note>
 
 ### IP restriction
