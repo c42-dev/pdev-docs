@@ -328,6 +328,78 @@ At settlement, each split leg produces **two lines** of type `internal_transfer`
 
 Both are real transactions: [Get Transaction](/en/api-reference/transactions/get) returns `type: internal_transfer` for each of them. The `parentTransactionId` is a statement-level link and is not part of the public response.
 
+## Choosing the Institution
+
+Every PIX charge is issued by one of the institutions linked to your account. By default the pick is made by the **routing** configured in the dashboard — fixed order, split by shares, or automatic.
+
+If your account has **institution choice** enabled, you can decide it per charge by sending `pspCredentialId` when [creating the charge](/en/api-reference/pix/create):
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 100.00,
+    "description": "Order 4821",
+    "pspCredentialId": "6e307aa4-4772-4230-a648-d88cee308f54"
+  }'
+```
+
+Without the field nothing changes: the configured routing still applies, with failover.
+
+### Where to find the ID
+
+In the dashboard, under **Settings → Routing**. Each institution shows its ID right below the numbers, with a copy button.
+
+It lives there rather than in a separate list on purpose: on that same row you see the last 6 hours' conversion, the 7- and 30-day closes and whether the institution is responding. Picking an institution without those numbers is picking blind.
+
+The ID is **stable**: it does not change when you reorder institutions, switch modes or disable another one.
+
+### Pinning is not preferring
+
+When you send `pspCredentialId`, the charge is issued by that institution **or not at all**. There is no fallback:
+
+| Situation | Response |
+|---|---|
+| Institution down (timeout, infra error, rejected credential) | `500` — `Payment service temporarily unavailable` |
+| Institution out of outbound capacity for the cycle | `400` — `reason: out_capacity_exhausted` |
+
+In neither case is the charge created at a different institution.
+
+This is deliberate. Falling back would have the QR born somewhere you did not ask for, and you would only find out by reading the response — which is worse than failing, precisely for whoever pins an institution for reconciliation, limits or contract reasons. If you prefer conversion over predictability, don't send the field: that is what routing with failover is for.
+
+### Receipt in the response
+
+If you pinned the institution, the response echoes `pspCredentialId` with the one that actually issued the charge — use it for reconciliation. Without the field in the request, it is absent from the response too.
+
+```json 201 Response
+{
+  "id": "e3b0c442-98fc-1c14-9afb-f4c8996fb924",
+  "status": "pending",
+  "amount": 100.00,
+  "pixCopyPaste": "00020126580014br.gov.bcb.pix...",
+  "pspCredentialId": "6e307aa4-4772-4230-a648-d88cee308f54",
+  "expiresAt": "2026-08-22T18:00:00.000Z"
+}
+```
+
+### Institution choice errors
+
+All `400`, with the code in `reason`:
+
+| `reason` | When it happens |
+|---|---|
+| `self_routing_disabled` | The account does not have institution choice enabled — talk to support |
+| `credential_not_linked` | The `pspCredentialId` is not a PIX institution of this account |
+| `credential_not_enabled` | The institution exists on the account but is disabled for receiving charges |
+| `credential_inactive` | The institution is currently inactive |
+
+Validation happens **before** any call to the institution: a rejection here never leaves a charge hanging.
+
+<Note>
+The choice applies to **PIX charges** only. Withdrawals still go out through the institution set for withdrawals — that pick stays ours, because it is the same one that pays fees and refunds.
+</Note>
+
 ## Available Resources
 
 <CardGroup cols={2}>

@@ -328,6 +328,78 @@ Na liquidação, cada perna do split gera **duas linhas** de tipo `internal_tran
 
 As duas são transações de verdade: [Buscar Transação](/api-reference/transactions/get) devolve `type: internal_transfer` para cada uma. O `parentTransactionId` é vínculo de extrato e não faz parte da resposta pública.
 
+## Escolha da Instituição
+
+Toda cobrança PIX é emitida por uma das instituições ligadas à sua conta. Por padrão, quem escolhe é o **roteamento** configurado no painel — ordem fixa, divisão por fatias ou automático.
+
+Se a sua conta tem a **escolha de instituição** habilitada, você pode decidir isso por cobrança, enviando `pspCredentialId` na [criação da cobrança](/api-reference/pix/create):
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 100.00,
+    "description": "Pedido 4821",
+    "pspCredentialId": "6e307aa4-4772-4230-a648-d88cee308f54"
+  }'
+```
+
+Sem o campo, nada muda: o roteamento configurado continua valendo, com failover.
+
+### Onde encontrar o ID
+
+No painel, em **Configurações → Roteamento**. Cada instituição mostra o ID logo abaixo dos números, com um botão de copiar.
+
+É de propósito que ele fique ali e não numa lista à parte: na mesma linha você vê a conversão das últimas 6 horas, o fechamento de 7 e 30 dias e se a instituição está respondendo. Escolher instituição sem olhar esses números é escolher no escuro.
+
+O ID é **estável**: não muda quando você reordena as instituições, troca de modo ou desabilita outra.
+
+### Fixar não é preferir
+
+Quando você envia `pspCredentialId`, a cobrança sai por aquela instituição **ou não sai**. Não existe fallback:
+
+| Situação | Resposta |
+|---|---|
+| Instituição fora do ar (timeout, erro de infra, credencial recusada) | `500` — `Payment service temporarily unavailable` |
+| Instituição sem capacidade de saída no ciclo | `400` — `reason: out_capacity_exhausted` |
+
+Em nenhum dos dois a cobrança é criada em outra instituição.
+
+Isso é deliberado. Cair para outra faria o QR nascer num lugar que você não pediu, e você só descobriria conferindo a resposta — o que é pior do que falhar, justamente para quem fixa a instituição por conciliação, limite ou contrato. Quem prefere conversão a previsibilidade não deve enviar o campo: é para isso que o roteamento com failover existe.
+
+### Recibo na resposta
+
+Fixou a instituição, a resposta ecoa `pspCredentialId` com a que realmente emitiu — use na conciliação. Sem o campo no request, ele também não vem na resposta.
+
+```json Resposta 201
+{
+  "id": "e3b0c442-98fc-1c14-9afb-f4c8996fb924",
+  "status": "pending",
+  "amount": 100.00,
+  "pixCopyPaste": "00020126580014br.gov.bcb.pix...",
+  "pspCredentialId": "6e307aa4-4772-4230-a648-d88cee308f54",
+  "expiresAt": "2026-08-22T18:00:00.000Z"
+}
+```
+
+### Erros da escolha
+
+Todos `400`, com o código em `reason`:
+
+| `reason` | Quando acontece |
+|---|---|
+| `self_routing_disabled` | A conta não tem a escolha de instituição habilitada — fale com o suporte |
+| `credential_not_linked` | O `pspCredentialId` não é uma instituição de PIX desta conta |
+| `credential_not_enabled` | A instituição existe na conta, mas está desabilitada para receber cobranças |
+| `credential_inactive` | A instituição está inativa no momento |
+
+A validação acontece **antes** de qualquer chamada à instituição: recusa aqui nunca deixa cobrança pendurada.
+
+<Note>
+A escolha vale só para **cobranças PIX**. Saques continuam saindo pela instituição definida para saque — ali a escolha é nossa, porque é a mesma que paga taxas e devoluções.
+</Note>
+
 ## Recursos Disponíveis
 
 <CardGroup cols={2}>
