@@ -8691,6 +8691,12 @@
             "description": "ID do projeto para associar a transação. Se não informado e a conta tiver um único projeto, a cobrança herda esse projeto; com mais de um, a cobrança fica sem projeto.",
             "format": "uuid"
           },
+          "pspCredentialId": {
+            "type": "string",
+            "description": "Fixa a instituição que emite esta cobrança, ignorando o roteamento configurado. Use o ID que aparece em Configurações → Roteamento no painel. Precisa ser uma instituição habilitada e ativa da sua conta. Se ela estiver fora do ar ou sem capacidade, a cobrança FALHA — não cai para outra: você pediu esta. Disponível para contas com a escolha de instituição habilitada.",
+            "format": "uuid",
+            "example": "6e307aa4-4772-4230-a648-d88cee308f54"
+          },
           "expiresIn": {
             "type": "integer",
             "description": "Segundos até expiração (padrão: 86400 = 24h)",
@@ -8765,6 +8771,12 @@
             "type": "string",
             "description": "Data de expiração",
             "format": "date-time"
+          },
+          "pspCredentialId": {
+            "type": "string",
+            "description": "Instituição que emitiu esta cobrança. Só vem quando você fixou a instituição no request (`pspCredentialId`), como recibo de que ela foi respeitada.",
+            "format": "uuid",
+            "example": "6e307aa4-4772-4230-a648-d88cee308f54"
           },
           "externalReference": {
             "type": "string",

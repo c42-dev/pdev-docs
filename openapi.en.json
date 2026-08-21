@@ -9526,6 +9526,12 @@
             "description": "Project ID to associate the transaction with. If omitted, the charge inherits the account's project when there is a single one; with multiple projects the charge is created without a project.",
             "format": "uuid"
           },
+          "pspCredentialId": {
+            "type": "string",
+            "description": "Pins the institution that issues this charge, bypassing the configured routing. Use the ID shown under Settings → Routing in the dashboard. It must be an enabled, active institution of your account. If it is down or out of capacity, the charge FAILS — it does not fall back to another one: you asked for this one. Available to accounts with institution choice enabled.",
+            "format": "uuid",
+            "example": "6e307aa4-4772-4230-a648-d88cee308f54"
+          },
           "expiresIn": {
             "type": "integer",
             "description": "Seconds until expiration (default: 86400 = 24h)",
@@ -9608,6 +9614,12 @@
             "type": "string",
             "description": "Expiration date",
             "format": "date-time"
+          },
+          "pspCredentialId": {
+            "type": "string",
+            "description": "Institution that issued this charge. Only present when you pinned the institution in the request (`pspCredentialId`), as a receipt that it was honored.",
+            "format": "uuid",
+            "example": "6e307aa4-4772-4230-a648-d88cee308f54"
           },
           "externalReference": {
             "type": "string",

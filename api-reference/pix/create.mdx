@@ -10,3 +10,11 @@ Quem cria a cobrança é o **originador**: recebe o bruto, paga a taxa cheia e s
 
 Veja [Split de Pagamento](/#split-de-pagamento) para as regras completas, os exemplos e a tabela de erros.
 </Note>
+
+<Note>
+**Escolha da instituição.** Se a sua conta tem essa opção habilitada, o campo opcional `pspCredentialId` fixa a instituição que emite esta cobrança, ignorando o roteamento configurado. Copie o ID em **Configurações → Roteamento** no painel.
+
+Fixar **não é preferir**: se a instituição estiver fora do ar ou sem capacidade, a cobrança falha em vez de sair por outra. A resposta ecoa `pspCredentialId` como recibo.
+
+Veja [Escolha da Instituição](/#escolha-da-instituição) para as regras completas e a tabela de erros.
+</Note>
