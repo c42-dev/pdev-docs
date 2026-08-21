@@ -10,3 +10,11 @@ Whoever creates the charge is the **originator**: it receives the gross amount, 
 
 See [Payment Split](/en#payment-split) for the full rules, the examples and the error table.
 </Note>
+
+<Note>
+**Choosing the institution.** If your account has this option enabled, the optional `pspCredentialId` field pins the institution that issues this charge, bypassing the configured routing. Copy the ID under **Settings → Routing** in the dashboard.
+
+Pinning is **not preferring**: if the institution is down or out of capacity, the charge fails instead of going out through another one. The response echoes `pspCredentialId` as a receipt.
+
+See [Choosing the Institution](/en#choosing-the-institution) for the full rules and the error table.
+</Note>
