@@ -1554,6 +1554,28 @@
             "description": "CPF/CNPJ контрагента, без маски",
             "example": "12345678900"
           },
+          "failureReason": {
+            "type": "string",
+            "description": "Причина сбоя (только при status = failed)",
+            "example": "Bloqueio de depósito: pagador CNPJ não permitido"
+          },
+          "blockedDeposit": {
+            "type": "object",
+            "nullable": true,
+            "description": "Присутствует, когда ПОЛУЧЕННЫЙ депозит заблокирован политикой счёта (например, плательщики CNPJ не допускаются). Сумма НЕ зачислена; `refund` показывает, вернулись ли деньги плательщику (status pending/confirmed/failed), E2E возврата и когда он проведён.",
+            "properties": {
+              "reason": { "type": "string", "example": "cnpj_payer_not_allowed" },
+              "refund": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "status": { "type": "string", "enum": ["pending", "confirmed", "failed"] },
+                  "e2eId": { "type": "string", "nullable": true, "example": "D54811417202609082224L1aDrByinUX" },
+                  "settledAt": { "type": "string", "format": "date-time", "nullable": true }
+                }
+              }
+            }
+          },
           "createdAt": {
             "type": "string",
             "description": "Дата создания",

@@ -13,6 +13,7 @@ description: 'Получайте уведомления о платёжных с
 |--------|-----------|
 | `payment_completed` | Платёж успешно подтверждён |
 | `payment_expired` | Платёж истёк без подтверждения |
+| `payment_failed` | Платёж получен, но отклонён — депозит заблокирован политикой счёта (например, плательщик CNPJ) |
 | `refund_completed` | Возврат обработан |
 | `withdrawal_completed` | Вывод средств успешно обработан |
 | `withdrawal_failed` | Вывод средств отклонён или завершился сбоем |
@@ -224,6 +225,74 @@ app.post('/webhook', (req, res) => {
 | `status` | string | Статус платежа (expired) |
 | `expiredAt` | string | Дата и время истечения в формате ISO 8601 |
 | `externalReference` | string | Ваш внешний референс (необязательно) |
+| `metadata` | object | Пользовательские метаданные, отправленные при создании платежа (необязательно) |
+
+### payment_failed
+
+Отправляется, когда платёж PIX **получен, но не мог быть зачислен** — сейчас это случай, когда счёт блокирует депозиты от плательщиков-юрлиц (CNPJ). Сумма не поступает на ваш баланс, комиссия не взимается, деньги автоматически возвращаются плательщику. `blockedDeposit.refund` показывает ход возврата.
+
+```json
+{
+  "event": "payment_failed",
+  "eventId": "payment_failed_13e3ffd1-55d9-4863-9cc1-8955475cdf64",
+  "timestamp": "2026-09-09T20:50:17.612Z",
+  "data": {
+    "transactionId": "13e3ffd1-55d9-4863-9cc1-8955475cdf64",
+    "environment": "production",
+    "amount": 5000.00,
+    "feeAmount": 0,
+    "netAmount": 5000.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "failed",
+    "failureReason": "Bloqueio de depósito: pagador CNPJ não permitido",
+    "failedAt": "2026-09-09T20:50:17.610Z",
+    "createdAt": "2026-09-09T20:49:41.506Z",
+    "e2eId": "E71328769202609092049JcZwvkhgNGJ",
+    "counterpartName": "EMPRESA PAGADORA LTDA",
+    "counterpartDocument": "60937487000165",
+    "blockedDeposit": {
+      "reason": "cnpj_payer_not_allowed",
+      "refund": {
+        "status": "confirmed",
+        "e2eId": null,
+        "settledAt": "2026-09-09T20:50:14.900Z"
+      }
+    },
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345"
+    }
+  }
+}
+```
+
+<Note>
+Возврат выполняет платёжное учреждение сразу после блокировки. `refund.status` в вебхуке — состояние на момент отправки; E2E возврата (`refund.e2eId`) обычно приходит через несколько секунд — запросите `GET /transactions/{id}` для итоговых данных и ответа плательщику.
+</Note>
+
+| Поле | Тип | Описание |
+|-------|------|-----------|
+| `transactionId` | string | Уникальный ID транзакции |
+| `environment` | string | Окружение (`production` или `sandbox`) |
+| `amount` | number | Сумма, уплаченная плательщиком |
+| `feeAmount` | number | Взимаемая комиссия (всегда 0 — ничего не зачислено) |
+| `netAmount` | number | Равно `amount` (справочно; ничего не зачислено) |
+| `currency` | string | Валюта (BRL) |
+| `paymentMethod` | string | Способ оплаты (pix) |
+| `status` | string | Статус платежа (failed) |
+| `failureReason` | string | Причина, текстом |
+| `failedAt` | string | Дата и время отклонения в формате ISO 8601 |
+| `createdAt` | string | Дата и время создания платежа в формате ISO 8601 |
+| `e2eId` | string | Сквозной ID полученного PIX (необязательно) |
+| `counterpartName` | string | Имя плательщика по данным PSP (необязательно) |
+| `counterpartDocument` | string | CNPJ плательщика, без маски |
+| `blockedDeposit.reason` | string | Причина блокировки: `cnpj_payer_not_allowed` |
+| `blockedDeposit.refund.status` | string | Возврат плательщику: `pending` (принят, не подтверждён), `confirmed` (проведён) или `failed` (обрабатывается вручную) |
+| `blockedDeposit.refund.e2eId` | string | Сквозной ID возврата (`D…`), если уже известен |
+| `blockedDeposit.refund.settledAt` | string | Дата и время проведения возврата в формате ISO 8601, если подтверждён |
+| `externalReference` | string | Ваш внешний референс (необязательно) |
+| `customer` | object | Данные клиента, указанные при создании платежа (необязательно) |
 | `metadata` | object | Пользовательские метаданные, отправленные при создании платежа (необязательно) |
 
 ### refund_completed
