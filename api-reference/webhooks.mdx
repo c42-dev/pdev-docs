@@ -13,6 +13,7 @@ Webhooks permitem que você receba notificações HTTP automáticas quando event
 |--------|-----------|
 | `payment_completed` | Pagamento foi confirmado com sucesso |
 | `payment_expired` | Pagamento expirou sem confirmação |
+| `payment_failed` | Pagamento recebido mas recusado — depósito bloqueado por política da conta (ex.: pagador CNPJ) |
 | `refund_completed` | Reembolso foi processado |
 | `withdrawal_completed` | Saque foi processado com sucesso |
 | `withdrawal_failed` | Saque foi rejeitado ou falhou |
@@ -224,6 +225,74 @@ Enviado quando um pagamento PIX expira sem confirmação.
 | `status` | string | Status do pagamento (expired) |
 | `expiredAt` | string | Data/hora da expiração em ISO 8601 |
 | `externalReference` | string | Sua referência externa (opcional) |
+| `metadata` | object | Metadados customizados enviados na criação do pagamento (opcional) |
+
+### payment_failed
+
+Enviado quando um pagamento PIX foi **recebido mas não pôde ser creditado** — hoje, quando a conta bloqueia depósitos de pagadores pessoa jurídica (CNPJ). O valor não entra no seu saldo, não gera taxa e é devolvido ao pagador automaticamente. `blockedDeposit.refund` informa o andamento da devolução.
+
+```json
+{
+  "event": "payment_failed",
+  "eventId": "payment_failed_13e3ffd1-55d9-4863-9cc1-8955475cdf64",
+  "timestamp": "2026-09-09T20:50:17.612Z",
+  "data": {
+    "transactionId": "13e3ffd1-55d9-4863-9cc1-8955475cdf64",
+    "environment": "production",
+    "amount": 5000.00,
+    "feeAmount": 0,
+    "netAmount": 5000.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "failed",
+    "failureReason": "Bloqueio de depósito: pagador CNPJ não permitido",
+    "failedAt": "2026-09-09T20:50:17.610Z",
+    "createdAt": "2026-09-09T20:49:41.506Z",
+    "e2eId": "E71328769202609092049JcZwvkhgNGJ",
+    "counterpartName": "EMPRESA PAGADORA LTDA",
+    "counterpartDocument": "60937487000165",
+    "blockedDeposit": {
+      "reason": "cnpj_payer_not_allowed",
+      "refund": {
+        "status": "confirmed",
+        "e2eId": null,
+        "settledAt": "2026-09-09T20:50:14.900Z"
+      }
+    },
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345"
+    }
+  }
+}
+```
+
+<Note>
+A devolução é feita pela instituição de pagamento logo após o bloqueio. O `refund.status` do webhook é o estado no momento do envio; o E2E da devolução (`refund.e2eId`) costuma chegar segundos depois — consulte `GET /transactions/{id}` para o dado final e para responder ao pagador.
+</Note>
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `transactionId` | string | ID único da transação |
+| `environment` | string | Ambiente (`production` ou `sandbox`) |
+| `amount` | number | Valor pago pelo pagador |
+| `feeAmount` | number | Taxa cobrada (sempre 0 — nada foi creditado) |
+| `netAmount` | number | Igual a `amount` (referência; nada foi creditado) |
+| `currency` | string | Moeda (BRL) |
+| `paymentMethod` | string | Método de pagamento (pix) |
+| `status` | string | Status do pagamento (failed) |
+| `failureReason` | string | Motivo, em texto |
+| `failedAt` | string | Data/hora da recusa em ISO 8601 |
+| `createdAt` | string | Data/hora da criação da cobrança em ISO 8601 |
+| `e2eId` | string | ID fim-a-fim do PIX recebido (opcional) |
+| `counterpartName` | string | Nome do pagador conforme retornado pelo PSP (opcional) |
+| `counterpartDocument` | string | CNPJ do pagador, sem máscara |
+| `blockedDeposit.reason` | string | Motivo do bloqueio: `cnpj_payer_not_allowed` |
+| `blockedDeposit.refund.status` | string | Devolução ao pagador: `pending` (aceita, sem confirmação), `confirmed` (liquidada) ou `failed` (em tratamento manual) |
+| `blockedDeposit.refund.e2eId` | string | ID fim-a-fim da devolução (`D…`), quando já conhecido |
+| `blockedDeposit.refund.settledAt` | string | Data/hora da liquidação da devolução em ISO 8601, quando confirmada |
+| `externalReference` | string | Sua referência externa (opcional) |
+| `customer` | object | Dados do cliente informados na criação da cobrança (opcional) |
 | `metadata` | object | Metadados customizados enviados na criação do pagamento (opcional) |
 
 ### refund_completed

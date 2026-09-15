@@ -13,6 +13,7 @@ Webhooks let you receive automatic HTTP notifications when important events happ
 |--------|-----------|
 | `payment_completed` | Payment was successfully confirmed |
 | `payment_expired` | Payment expired without confirmation |
+| `payment_failed` | Payment received but refused — deposit blocked by an account policy (e.g. CNPJ payer) |
 | `refund_completed` | Refund was processed |
 | `withdrawal_completed` | Withdrawal was successfully processed |
 | `withdrawal_failed` | Withdrawal was rejected or failed |
@@ -224,6 +225,74 @@ Sent when a PIX payment expires without confirmation.
 | `status` | string | Payment status (expired) |
 | `expiredAt` | string | Expiration date/time in ISO 8601 |
 | `externalReference` | string | Your external reference (optional) |
+| `metadata` | object | Custom metadata sent when the payment was created (optional) |
+
+### payment_failed
+
+Sent when a PIX payment was **received but could not be credited** — today, when the account blocks deposits from business (CNPJ) payers. The amount does not enter your balance, no fee applies, and it is automatically returned to the payer. `blockedDeposit.refund` reports the return progress.
+
+```json
+{
+  "event": "payment_failed",
+  "eventId": "payment_failed_13e3ffd1-55d9-4863-9cc1-8955475cdf64",
+  "timestamp": "2026-09-09T20:50:17.612Z",
+  "data": {
+    "transactionId": "13e3ffd1-55d9-4863-9cc1-8955475cdf64",
+    "environment": "production",
+    "amount": 5000.00,
+    "feeAmount": 0,
+    "netAmount": 5000.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "failed",
+    "failureReason": "Bloqueio de depósito: pagador CNPJ não permitido",
+    "failedAt": "2026-09-09T20:50:17.610Z",
+    "createdAt": "2026-09-09T20:49:41.506Z",
+    "e2eId": "E71328769202609092049JcZwvkhgNGJ",
+    "counterpartName": "EMPRESA PAGADORA LTDA",
+    "counterpartDocument": "60937487000165",
+    "blockedDeposit": {
+      "reason": "cnpj_payer_not_allowed",
+      "refund": {
+        "status": "confirmed",
+        "e2eId": null,
+        "settledAt": "2026-09-09T20:50:14.900Z"
+      }
+    },
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345"
+    }
+  }
+}
+```
+
+<Note>
+The return is made by the payment institution right after the block. The webhook's `refund.status` is the state at send time; the return E2E (`refund.e2eId`) usually arrives seconds later — query `GET /transactions/{id}` for the final data and to answer the payer.
+</Note>
+
+| Field | Type | Description |
+|-------|------|-----------|
+| `transactionId` | string | Unique transaction ID |
+| `environment` | string | Environment (`production` or `sandbox`) |
+| `amount` | number | Amount paid by the payer |
+| `feeAmount` | number | Fee charged (always 0 — nothing was credited) |
+| `netAmount` | number | Same as `amount` (reference; nothing was credited) |
+| `currency` | string | Currency (BRL) |
+| `paymentMethod` | string | Payment method (pix) |
+| `status` | string | Payment status (failed) |
+| `failureReason` | string | Reason, as text |
+| `failedAt` | string | Refusal date/time in ISO 8601 |
+| `createdAt` | string | Charge creation date/time in ISO 8601 |
+| `e2eId` | string | End-to-end ID of the received PIX (optional) |
+| `counterpartName` | string | Payer name as returned by the PSP (optional) |
+| `counterpartDocument` | string | Payer CNPJ, unmasked |
+| `blockedDeposit.reason` | string | Block reason: `cnpj_payer_not_allowed` |
+| `blockedDeposit.refund.status` | string | Return to the payer: `pending` (accepted, not yet confirmed), `confirmed` (settled) or `failed` (being handled manually) |
+| `blockedDeposit.refund.e2eId` | string | End-to-end ID of the return (`D…`), when already known |
+| `blockedDeposit.refund.settledAt` | string | Return settlement date/time in ISO 8601, when confirmed |
+| `externalReference` | string | Your external reference (optional) |
+| `customer` | object | Customer data provided when the charge was created (optional) |
 | `metadata` | object | Custom metadata sent when the payment was created (optional) |
 
 ### refund_completed

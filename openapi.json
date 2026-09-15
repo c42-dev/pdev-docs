@@ -1465,6 +1465,28 @@
             "description": "CPF/CNPJ da contraparte, sem máscara",
             "example": "12345678900"
           },
+          "failureReason": {
+            "type": "string",
+            "description": "Motivo da falha (apenas quando status = failed)",
+            "example": "Bloqueio de depósito: pagador CNPJ não permitido"
+          },
+          "blockedDeposit": {
+            "type": "object",
+            "nullable": true,
+            "description": "Presente quando um depósito RECEBIDO foi bloqueado por política da conta (ex.: pagadores CNPJ não permitidos). O valor NÃO foi creditado; `refund` informa se o dinheiro voltou ao pagador (status pending/confirmed/failed), o E2E da devolução e quando liquidou.",
+            "properties": {
+              "reason": { "type": "string", "example": "cnpj_payer_not_allowed" },
+              "refund": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "status": { "type": "string", "enum": ["pending", "confirmed", "failed"] },
+                  "e2eId": { "type": "string", "nullable": true, "example": "D54811417202609082224L1aDrByinUX" },
+                  "settledAt": { "type": "string", "format": "date-time", "nullable": true }
+                }
+              }
+            }
+          },
           "createdAt": {
             "type": "string",
             "description": "Data de criação",

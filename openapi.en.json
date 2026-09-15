@@ -1554,6 +1554,28 @@
             "description": "Counterpart CPF/CNPJ, unmasked",
             "example": "12345678900"
           },
+          "failureReason": {
+            "type": "string",
+            "description": "Failure reason (only when status = failed)",
+            "example": "Bloqueio de depósito: pagador CNPJ não permitido"
+          },
+          "blockedDeposit": {
+            "type": "object",
+            "nullable": true,
+            "description": "Present when a RECEIVED deposit was blocked by an account policy (e.g. CNPJ payers not allowed). The amount was NOT credited; `refund` tells whether the money went back to the payer (status pending/confirmed/failed), the return E2E and when it settled.",
+            "properties": {
+              "reason": { "type": "string", "example": "cnpj_payer_not_allowed" },
+              "refund": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "status": { "type": "string", "enum": ["pending", "confirmed", "failed"] },
+                  "e2eId": { "type": "string", "nullable": true, "example": "D54811417202609082224L1aDrByinUX" },
+                  "settledAt": { "type": "string", "format": "date-time", "nullable": true }
+                }
+              }
+            }
+          },
           "createdAt": {
             "type": "string",
             "description": "Creation date",
