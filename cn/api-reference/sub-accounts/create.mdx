@@ -1,0 +1,12 @@
+---
+title: '创建子账户'
+openapi: '/openapi.cn.json POST /sub-accounts'
+---
+
+<Note>
+**`reference` 不可更改。** 它是您在 `X-Sub-Account` 请求头中发送、用于在子账户上操作的标识符，也是 webhook 中 `subAccount` 字段收到的值——请谨慎选择，因为创建后无法修改。
+
+格式：`^[a-z0-9][a-z0-9_-]{1,31}$`——2 到 32 个字符，仅限小写字母、数字、`-` 和 `_`，并以小写字母或数字开头。`reference` 在账户内必须唯一：重复使用已存在的值将返回 `409 SUB_ACCOUNT_REFERENCE_TAKEN`。
+
+子账户创建时拥有独立余额，初始为零，与主账户余额完全独立。关于 `X-Sub-Account` 请求头的行为和完整的错误表，参见[子账户](/cn#子账户)。
+</Note>

@@ -1,0 +1,671 @@
+---
+title: 'Webhooks'
+description: '实时接收支付事件通知'
+---
+
+## 概述
+
+Webhooks 让您在账户发生重要事件时自动收到 HTTP 通知，例如支付已确认、退款已处理或提现已完成。
+
+## 可用事件
+
+| 事件 | 说明 |
+|--------|-----------|
+| `payment_completed` | 支付已成功确认 |
+| `payment_expired` | 支付未经确认即已过期 |
+| `payment_failed` | 支付已收到但被拒绝——入账因账户策略被拦截（例如：付款人为 CNPJ） |
+| `refund_completed` | 退款已处理 |
+| `withdrawal_completed` | 提现已成功处理 |
+| `withdrawal_failed` | 提现被拒绝或失败 |
+| `withdrawal_reversed` | 提现被 PSP 冲正 |
+| `balance_block_created` | 余额冻结已创建（MED/司法/行政） |
+| `balance_block_approved` | 冻结已批准——金额退回付款人 |
+| `balance_block_rejected` | 冻结已驳回——金额退回商户 |
+
+## Payload 结构
+
+所有 webhook 都遵循相同的基础结构：
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "subAccount": null,
+  "data": {
+    // 事件相关数据
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `event` | string | 事件类型 |
+| `eventId` | string | 事件的唯一 ID（通常为交易 ID） |
+| `timestamp` | string | 事件的日期/时间，ISO 8601 格式 |
+| `subAccount` | string 或 null | 产生该事件的子账户的 `reference`；事件属于主账户时为 `null` |
+| `data` | object | 事件相关数据 |
+
+## 子账户
+
+当事件属于某个[子账户](/cn#子账户)时，`subAccount` 字段带有该子账户的 `reference`：
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "subAccount": "loja-centro",
+  "data": {
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "amount": 100.21,
+    "status": "completed"
+  }
+}
+```
+
+<Warning>
+  **如果子账户没有登记自己的 webhook 端点，它的事件将投递到主账户的端点。** 这正是 `subAccount` 至关重要的原因：由它说明事件属于哪个钱包。
+
+  请始终使用该字段把事件记入正确的钱包——切勿假定主账户端点收到的所有事件都属于主账户。
+</Warning>
+
+## 发送的请求头
+
+每个 webhook 请求都包含以下请求头：
+
+| 请求头 | 说明 |
+|--------|-----------|
+| `Content-Type` | `application/json` |
+| `User-Agent` | `Pague-Webhook/1.0` |
+| `X-Pague-Event` | 事件类型（例如：`payment_completed`） |
+| `X-Pague-Webhook-ID` | 本次投递的唯一 ID（UUID） |
+| `X-Pague-Signature` | payload 的签名：`sha256=<十六进制的 HMAC-SHA256>` |
+| `X-Pague-Timestamp` | 投递时间戳，单位为毫秒（Unix epoch） |
+
+## 验证签名
+
+每个 webhook 都使用 HMAC-SHA256 签名，密钥为**您端点的 secret**
+（仅在创建时显示一次）。请按以下步骤验证：
+
+1. 以您的 secret 为密钥，对请求的原始 body 计算 **HMAC-SHA256**
+2. 在十六进制结果前加上前缀 `sha256=`
+3. 使用恒定时间比较，与 `X-Pague-Signature` 请求头进行比对
+
+```typescript Node.js (crypto)
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+app.post('/webhook', (req, res) => {
+  const signature = req.headers['x-pague-signature'] as string; // "sha256=<hex>"
+  const rawBody = req.body; // raw string body
+
+  // 1. 使用您的 secret 对 payload 计算 HMAC-SHA256（不要对 secret 做哈希）
+  // 2. 加上前缀 "sha256="
+  const expected = `sha256=${createHmac('sha256', 'your_webhook_secret')
+    .update(rawBody)
+    .digest('hex')}`;
+
+  // 3. 恒定时间比较
+  const isValid =
+    typeof signature === 'string' &&
+    signature.length === expected.length &&
+    timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+
+  if (!isValid) {
+    return res.status(401).send('签名无效');
+  }
+
+  // 处理事件...
+  res.status(200).send('OK');
+});
+```
+
+<Warning>
+  请始终使用恒定时间比较（`timingSafeEqual`）以防止时序攻击。
+  切勿使用 `===` 比较签名。
+</Warning>
+
+## Payload 示例
+
+### payment_completed
+
+PIX 支付确认时发送。
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+  "timestamp": "2026-01-11T19:03:28.280Z",
+  "data": {
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "sandbox",
+    "amount": 100.21,
+    "feeAmount": 0.5,
+    "netAmount": 99.71,
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ],
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "completedAt": "2026-01-11T19:03:28.277Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "Maria Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+<Note>
+**webhook 中的 `split` 是实际分配的结果**，而不是您在创建收款时请求的内容。当账户手续费在收款创建与支付之间发生变化时，两者会出现差异：净额缩小，各笔分账按发送顺序被削减，而不是让结算失败。
+
+与钱包账单对账时，请始终使用 webhook 中的金额——切勿使用您在请求中发送的金额。该字段仅在发生分账时出现；没有 split 的收款不会带有该键。
+</Note>
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `transactionId` | string | 交易的唯一 ID |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 支付总金额 |
+| `feeAmount` | number | 收取的手续费 |
+| `netAmount` | number | 净额（amount - feeAmount） |
+| `split` | array | 各钱包之间实际执行的分账，以雷亚尔计；`subAccount` 为目标的 `reference`，或用 `principal` 表示主账户（可选——仅在发生[分账](/cn#支付分账)时存在） |
+| `currency` | string | 货币（BRL） |
+| `paymentMethod` | string | 支付方式（pix） |
+| `status` | string | 支付状态（completed） |
+| `completedAt` | string | 完成的日期/时间，ISO 8601 格式 |
+| `externalReference` | string | 您的外部参考（可选） |
+| `e2eId` | string | PIX 网络的端到端 ID（可选，可用时存在） |
+| `counterpartName` | string | PSP 返回的付款人姓名（可选） |
+| `counterpartDocument` | string | PSP 返回的付款人 CPF/CNPJ（可选，不带格式符号） |
+| `pixKey` | string | 收到款项的 PIX 密钥，格式以机构提供的为准（可选——仅在下文所述的密钥直接收款时存在） |
+| `metadata` | object | 创建支付时发送的自定义元数据（可选） |
+
+#### 密钥直接收款
+
+当您的账户有一个已开通直接收款的 PIX 密钥时，**未创建收款单**而直接发送到该密钥的 PIX 同样会产生 `payment_completed`。由于没有收款单，事件不带 `externalReference` 和 `metadata`，并由 `pixKey` 字段说明是哪个密钥收到了款项：
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "4a8d4051-6d0e-4a52-9d63-0c1c3f6a7b21",
+  "timestamp": "2026-11-11T14:07:31.412Z",
+  "data": {
+    "transactionId": "4a8d4051-6d0e-4a52-9d63-0c1c3f6a7b21",
+    "environment": "production",
+    "amount": 1.00,
+    "feeAmount": 0.20,
+    "netAmount": 0.80,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "completedAt": "2026-11-11T14:07:31.398Z",
+    "e2eId": "E18236120202611111407s14f5fc500e",
+    "counterpartName": "Maria Silva",
+    "counterpartDocument": "12345678900",
+    "pixKey": "31d6c1b0-3168-43da-a25c-82c8a6c0bb43"
+  }
+}
+```
+
+<Note>
+该金额与任何已确认的支付一样计入余额，并按账户的 PIX 手续费计费。对账时请使用 `e2eId`（每笔 PIX 唯一）和 `pixKey`；比较密钥时不区分大小写。为密钥开通直接收款由我们的团队完成——请联系客服。
+</Note>
+
+### payment_expired
+
+PIX 支付未经确认即过期时发送。
+
+```json
+{
+  "event": "payment_expired",
+  "eventId": "payment_expired_d5e6f7a8-1234-5678-9abc-def012345678",
+  "timestamp": "2026-01-11T19:30:00.000Z",
+  "data": {
+    "transactionId": "d5e6f7a8-1234-5678-9abc-def012345678",
+    "environment": "sandbox",
+    "amount": 75.50,
+    "feeAmount": 0,
+    "netAmount": 0,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "expired",
+    "expiredAt": "2026-01-11T19:30:00.000Z",
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `transactionId` | string | 交易的唯一 ID |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 支付金额 |
+| `feeAmount` | number | 收取的手续费（过期支付始终为 0） |
+| `netAmount` | number | 净额（过期支付始终为 0） |
+| `currency` | string | 货币（BRL） |
+| `paymentMethod` | string | 支付方式（pix） |
+| `status` | string | 支付状态（expired） |
+| `expiredAt` | string | 过期的日期/时间，ISO 8601 格式 |
+| `externalReference` | string | 您的外部参考（可选） |
+| `metadata` | object | 创建支付时发送的自定义元数据（可选） |
+
+### payment_failed
+
+当一笔 PIX 支付**已收到但无法入账**时发送——目前是指账户拦截法人付款人（CNPJ）入账的情况。该金额不会计入您的余额，不产生手续费，并自动退回付款人。`blockedDeposit.refund` 说明退回的进度。
+
+```json
+{
+  "event": "payment_failed",
+  "eventId": "payment_failed_13e3ffd1-55d9-4863-9cc1-8955475cdf64",
+  "timestamp": "2026-09-09T20:50:17.612Z",
+  "data": {
+    "transactionId": "13e3ffd1-55d9-4863-9cc1-8955475cdf64",
+    "environment": "production",
+    "amount": 5000.00,
+    "feeAmount": 0,
+    "netAmount": 5000.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "failed",
+    "failureReason": "Bloqueio de depósito: pagador CNPJ não permitido",
+    "failedAt": "2026-09-09T20:50:17.610Z",
+    "createdAt": "2026-09-09T20:49:41.506Z",
+    "e2eId": "E71328769202609092049JcZwvkhgNGJ",
+    "counterpartName": "EMPRESA PAGADORA LTDA",
+    "counterpartDocument": "60937487000165",
+    "blockedDeposit": {
+      "reason": "cnpj_payer_not_allowed",
+      "refund": {
+        "status": "confirmed",
+        "e2eId": null,
+        "settledAt": "2026-09-09T20:50:14.900Z"
+      }
+    },
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345"
+    }
+  }
+}
+```
+
+<Note>
+退回由支付机构在拦截后立即执行。webhook 中的 `refund.status` 是发送时刻的状态；退回的 E2E（`refund.e2eId`）通常在几秒后才到达——请查询 `GET /transactions/{id}` 获取最终数据，并据此答复付款人。
+</Note>
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `transactionId` | string | 交易的唯一 ID |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 付款人支付的金额 |
+| `feeAmount` | number | 收取的手续费（始终为 0——没有任何入账） |
+| `netAmount` | number | 等于 `amount`（仅供参考；没有任何入账） |
+| `currency` | string | 货币（BRL） |
+| `paymentMethod` | string | 支付方式（pix） |
+| `status` | string | 支付状态（failed） |
+| `failureReason` | string | 原因（文本） |
+| `failedAt` | string | 拒绝的日期/时间，ISO 8601 格式 |
+| `createdAt` | string | 收款创建的日期/时间，ISO 8601 格式 |
+| `e2eId` | string | 所收到 PIX 的端到端 ID（可选） |
+| `counterpartName` | string | PSP 返回的付款人姓名（可选） |
+| `counterpartDocument` | string | 付款人的 CNPJ，不带格式符号 |
+| `blockedDeposit.reason` | string | 拦截原因：`cnpj_payer_not_allowed` |
+| `blockedDeposit.refund.status` | string | 退回付款人的状态：`pending`（已受理，尚未确认）、`confirmed`（已结算）或 `failed`（人工处理中） |
+| `blockedDeposit.refund.e2eId` | string | 退回的端到端 ID（`D…`），已知时存在 |
+| `blockedDeposit.refund.settledAt` | string | 退回结算的日期/时间，ISO 8601 格式，确认后存在 |
+| `externalReference` | string | 您的外部参考（可选） |
+| `customer` | object | 创建收款时提供的客户数据（可选） |
+| `metadata` | object | 创建支付时发送的自定义元数据（可选） |
+
+### refund_completed
+
+退款处理完成时发送。
+
+```json
+{
+  "event": "refund_completed",
+  "eventId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
+  "timestamp": "2026-01-11T19:22:15.456Z",
+  "data": {
+    "refundTransactionId": "c92d45e6-8b33-4f12-a789-2e56f8901def",
+    "originalTransactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "sandbox",
+    "amount": 50.00,
+    "feeAmount": 0.25,
+    "netAmount": 50.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "refundedAt": "2026-01-11T19:22:15.400Z",
+    "externalReference": "pedido-12345",
+    "metadata": {
+      "orderId": "ORDER-12345",
+      "customerId": "CUST-67890"
+    }
+  }
+}
+```
+
+<Note>
+**退款中 `netAmount` 的约定**：表示事件的收款方（最终客户）实际收到的金额——即退款的全额。退款手续费从商户余额中单独扣除。商户为该笔退款承担的总成本为 `amount + feeAmount`。
+</Note>
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `refundTransactionId` | string | 退款交易的唯一 ID |
+| `originalTransactionId` | string | 被退款的原始交易 ID |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 退款金额 |
+| `feeAmount` | number | 向商户收取的退款手续费 |
+| `netAmount` | number | 最终客户收到的净额（等于 `amount`） |
+| `currency` | string | 货币（BRL） |
+| `paymentMethod` | string | 原始交易的支付方式 |
+| `status` | string | 退款状态（completed） |
+| `refundedAt` | string | 退款的日期/时间，ISO 8601 格式 |
+| `externalReference` | string | 原始支付的外部参考（可选） |
+| `metadata` | object | 原始支付的自定义元数据（可选） |
+
+### withdrawal_completed
+
+提现成功处理时发送。
+
+```json
+{
+  "event": "withdrawal_completed",
+  "eventId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+  "timestamp": "2026-01-11T19:08:21.953Z",
+  "data": {
+    "withdrawalId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "projectId": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "environment": "sandbox",
+    "amount": 500.00,
+    "feeAmount": 2.50,
+    "netAmount": 497.50,
+    "currency": "BRL",
+    "status": "completed",
+    "completedAt": "2026-01-11T19:08:21.939Z",
+    "externalReference": "saque-empresa-001",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "João da Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `withdrawalId` | string | 提现的唯一 ID |
+| `projectId` | string | 提现所属的项目 ID（创建时未提供且账户有 2 个及以上项目时为 null） |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 提现金额 |
+| `feeAmount` | number | 提现手续费 |
+| `netAmount` | number | 实际转出的净额 |
+| `currency` | string | 货币（BRL） |
+| `status` | string | 提现状态（completed） |
+| `completedAt` | string | 完成的日期/时间，ISO 8601 格式 |
+| `externalReference` | string | 创建提现时发送的外部参考（可选） |
+| `e2eId` | string | PIX 网络的端到端 ID（可选，PSP 确认后存在） |
+| `counterpartName` | string | 收款银行登记的收款人姓名（可选） |
+| `counterpartDocument` | string | 收款人的 CPF/CNPJ（可选，不带格式符号） |
+| `metadata` | object | 提现的自定义元数据（可选） |
+
+### withdrawal_failed
+
+提现被拒绝或失败时发送。
+
+```json
+{
+  "event": "withdrawal_failed",
+  "eventId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+  "timestamp": "2026-01-11T19:15:42.123Z",
+  "data": {
+    "withdrawalId": "b84f12c3-9a21-4e67-bc88-1d45f6789abc",
+    "projectId": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "environment": "sandbox",
+    "amount": 1000.00,
+    "feeAmount": 5.00,
+    "netAmount": 995.00,
+    "currency": "BRL",
+    "status": "failed",
+    "failedAt": "2026-01-11T19:15:42.100Z",
+    "failureReason": "insufficient_funds",
+    "externalReference": "saque-empresa-001",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D",
+    "counterpartName": "João da Silva",
+    "counterpartDocument": "12345678900",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `withdrawalId` | string | 提现的唯一 ID |
+| `projectId` | string | 提现所属的项目 ID（创建时未提供且账户有 2 个及以上项目时为 null） |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 提现金额 |
+| `feeAmount` | number | 提现手续费 |
+| `netAmount` | number | 原本应转出的净额 |
+| `currency` | string | 货币（BRL） |
+| `status` | string | 提现状态（failed） |
+| `failedAt` | string | 失败的日期/时间，ISO 8601 格式 |
+| `failureReason` | string | 失败原因（insufficient_funds、invalid_account 等） |
+| `externalReference` | string | 创建提现时发送的外部参考（可选） |
+| `e2eId` | string | PIX 网络的端到端 ID（可选，仅当提现已由 PSP 处理时存在） |
+| `counterpartName` | string | 收款银行登记的收款人姓名（可选） |
+| `counterpartDocument` | string | 收款人的 CPF/CNPJ（可选，不带格式符号） |
+| `metadata` | object | 提现的自定义元数据（可选） |
+
+### withdrawal_reversed
+
+提现被 PSP 冲正时发送。
+
+```json
+{
+  "event": "withdrawal_reversed",
+  "eventId": "f12a34b5-6c78-9d01-ef23-456789abcdef",
+  "timestamp": "2026-01-11T20:00:00.000Z",
+  "data": {
+    "reversalTransactionId": "f12a34b5-6c78-9d01-ef23-456789abcdef",
+    "originalTransactionId": "e73775b5-70ee-4bad-be4c-4acff9890e27",
+    "environment": "sandbox",
+    "amount": 500.00,
+    "feeAmount": 0,
+    "netAmount": 500.00,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "reversedAt": "2026-01-11T20:00:00.000Z",
+    "metadata": {
+      "batchId": "BATCH-001"
+    }
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `reversalTransactionId` | string | 冲正交易的唯一 ID |
+| `originalTransactionId` | string | 被冲正的原始提现 ID |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 冲正金额 |
+| `feeAmount` | number | 冲正手续费 |
+| `netAmount` | number | 冲正净额 |
+| `currency` | string | 货币（BRL） |
+| `paymentMethod` | string | 支付方式（pix） |
+| `status` | string | 冲正状态（completed） |
+| `reversedAt` | string | 冲正的日期/时间，ISO 8601 格式 |
+| `externalReference` | string | 原始提现的外部参考（可选） |
+| `metadata` | object | 原始提现的自定义元数据（可选） |
+
+### balance_block_created
+
+余额冻结创建时发送（MED、司法或行政）。
+
+```json
+{
+  "event": "balance_block_created",
+  "eventId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+  "timestamp": "2026-01-11T19:30:00.000Z",
+  "data": {
+    "blockId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "production",
+    "amount": 1500.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-001234",
+    "reason": "Notificação de infração Pix recebida",
+    "status": "awaiting_response",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D"
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `blockId` | string | 冻结的唯一 ID |
+| `transactionId` | string | 被冻结的原始交易 ID |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 冻结金额（雷亚尔） |
+| `currency` | string | 货币（BRL） |
+| `blockType` | string | 冻结类型（`med`、`judicial` 或 `administrative`） |
+| `referenceNumber` | string | 冻结参考编号 |
+| `reason` | string | 冻结原因 |
+| `status` | string | 初始状态（`awaiting_response`） |
+| `createdAt` | string | 创建的日期/时间，ISO 8601 格式 |
+| `externalReference` | string | 原始交易的外部参考（可选） |
+| `e2eId` | string | 原始交易的 PIX 网络端到端 ID（可选） |
+
+### balance_block_approved
+
+余额冻结获批准、金额退回原付款人时发送。
+
+```json
+{
+  "event": "balance_block_approved",
+  "eventId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+  "timestamp": "2026-01-12T14:00:00.000Z",
+  "data": {
+    "blockId": "d4e5f6a7-8b9c-0d1e-2f3a-456789abcdef",
+    "transactionId": "a0b78f10-c7f4-4f5d-98dd-3e36eafeb812",
+    "environment": "production",
+    "amount": 1500.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-001234",
+    "reason": "Notificação de infração Pix recebida",
+    "resolutionReason": "Devolução confirmada pelo BACEN",
+    "status": "approved",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "resolvedAt": "2026-01-12T14:00:00.000Z",
+    "externalReference": "pedido-12345",
+    "e2eId": "E18189547202603160145ZYFfVx3jP8D"
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `blockId` | string | 冻结的唯一 ID |
+| `transactionId` | string | 被冻结的原始交易 ID |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 冻结金额（雷亚尔） |
+| `currency` | string | 货币（BRL） |
+| `blockType` | string | 冻结类型（`med`、`judicial` 或 `administrative`） |
+| `referenceNumber` | string | 冻结参考编号 |
+| `reason` | string | 冻结的原始原因 |
+| `resolutionReason` | string | 处理结果原因（可选） |
+| `status` | string | 冻结状态（`approved`） |
+| `createdAt` | string | 创建的日期/时间，ISO 8601 格式 |
+| `resolvedAt` | string | 处理的日期/时间，ISO 8601 格式 |
+| `externalReference` | string | 原始交易的外部参考（可选） |
+| `e2eId` | string | 原始交易的 PIX 网络端到端 ID（可选） |
+
+### balance_block_rejected
+
+余额冻结被驳回、金额退回商户可用余额时发送。
+
+```json
+{
+  "event": "balance_block_rejected",
+  "eventId": "e5f6a7b8-9c0d-1e2f-3a4b-567890abcdef",
+  "timestamp": "2026-01-12T14:00:00.000Z",
+  "data": {
+    "blockId": "e5f6a7b8-9c0d-1e2f-3a4b-567890abcdef",
+    "transactionId": "b1c89f20-d8e5-5f6a-99ee-4f47eafeb923",
+    "environment": "production",
+    "amount": 250.00,
+    "currency": "BRL",
+    "blockType": "med",
+    "referenceNumber": "MED-2026-005678",
+    "reason": "Notificação de infração Pix recebida",
+    "resolutionReason": "Defesa aceita - transação legítima comprovada",
+    "status": "rejected",
+    "createdAt": "2026-01-11T19:30:00.000Z",
+    "resolvedAt": "2026-01-12T14:00:00.000Z",
+    "externalReference": "pedido-67890",
+    "e2eId": "E4071059520260316020613919677838"
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|-------|------|-----------|
+| `blockId` | string | 冻结的唯一 ID |
+| `transactionId` | string | 被冻结的原始交易 ID |
+| `environment` | string | 环境（`production` 或 `sandbox`） |
+| `amount` | number | 冻结金额（雷亚尔） |
+| `currency` | string | 货币（BRL） |
+| `blockType` | string | 冻结类型（`med`、`judicial` 或 `administrative`） |
+| `referenceNumber` | string | 冻结参考编号 |
+| `reason` | string | 冻结的原始原因 |
+| `resolutionReason` | string | 处理结果原因（可选） |
+| `status` | string | 冻结状态（`rejected`） |
+| `createdAt` | string | 创建的日期/时间，ISO 8601 格式 |
+| `resolvedAt` | string | 处理的日期/时间，ISO 8601 格式 |
+| `externalReference` | string | 原始交易的外部参考（可选） |
+| `e2eId` | string | 原始交易的 PIX 网络端到端 ID（可选） |
+
+## 最佳实践
+
+<AccordionGroup>
+  <Accordion title="快速响应">
+    尽快返回 `200 OK` 状态。如有需要，请异步处理 webhook。
+  </Accordion>
+
+  <Accordion title="实现幂等">
+    使用 `eventId` 避免重复处理同一事件。投递失败时 webhook 可能会被重新发送。
+  </Accordion>
+
+  <Accordion title="使用 HTTPS">
+    端点请仅使用 HTTPS，以确保数据安全。
+  </Accordion>
+</AccordionGroup>
+
+## 重试
+
+如果您的端点未返回 `2xx` 状态，我们将尝试重新发送 webhook：
+
+- **5 次尝试**，采用指数退避
+- 初始间隔：2 秒
+- 最大间隔：两次尝试之间约 30 秒
+
+5 次尝试均未成功后，该 webhook 将被标记为失败。
