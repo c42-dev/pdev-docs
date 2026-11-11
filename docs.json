@@ -207,6 +207,69 @@
             ]
           }
         ]
+      },
+      {
+        "language": "cn",
+        "groups": [
+          {
+            "group": "概览",
+            "pages": [
+              "cn/index",
+              "cn/api-reference/webhooks"
+            ]
+          },
+          {
+            "group": "身份验证",
+            "pages": [
+              "cn/api-reference/auth/token"
+            ]
+          },
+          {
+            "group": "账户",
+            "pages": [
+              "cn/api-reference/account/get"
+            ]
+          },
+          {
+            "group": "PIX",
+            "pages": [
+              "cn/api-reference/pix/create"
+            ]
+          },
+          {
+            "group": "提现",
+            "pages": [
+              "cn/api-reference/withdrawals/create"
+            ]
+          },
+          {
+            "group": "交易",
+            "pages": [
+              "cn/api-reference/transactions/get",
+              "cn/api-reference/transactions/refund"
+            ]
+          },
+          {
+            "group": "余额冻结",
+            "pages": [
+              "cn/api-reference/balance-blocks/list"
+            ]
+          },
+          {
+            "group": "项目",
+            "pages": [
+              "cn/api-reference/projects/create",
+              "cn/api-reference/projects/list"
+            ]
+          },
+          {
+            "group": "子账户",
+            "pages": [
+              "cn/api-reference/sub-accounts/create",
+              "cn/api-reference/sub-accounts/list"
+            ]
+          }
+        ]
       }
     ],
     "global": {

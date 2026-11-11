@@ -1,0 +1,427 @@
+---
+title: '简介'
+description: 'pague.dev API 文档'
+---
+
+## 欢迎
+
+pague.dev API 让您可以在自己的应用中集成支付处理能力。本文档涵盖所有可用端点，用于管理客户、项目、收款、交易和 PIX 支付。
+
+## 基础 URL
+
+所有请求都应发送至：
+
+```
+https://api-gateway.pague.dev/v2
+```
+
+## 身份验证
+
+身份验证分两步完成：先用账户凭证换取一个短期有效的**访问令牌（access token）**，然后在每个请求的 `Authorization` 请求头中发送该令牌。
+
+### 1. 获取凭证
+
+在 Dashboard 中创建一个 API 凭证。它由 `client_id` 和 `client_secret` 组成：
+
+- `mp_live_*` —— **生产环境**凭证
+- `mp_test_*` —— **沙箱环境**凭证
+
+<Warning>
+  `client_secret` **仅显示一次**，即在创建时显示。请妥善保管。
+</Warning>
+
+### 2. 生成访问令牌
+
+在[身份验证](/cn/api-reference/auth/token)端点用凭证换取令牌：
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/auth \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "client_id": "mp_live_abc123...",
+    "client_secret": "your_client_secret"
+  }'
+```
+
+```json 响应
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 300
+}
+```
+
+凭证无效或已吊销时返回 `401 {"error": "Unauthorized", "message": "Invalid credentials"}`。
+
+### 3. 在请求中使用令牌
+
+在 `Authorization` 请求头中发送令牌：
+
+```bash
+curl https://api-gateway.pague.dev/v2/account \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...'
+```
+
+<Note>
+  令牌在 **300 秒（5 分钟）** 后过期。过期后请在 `/auth` 重新生成令牌——不提供 refresh token。
+</Note>
+
+## 权限
+
+每个凭证都拥有细粒度的权限，决定它可以访问哪些端点。权限在创建凭证时分配。
+
+### 可用权限
+
+| 权限 | 说明 |
+|---|---|
+| `FULL_ACCESS` | 对 API 所有端点的完全访问权限 |
+| `PIX:WRITE` | 创建 PIX 收款 |
+| `PROJECT:WRITE` | 创建项目 |
+| `PROJECT:READ` | 列出和查询项目 |
+| `TRANSACTION:READ` | 查询交易 |
+| `WITHDRAWAL:WRITE` | 创建 PIX 提现 |
+| `METRICS:READ` | 获取收入指标 |
+| `ACCOUNT:READ` | 查看账户数据和余额 |
+| `SUBACCOUNT:WRITE` | 创建子账户 |
+| `SUBACCOUNT:READ` | 列出子账户 |
+
+<Note>
+  `FULL_ACCESS` 权限授予对所有端点的访问，相当于拥有上面列出的全部权限。
+
+  **例外：子账户访问不是权限。** `FULL_ACCESS` 涵盖 `/sub-accounts` 的端点（创建和列出钱包），但**不会**开放 `X-Sub-Account` 请求头——那是凭证上的一个独立字段。参见[子账户](/cn#子账户)。
+</Note>
+
+### IP 限制
+
+您可以选择将凭证限制在一个允许的 IP 列表内。配置该列表后，来自列表之外 IP 的请求将以 `403 Forbidden` 错误被拒绝。
+
+我们建议为拥有敏感权限（如 `FULL_ACCESS` 和 `WITHDRAWAL:WRITE`）的凭证配置 IP 限制。
+
+## 子账户
+
+一个账户可以拥有子账户：即**余额完全独立**于主账户余额的子钱包。每个子账户由您自行选定的 `reference` 标识。
+
+子账户和[分账](/cn#支付分账)在**两个环境**中均可使用：`mp_test_*` 凭证在沙箱中创建和操作钱包，与 `mp_live_*` 凭证在生产环境中的行为一致。
+
+要在某个子账户上操作，请发送 `X-Sub-Account` 请求头，值为该子账户的 `reference`：
+
+```bash
+curl https://api-gateway.pague.dev/v2/account \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro'
+```
+
+该请求头是**可选的**，除 `/auth` 和 `/sub-accounts` 自身的端点外，所有端点都接受它——创建和列出子账户始终在主账户上进行。带上该请求头时，整个操作都在子账户上进行——创建收款、查询交易、创建提现、查询余额。不带时，操作在主账户上进行。`X-Sub-Account: principal` 同样解析为主账户，等同于省略该请求头。
+
+<Note>
+  `reference` 由您在创建子账户时定义，且**不可更改**。它必须匹配 `^[a-z0-9][a-z0-9_-]{1,31}$`：2 到 32 个字符，仅限小写字母、数字、`-` 和 `_`，并以小写字母或数字开头。
+
+  `principal` 是**保留字**：它在 `split` 和 `X-Sub-Account` 请求头中标识主账户，因此任何子账户都不能使用这个 `reference` 创建。
+</Note>
+
+### 沙箱中的子账户
+
+`X-Sub-Account` 请求头、`split`、保留字 `principal` 以及内部转账在沙箱中的行为与生产环境完全一致。
+
+**同一个 `reference` 可以同时存在于两个环境。** 沙箱账户和生产账户是两个不同的账户，因此沙箱中的 `loja-centro` 与生产环境中的 `loja-centro` 可以共存而不冲突。正因如此，**同一份请求体可以在两个环境中运行**：您用 `mp_test_*` 测试，把密钥换成 `mp_live_*`，无需改动一行代码即可上线生产。
+
+<Note>
+  **两棵账户树相互隔离。** `mp_test_*` 凭证只能看到沙箱树中的钱包；`mp_live_*` 凭证只能看到生产环境的钱包。
+
+  这同样适用于 `split`：从沙箱钱包分账到生产钱包会被拒绝，因为在该上下文中生产钱包并不存在。返回的错误同样是 `Subconta 'X' não existe nesta conta ou não está ativa`。
+</Note>
+
+**钱包需要在每个环境中分别创建。** 在生产环境创建 `loja-centro` 并不会让它出现在沙箱中——这是有意设计的两份独立记录。
+
+**两个环境的手续费相同**，这是有意为之：沙箱钱包继承生产账户的手续费，正是为了让分账上限（是净额而非总额）的表现保持一致。在沙箱中能通过的分账，在生产环境中也能通过。一个沙箱钱包发起 R$ 20,00 的收款并分出 R$ 1,00，最终发起方入账 **+R$ 18,80**，目标方入账 **+R$ 1,00**，手续费为 R$ 0,20——与生产环境的数字相同。
+
+### 内部转账
+
+子账户创建时**余额为零**。内部转账是您为新钱包注入资金的方式——也是之后把余额退回主账户的方式。
+
+它在**同一持有人名下**的账户之间划转余额：从主账户到某个钱包、从某个钱包到主账户，或在同级钱包之间。这不是 PIX，也不是提现——只是换个口袋。资金从一个账户转出、进入另一个账户，在**两边**的账单中都会出现，账户的总余额不变。
+
+<Note>
+  **公开 API 中没有内部转账端点。** 该操作在 Dashboard 的钱包页面中完成。不必寻找对应的路由：它不属于本接口约定的一部分。
+</Note>
+
+转账前需要了解：
+
+- **仅限同一持有人名下。** 这里不支持向第三方账户转账——那属于 PIX，对应的途径是[创建 PIX 提现](/cn/api-reference/withdrawals/create)。
+- **上限是转出方的可支配余额**，而非可用余额总额：即可用余额减去尚未结清的退款欠款，与提现采用的标准相同。
+- **无法撤销。** 转错的转账只能通过反向转账来纠正。
+
+在账单中，每笔转账会生成**两行** `internal_transfer` 类型的记录——转出方一笔支出（负数金额），转入方一笔收入（正数金额）。这与[分账](/cn#支付分账)明细的类型相同：两种情况下，`GET /transactions/{id}` 都返回 `type: internal_transfer`。
+
+### 子账户的限额
+
+默认情况下，**钱包与主账户共用同一份限额额度**。所有通过 API 或控制台创建的子账户都是如此：所有钱包的用量累加后计入持有人的同一个上限。
+
+<Warning>
+  **创建钱包不会让您的限额成倍增加。** 由于额度只有一份，某个钱包中的收款可能**因为同一账户下另一个钱包的交易量**而被限额拒绝——甚至是您的代码在该次请求中根本没有触及的钱包。这是预期行为，并非隔离失效。
+</Warning>
+
+平台可以视具体情况为某个钱包分配**独立**额度，将它的用量与账户其余部分分开。这由平台决定：商户无法自行配置，没有对应端点，也不是自助功能——如果您的业务需要，请联系客服。
+
+**沙箱中没有限额**：这里描述的共享上限只在生产环境中生效。这并非钱包特有——任何沙箱操作都是如此——所以请不要根据测试结果认为共享额度已经消失。
+
+请不要与下表中的 `SUB_ACCOUNT_QUOTA_EXCEEDED` 混淆：那是账户可以拥有**多少个**钱包的上限，与交易金额无关。
+
+### 子账户错误
+
+| HTTP | 错误码 | 触发场景 |
+|---|---|---|
+| 404 | `SUB_ACCOUNT_NOT_FOUND` | 提供的 `reference` 在本账户中不存在 |
+| 403 | `SUB_ACCOUNT_FORBIDDEN` | 凭证无权操作该子账户 |
+| 403 | `SUB_ACCOUNT_SUSPENDED` | 子账户已被暂停 |
+| 409 | `SUB_ACCOUNT_QUOTA_EXCEEDED` | 已达到账户的子账户数量上限 |
+| 409 | `SUB_ACCOUNT_REFERENCE_TAKEN` | 该 `reference` 已在本账户中使用 |
+| 400 | `SUB_ACCOUNT_INVALID_REFERENCE` | 创建时请求的 `reference` 为 `principal`，即主账户的保留字 |
+
+对钱包的访问由两样不同的东西控制，它们的失败方式也不同：
+
+- **凭证的权限**适用于 `/sub-accounts` 的端点：列出需要 `SUBACCOUNT:READ`，创建需要 `SUBACCOUNT:WRITE`。缺少权限时，响应为 `403 Insufficient permissions. Required: SUBACCOUNT:READ`。
+- **凭证的作用范围**适用于在钱包*内部*操作：由它决定该凭证可以通过 `X-Sub-Account` 请求头和 `split` 触达哪些钱包，返回 `SUB_ACCOUNT_FORBIDDEN` 的也是它。
+
+因此，带 `X-Sub-Account` 和 `split` 创建收款只需要 `PIX:WRITE`：`SUBACCOUNT:*` 权限管理的是钱包的登记，而不是钱包的使用。
+
+<Warning>
+**作用范围默认关闭，任何权限都无法替代它。** 新创建的凭证——包括拥有完全访问权限的凭证——只要作用范围仍为“无访问”，第一次携带 `X-Sub-Account` 的请求就会收到 `403 SUB_ACCOUNT_FORBIDDEN`。请在 **设置 → 集成 → API 凭证** 的 **子账户访问** 字段中开启（立即生效，对已签发的令牌同样生效）。这是有意设计的：否则，在第一个钱包创建的当天，所有已存在的凭证都会立刻能够触达整棵账户树。
+</Warning>
+
+子账户通过[创建子账户](/cn/api-reference/sub-accounts/create)创建，通过[查询子账户列表](/cn/api-reference/sub-accounts/list)列出。在 webhook 中，`subAccount` 字段指明事件属于哪个钱包——参见 [Webhooks](/cn/api-reference/webhooks)。
+
+## 支付分账
+
+一笔 PIX 收款可以将收到的部分金额分给同一账户下的其他钱包——子账户或主账户本身。在[创建收款](/cn/api-reference/pix/create)时发送可选字段 `split`：
+
+```json
+{
+  "amount": 100.00,
+  "description": "Pedido 4821",
+  "split": [
+    { "subAccount": "loja-centro", "amount": 30.00 },
+    { "subAccount": "loja-sul", "amount": 20.00 }
+  ]
+}
+```
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `split` | array | 可选。最多 **10** 项 |
+| `split[].subAccount` | string | 接收分账的子账户的 `reference`，或用 `principal` 表示主账户 |
+| `split[].amount` | number | 分给该钱包的金额（雷亚尔）——最小 `0.01`，最多 2 位小数 |
+
+金额为**固定值，以雷亚尔计**：不支持按百分比分账。创建接口的响应会原样回显被接受的 `split`，格式相同，同样以雷亚尔计——只要它出现在响应中，就说明子账户存在且总和未超限。校验发生在收款生成**之前**：无效的 `split` 返回 `400`，且不会创建任何收款。
+
+### 创建收款的一方即为发起方
+
+发起方是创建收款的账户——或 `X-Sub-Account` 请求头指定的子账户。由它收取**总额**、支付**全部手续费**，然后才把剩余部分分出去。
+
+手续费**不会**在各接收方之间**分摊**。`split` 中的每个子账户收到的正是您指定的 `amount`，没有任何扣减。
+
+### 分账上限是净额，而非总额
+
+可分出的最大金额是收款金额**减去手续费**。
+
+对于一笔 **R$ 100,00**、手续费 **R$ 1,49** 的收款，净额为 **R$ 98,51**——这就是上限。总和为 R$ 98,51 的 `split` 会被接受（发起方剩余为零）。总和为 **R$ 99,00** 的 `split` 会被拒绝，即使它小于收款的 R$ 100,00：
+
+```json 400 响应
+{
+  "statusCode": 400,
+  "error": "DomainError",
+  "message": "A soma do split (R$ 99.00) excede o líquido da cobrança (R$ 98.51 — bruto R$ 100.00 menos taxa de R$ 1.49)",
+  "timestamp": "2026-01-11T19:03:28.280Z"
+}
+```
+
+采用的手续费是发起收款的账户针对 PIX 方式的手续费。
+
+<Warning>
+  **退款和 MED 只影响发起方。** 收到分账的一方**永远不会**被扣款：不存在连锁退款，也不会追回已经分出的金额。针对该收款的退款、拒付或 MED 冻结只从发起它的账户扣款。
+
+  其后果需要您自行管理：如果您分出了 100% 的净额而交易被退款，发起方将承担全部损失——扣款还可能使其余额变为负数。在发起方保留一定余量是集成方的决定，而不是系统的决定。
+</Warning>
+
+### 分账在结算时执行
+
+创建收款**不会划转任何资金**。`split` 记录在收款上，只有在支付确认时才会执行——此时金额才从发起方余额转出并进入目标钱包。已过期或从未支付的收款不会产生分账。
+
+<Note>
+  账户的手续费可能在创建收款与支付之间发生变化。如果在结算时 `split` 的总和已超出净额，各笔分账将**按您发送的顺序**依次执行，直到净额用完：最后一笔可能被减少，或不执行。结算绝不会因此失败——请按优先级排列数组，并以 webhook [`payment_completed`](/cn/api-reference/webhooks) 中的 `split` 为准进行对账，其中包含实际分配的金额。
+</Note>
+
+### 仅限同一账户下的钱包
+
+`subAccount` 接受**同一账户下活动**子账户的 `reference`，或保留字 `principal`。本 API 不支持向持有人之外的账户分账。
+
+### 分账回主账户
+
+`principal` 是唯一一个不属于任何子账户 `reference` 的词：它将**主账户**指定为分账目标。它用于与本节其余内容相反的方向——收款由子账户发起，部分净额回到主账户：
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 20.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "principal", "amount": 5.00 }
+    ]
+  }'
+```
+
+手续费为 R$ 0,20 时，结果是：`loja-centro` 留下 **R$ 14,80**（R$ 20,00 减去 R$ 0,20 手续费再减去 R$ 5,00 分账），主账户收到 **R$ 5,00**。发起方仍然是 `loja-centro`——由它支付全部手续费，主账户与其他任何接收方一样，收到不含扣减的分账金额。
+
+响应中的回显和 webhook 中的 `split` 都带有 `"subAccount": "principal"`，与其他钱包一致。
+
+<Note>
+  **由主账户发起**的收款不能分账给 `principal`——那等于分账给自己，而未分出的部分本来就留在主账户中。这种情况返回 `400`。
+</Note>
+
+如需在支付之外的场景中在钱包之间划转余额，请使用[内部转账](/cn#内部转账)——这是一个显式操作，不依附于某笔收款的结算。
+
+### 从子账户发起分账
+
+`X-Sub-Account` 请求头和 `split` 字段回答的是不同的问题，并且可以**一起**使用：请求头说明**谁发起**收款，`split` 说明**部分净额分给谁**。
+
+子账户可以发起一笔收款并与同级子账户分账。这种情况下主账户不受影响——既不收款，也不支付任何手续费：
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'X-Sub-Account: loja-centro' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 100.00,
+    "description": "Pedido 4821",
+    "split": [
+      { "subAccount": "loja-sul", "amount": 20.00 }
+    ]
+  }'
+```
+
+`loja-centro` 是发起方：收到 R$ 100,00，支付手续费，并将 R$ 20,00 转给 `loja-sul`。子账户不能与自己分账。
+
+### 分账错误
+
+全部返回 `400`：
+
+| 消息 | 触发场景 |
+|---|---|
+| `Subconta 'X' não existe nesta conta ou não está ativa` | 该 `reference` 不是本账户下的活动子账户。指向其他持有人的子账户或另一个环境的钱包时也是这个错误——如需指向主账户，请使用 `principal` |
+| `Subconta 'X' aparece duas vezes no split` | 同一个 `reference` 出现在两个条目中——请将金额合并为一个条目 |
+| `A soma do split (R$ Y) excede o líquido da cobrança (R$ Z — bruto R$ A menos taxa de R$ B)` | 分账总和超出了收款的净额 |
+| `A conta que origina a cobrança não pode receber rateio de si mesma` | `X-Sub-Account` 请求头中的子账户同时出现在 `split` 中 |
+| `Esta cobrança já foi criada pela conta principal — o que não for rateado fica nela. Use 'principal' no split apenas quando a cobrança for originada por uma subconta (header X-Sub-Account)` | 收款由主账户创建，而 `split` 中包含 `principal` |
+| `split must contain no more than 10 elements` | 数组超过 10 项 |
+| `split.0.amount must not be less than 0.01` | 某一项的 `amount` 低于 `0.01`——索引指明是哪一项 |
+
+### 在账单中
+
+结算时，每一笔分账会生成**两行** `internal_transfer` 类型的记录，两者都通过 `parentTransactionId` 关联到该收款：
+
+- 发起方的一笔**支出**——`Split enviado para loja-centro`，目标为 `principal` 时则是 `Split enviado para a conta principal`
+- 接收钱包的一笔**收入**——`Split recebido do pagamento {收款 ID}`
+
+两者都是真实的交易：[查询交易](/cn/api-reference/transactions/get)会为每一笔返回 `type: internal_transfer`。`parentTransactionId` 是账单层面的关联，不属于公开响应的一部分。
+
+## 机构选择
+
+每一笔 PIX 收款都由与您账户关联的机构之一签发。默认情况下，由控制台中配置的**路由**决定——固定顺序、按比例分配或自动。
+
+如果您的账户已启用**机构选择**，您可以按收款逐笔决定，在[创建收款](/cn/api-reference/pix/create)时发送 `pspCredentialId`：
+
+```bash
+curl -X POST https://api-gateway.pague.dev/v2/pix \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIs...' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "amount": 100.00,
+    "description": "Pedido 4821",
+    "pspCredentialId": "6e307aa4-4772-4230-a648-d88cee308f54"
+  }'
+```
+
+不带该字段时，一切照旧：已配置的路由继续生效，并带有故障转移。
+
+### 在哪里找到 ID
+
+在控制台的 **设置 → 路由** 中。每个机构在数据下方显示其 ID，并附有复制按钮。
+
+把它放在那里而不是单独的列表中是有意为之：在同一行您可以看到最近 6 小时的转化率、7 天和 30 天的汇总，以及该机构是否正常响应。不看这些数据就选择机构，无异于盲选。
+
+该 ID 是**稳定的**：重新排列机构顺序、切换模式或停用其他机构时，它都不会改变。
+
+### 指定不等于优先
+
+当您发送 `pspCredentialId` 时，收款要么通过该机构签发，**要么不签发**。不存在回退：
+
+| 情况 | 响应 |
+|---|---|
+| 机构不可用（超时、基础设施错误、凭证被拒） | `500` —— `Payment service temporarily unavailable` |
+| 机构在当前周期内没有出款容量 | `400` —— `reason: out_capacity_exhausted` |
+
+两种情况下，收款都不会在其他机构创建。
+
+这是有意设计的。回退到其他机构会让二维码在您没有指定的地方生成，而您只有核对响应才会发现——这比直接失败更糟，尤其是对于出于对账、限额或合同原因而指定机构的用户。如果您看重转化率胜过可预测性，就不应发送该字段：带故障转移的路由正是为此而存在。
+
+### 响应中的回执
+
+指定了机构后，响应会回显 `pspCredentialId`，其值为实际签发的机构——请在对账时使用。请求中不带该字段时，响应中也不会返回。
+
+```json 201 响应
+{
+  "id": "e3b0c442-98fc-1c14-9afb-f4c8996fb924",
+  "status": "pending",
+  "amount": 100.00,
+  "pixCopyPaste": "00020126580014br.gov.bcb.pix...",
+  "pspCredentialId": "6e307aa4-4772-4230-a648-d88cee308f54",
+  "expiresAt": "2026-08-22T18:00:00.000Z"
+}
+```
+
+### 机构选择错误
+
+全部为 `400`，错误码位于 `reason`：
+
+| `reason` | 触发场景 |
+|---|---|
+| `self_routing_disabled` | 账户未启用机构选择——请联系客服 |
+| `credential_not_linked` | `pspCredentialId` 不是本账户的 PIX 机构 |
+| `credential_not_enabled` | 该机构存在于账户中，但已停用收款 |
+| `credential_inactive` | 该机构当前处于非活动状态 |
+
+校验发生在对机构发起任何调用**之前**：在这里被拒绝绝不会留下悬而未决的收款。
+
+<Note>
+机构选择仅适用于 **PIX 收款**。提现仍通过为提现指定的机构出款——那里由我们选择，因为支付手续费和退回款项的也是同一机构。
+</Note>
+
+## 可用资源
+
+<CardGroup cols={2}>
+  <Card title="PIX" icon="qrcode" href="/cn/api-reference/pix/create">
+    创建 PIX 收款
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/cn/api-reference/webhooks">
+    接收事件通知
+  </Card>
+  <Card title="项目" icon="folder" href="/cn/api-reference/projects/create">
+    按项目组织支付
+  </Card>
+  <Card title="提现" icon="money-bill-transfer" href="/cn/api-reference/withdrawals/create">
+    创建 PIX 提现
+  </Card>
+  <Card title="交易" icon="receipt" href="/cn/api-reference/transactions/get">
+    查看交易详情
+  </Card>
+  <Card title="账户" icon="building" href="/cn/api-reference/account/get">
+    查询账户数据和余额
+  </Card>
+  <Card title="子账户" icon="sitemap" href="/cn/api-reference/sub-accounts/create">
+    拥有独立余额的子钱包
+  </Card>
+</CardGroup>
