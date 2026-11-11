@@ -8,3 +8,14 @@ openapi: '/openapi.json POST /withdrawals'
 
 Erros de validação (saldo insuficiente, limite excedido, dados inválidos) retornam erro na própria chamada.
 </Note>
+
+## Fila de envio
+
+Depois de aceito, o saque entra numa fila de envio à instituição de pagamento. Na maior parte do tempo o envio é imediato; em picos de volume pode levar de segundos a minutos, e o saque permanece em `processing` enquanto espera.
+
+- **Ordem de chegada.** Os saques são enviados na ordem em que foram criados.
+- **Chave inexistente custa caro.** Cada saque consulta a chave PIX de destino no DICT, e o Banco Central limita essas consultas — uma consulta a chave que não existe consome muito mais do limite do que uma bem-sucedida. Quando uma conta acumula recusas por chave inexistente ou inválida, os próximos saques dela perdem prioridade na fila e esperam mais. Valide as chaves antes de enviar e não use o saque para testar se uma chave existe.
+- **Bloqueio de consulta de chaves.** Se a instituição sinalizar que o limite de consultas foi atingido, os saques ainda não enviados aguardam na fila até a liberação. Os que já tinham sido enviados podem voltar como `withdrawal_failed`, com o valor devolvido ao saldo.
+- **Prazo máximo.** Um saque que não consiga ser enviado em até 6 horas falha (`withdrawal_failed`) e o valor reservado volta para o saldo.
+
+Em todos os casos o desfecho chega por webhook.
