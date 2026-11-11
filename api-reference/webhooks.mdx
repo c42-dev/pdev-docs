@@ -183,7 +183,39 @@ Para conciliar com o extrato da carteira, use sempre o valor que vem no webhook 
 | `e2eId` | string | ID fim-a-fim da rede PIX (opcional, presente quando disponível) |
 | `counterpartName` | string | Nome do pagador conforme retornado pelo PSP (opcional) |
 | `counterpartDocument` | string | CPF/CNPJ do pagador conforme retornado pelo PSP (opcional, sem máscara) |
+| `pixKey` | string | Chave PIX que recebeu o valor, no formato informado pela instituição (opcional — presente apenas em recebimento direto na chave, descrito abaixo) |
 | `metadata` | object | Metadados customizados enviados na criação do pagamento (opcional) |
+
+#### Recebimento direto na chave
+
+Quando a sua conta tem uma chave PIX habilitada para recebimento direto, um PIX enviado para essa chave **sem cobrança criada** também gera `payment_completed`. Como não houve cobrança, o evento vem sem `externalReference` e sem `metadata`, e o campo `pixKey` informa qual chave recebeu:
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "4a8d4051-6d0e-4a52-9d63-0c1c3f6a7b21",
+  "timestamp": "2026-11-11T14:07:31.412Z",
+  "data": {
+    "transactionId": "4a8d4051-6d0e-4a52-9d63-0c1c3f6a7b21",
+    "environment": "production",
+    "amount": 1.00,
+    "feeAmount": 0.20,
+    "netAmount": 0.80,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "completedAt": "2026-11-11T14:07:31.398Z",
+    "e2eId": "E18236120202611111407s14f5fc500e",
+    "counterpartName": "Maria Silva",
+    "counterpartDocument": "12345678900",
+    "pixKey": "31d6c1b0-3168-43da-a25c-82c8a6c0bb43"
+  }
+}
+```
+
+<Note>
+O valor entra no saldo como qualquer pagamento confirmado, com a taxa de PIX da conta. Para conciliar, use o `e2eId` (único por PIX) e o `pixKey`; compare a chave sem diferenciar maiúsculas de minúsculas. A habilitação de uma chave para recebimento direto é feita pelo nosso time — fale com o suporte.
+</Note>
 
 ### payment_expired
 

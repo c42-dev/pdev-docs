@@ -183,7 +183,39 @@ To reconcile against the wallet statement, always use the value that comes in th
 | `e2eId` | string | PIX network end-to-end ID (optional, present when available) |
 | `counterpartName` | string | Payer name as returned by the PSP (optional) |
 | `counterpartDocument` | string | Payer CPF/CNPJ as returned by the PSP (optional, unmasked) |
+| `pixKey` | string | PIX key that received the funds, in the format reported by the institution (optional — present only for direct receipt on a key, described below) |
 | `metadata` | object | Custom metadata sent when the payment was created (optional) |
+
+#### Direct receipt on a key
+
+When your account has a PIX key enabled for direct receipt, a PIX sent to that key **without a charge having been created** also triggers `payment_completed`. Since there was no charge, the event has no `externalReference` and no `metadata`, and the `pixKey` field tells you which key received it:
+
+```json
+{
+  "event": "payment_completed",
+  "eventId": "4a8d4051-6d0e-4a52-9d63-0c1c3f6a7b21",
+  "timestamp": "2026-11-11T14:07:31.412Z",
+  "data": {
+    "transactionId": "4a8d4051-6d0e-4a52-9d63-0c1c3f6a7b21",
+    "environment": "production",
+    "amount": 1.00,
+    "feeAmount": 0.20,
+    "netAmount": 0.80,
+    "currency": "BRL",
+    "paymentMethod": "pix",
+    "status": "completed",
+    "completedAt": "2026-11-11T14:07:31.398Z",
+    "e2eId": "E18236120202611111407s14f5fc500e",
+    "counterpartName": "Maria Silva",
+    "counterpartDocument": "12345678900",
+    "pixKey": "31d6c1b0-3168-43da-a25c-82c8a6c0bb43"
+  }
+}
+```
+
+<Note>
+The amount is credited to your balance like any confirmed payment, with the account's PIX fee. To reconcile, use `e2eId` (unique per PIX) and `pixKey`; compare the key case-insensitively. Enabling a key for direct receipt is done by our team — contact support.
+</Note>
 
 ### payment_expired
 

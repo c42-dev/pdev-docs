@@ -8,3 +8,14 @@ openapi: '/openapi.en.json POST /withdrawals'
 
 Validation errors (insufficient balance, limit exceeded, invalid data) return an error in the call itself.
 </Note>
+
+## Dispatch queue
+
+Once accepted, the withdrawal enters a queue to be sent to the payment institution. Most of the time it is sent immediately; during volume peaks it can take from seconds to minutes, and the withdrawal stays in `processing` while it waits.
+
+- **First come, first served.** Withdrawals are sent in the order they were created.
+- **Nonexistent keys are expensive.** Every withdrawal looks up the destination PIX key in DICT, and the Central Bank limits those lookups — a lookup for a key that does not exist consumes far more of the limit than a successful one. When an account accumulates refusals for nonexistent or invalid keys, its next withdrawals lose priority in the queue and wait longer. Validate keys before sending and do not use withdrawals to test whether a key exists.
+- **Key lookup block.** If the institution signals that the lookup limit has been reached, withdrawals not yet sent wait in the queue until it is lifted. Those already sent may come back as `withdrawal_failed`, with the amount returned to your balance.
+- **Maximum wait.** A withdrawal that cannot be sent within 6 hours fails (`withdrawal_failed`) and the reserved amount returns to your balance.
+
+In every case the outcome arrives by webhook.
